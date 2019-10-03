@@ -23,6 +23,69 @@ PID::~PID()
 }//~PID
 
 
+void PID::SetBichsel(TH1* hist, Int_t color, Float_t xMin, Float_t xMax, Int_t width){
+	hist->Scale(1000000);
+	hist->SetLineColor(color);	
+	hist->SetLineWidth(width);
+	hist->SetAxisRange(xMin,xMax);
+	hist->Smooth();
+}
+
+void PID::DrawBichsel(){
+	TFile* bichsel = new TFile("/home/truhlar/Desktop/STAR/CEP/Analysis/Data/bichselP.root" ,"r");	
+
+	TH1D* hBichselPion = (TH1D*)bichsel -> Get("h_pi_70M");
+	TH1D* hBichselKaon = (TH1D*)bichsel -> Get("h_k_70M");
+	TH1D* hBichselProton = (TH1D*)bichsel -> Get("h_p_70M");
+	TH1D* hBichselDeuteron = (TH1D*)bichsel -> Get("h_d_70M");
+
+	TH1D* hBichselPionNegative = new TH1D("hBichselPionNegative", "h1", 1500, -14.5,0);
+	TH1D* hBichselKaonNegative = new TH1D("hBichselKaonNegative", "h2", 1500, -14.5,0);
+	TH1D* hBichselProtonNegative = new TH1D("hBichselProtonNegative", "h3", 1500, -14.5,0);
+	TH1D* hBichselDeuteronNegative = new TH1D("hBichselDeuteronNegative", "h4", 1500, -14.5,0);
+	for(int i = 1; i < 1500; i++){
+		hBichselPionNegative->SetBinContent(i,hBichselPion->GetBinContent(1500-i));
+		hBichselKaonNegative->SetBinContent(i,hBichselKaon->GetBinContent(1500-i));
+		hBichselProtonNegative->SetBinContent(i,hBichselProton->GetBinContent(1500-i));
+		hBichselDeuteronNegative->SetBinContent(i,hBichselDeuteron->GetBinContent(1500-i));
+	}
+
+	SetBichsel(hBichselPion,kBlack,0.09,3);
+	hBichselPion->Draw("c SAME");
+
+	SetBichsel(hBichselKaon,kRed,0.2,3);
+	hBichselKaon->Draw("c SAME");
+
+	SetBichsel(hBichselProton,kCyan,0.31,3);
+	hBichselProton->Draw("c SAME");
+
+	SetBichsel(hBichselDeuteron,kGreen,0.615,3);
+	hBichselDeuteron->Draw("c SAME");
+
+	SetBichsel(hBichselPionNegative,kBlack,-3,-0.095);
+	hBichselPionNegative->Draw("c SAME");
+
+	SetBichsel(hBichselKaonNegative,kRed,-3,-0.25);
+	hBichselKaonNegative->Draw("c SAME");
+
+	SetBichsel(hBichselProtonNegative,kCyan,-3,-0.315);
+	hBichselProtonNegative->Draw("c SAME");
+
+	SetBichsel(hBichselDeuteronNegative,kGreen,-3,-0.62);
+   hBichselDeuteronNegative->Draw("c SAME");
+
+   Plot tool;
+   TLegend *leg = new TLegend(0.68,0.7,0.8,0.95);
+   tool.SetLegendStyle(leg);
+	leg->AddEntry(hBichselPion,"Pion","l");
+	leg->AddEntry(hBichselKaon,"Kaon","l");
+	leg->AddEntry(hBichselProton,"Proton","l");
+	leg->AddEntry(hBichselDeuteron,"Deuteron","l");
+	leg->Draw();
+
+   fout->cd();
+}
+
 //_____________________________________________________________________________
 void PID::PlotHistogram(){
 
@@ -192,6 +255,13 @@ void PID::PlotHistogram(){
 	cCanvas2D->Update();
 	cCanvas2D->SaveAs( output + "PID/" + variable + "Vs" + variable2 + ".png");
 	cCanvas2D->Write(variable + "Vs" + variable2);
+ 	////// Plot Bichsel////////////
+	DrawBichsel();
+	tool.DrawText(tmp2DHist,0,true,0.08,0.78,0.25,0.9,12);
+	tool.DrawTextStar(tmp2DHist);
+	cCanvas2D->Update();
+	cCanvas2D->SaveAs( output + "PID/" + variable + "wBichsel" + ".png");
+	cCanvas2D->Write(variable + "wBichsel");
 /////////////////////////////////////////////////////
 	TString particleID[] = {"Pion","Kaon","Proton"};
 

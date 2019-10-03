@@ -42,6 +42,8 @@ public:
 	~PID();
 
 	void PlotHistogram();
+	void SetBichsel(TH1* hist, Int_t color = 1, Float_t xMin = 0.2, Float_t xMax = 6, Int_t width = 4);
+	void DrawBichsel();
 
 	bool TEXT;
 
