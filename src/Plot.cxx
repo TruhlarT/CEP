@@ -47,28 +47,62 @@ void Plot::SetMarkerStyle(TH1* hist, Int_t markColor, Int_t markStyle, Int_t mar
 
 }//SetGraphStyle
 
-void Plot::DrawText(TH1* hist, Bool_t pair, Float_t xMin, Float_t yMin, Float_t xMax, Float_t yMax){
+void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t yMin, Float_t xMax, Float_t yMax, Int_t align){
+	TString centralState;
+	switch(state){
+		case 0:
+			centralState = "X";
+			xMax+=0.02;
+			xMin+=0.02;
+			break;
+		case 1:
+			centralState = "#pi^{+} + #pi^{-}";
+			break;
+		case 2:
+			centralState = "K^{+} + K^{-}";
+			break;
+		case 3:
+			centralState = "p + #bar{p}";
+			break;
+	}
 	TPaveText *textPub = new TPaveText(xMin,yMin,xMax,yMax,"brNDC");
 	textPub -> SetTextSize(siz-0.005);
+	textPub -> SetTextAlign(align);
 	textPub -> SetFillColor(0);
 	textPub -> SetTextFont(font);
-	textPub -> AddText("p + p #rightarrow p' + #pi^{+} + #pi^{-} + p'");
+	textPub -> AddText("p + p #rightarrow p' + " + centralState +" + p'");
 	textPub -> AddText("#sqrt{s} = 510 GeV");
 	int NentriesEl = hist->GetEntries();
-	TString tileIdStrEl; tileIdStrEl.Form("%i Exclusive #pi candidates",NentriesEl);
+	TString tileIdStrEl; tileIdStrEl.Form("%i #pi_{cand}^{Exc}",NentriesEl);
 	if(pair)
-		tileIdStrEl.Form("%i Exclusive events",NentriesEl);
+		tileIdStrEl.Form("%i Excl. events",NentriesEl);
 	textPub -> AddText(tileIdStrEl);
 	textPub -> Draw("same");
 
+}
 
-	TPaveText *textSTAR = new TPaveText(0.15,0.91,0.2,0.97,"brNDC"); //for text "star"
-	//TPaveText *textSTAR = new TPaveText(0.2,0.91,0.27,0.97,"brNDC");
+void Plot::DrawTextStar(TH1* hist, Int_t position, Bool_t star){
+	TPaveText *textSTAR;
+
+	switch(position){
+		case 0:
+			textSTAR = new TPaveText(0.15,0.91,0.22,0.97,"brNDC");
+			break;
+		case 1:
+			textSTAR = new TPaveText(0.65,0.89,0.75,0.95,"brNDC");
+			break;
+		case 2:
+			textSTAR = new TPaveText(0.75,0.89,0.9,0.95,"brNDC");
+			break;
+	}
+	
 	textSTAR -> SetTextSize(siz);
 	textSTAR -> SetFillColor(0);
 	textSTAR -> SetTextFont(62);
-	//textSTAR -> AddText("THIS THESIS");
-	textSTAR->AddText("STAR");
+	if(star)
+		textSTAR->AddText("STAR");
+	else
+		textSTAR -> AddText("THIS THESIS");
 	textSTAR -> Draw("same");
 }
 

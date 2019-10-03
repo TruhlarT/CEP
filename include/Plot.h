@@ -38,7 +38,15 @@ public:
 	void SetMarkerStyle(TH1* hist, Int_t markColor = 4, Int_t markStyle = 20, Int_t markSize = 1, 
 							Int_t lineColor = 4, Int_t lineStyle = 1, Float_t lineWidth = 1);
 
-	void DrawText(TH1* hist, Bool_t pair = false, Float_t xMin = 0.74, Float_t yMin = 0.82, Float_t xMax = 0.81, Float_t yMax = 0.96);
+	void DrawText(TH1* hist, Int_t state = 0, Bool_t pair = false, Float_t xMin = 0.74, Float_t yMin = 0.8, Float_t xMax = 0.84, Float_t yMax = 0.95, Int_t align = 22);
+	// Int_t state = 0 unknown
+	// Int_t state = 1 pions
+	// Int_t state = 2 kaons
+	// Int_t state = 3 protons
+	void DrawTextStar(TH1* hist, Int_t position = 0, Bool_t star = true); 
+	// position = 0  top-left
+	// position = 1  top-mid
+	// position = 2  top-right
 
 	void SetLegendStyle(TLegend* leg1);
 	void SetTextStyle(TPaveText* text);

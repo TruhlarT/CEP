@@ -44,7 +44,7 @@ void PID::PlotHistogram(){
 	fout = new TFile(output +"StRP.root","UPDATE");
 
 	TCanvas *cCanvas = new TCanvas("cCanvas","cCanvas",800,700);
-	gPad->SetMargin(0.9,0.02,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+	gPad->SetMargin(0.12,0.02,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
 	gPad->SetTickx();
 	gPad->SetTicky();  
 	gStyle->SetOptStat("");
@@ -60,7 +60,7 @@ void PID::PlotHistogram(){
 	TString variable;
 // Plot mSquared 
 	variable = "mSquared";
-	tree->Draw(variable +">>" + variable +"Sig( 200, 0, 1.0)");
+	tree->Draw(variable +">>" + variable +"Sig( 200, -0.5, 2.0)");
 	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
 	tmpHist->SetTitle(" ; m^{2}_{TOF} [GeV^{2}/c^{4}]; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
@@ -68,10 +68,13 @@ void PID::PlotHistogram(){
 	tool.SetMarkerStyle(tmpHist);
 	tmpHist->Draw();
 	tool.DrawText(tmpHist);
+	tool.DrawTextStar(tmpHist);
 
+	gPad->SetLogy();
 	cCanvas->Update();
 	cCanvas->SaveAs( output + "PID/" + variable + ".png");
 	cCanvas->Write(variable);
+	gPad->SetLogy(0);
 //////////////////////////////////////////
 	// Plot deltaTOF 
 	variable = "deltaTOFexpected";
@@ -86,18 +89,21 @@ void PID::PlotHistogram(){
 	tool.SetGraphStyle(tmpHist);
 	tool.SetMarkerStyle(tmpHist);
 	tmpHist->Draw("");
-	tool.DrawText(tmpHist);
+	tool.DrawText(tmpHist,0,true);
+	tool.DrawTextStar(tmpHist);
 	tmpHist2->Draw("SAME");
 
-	TLegend* leg1 = new TLegend(0.58, 0.7, 0.78, 0.82);
+	TLegend* leg1 = new TLegend(0.72, 0.68, 0.9, 0.78);
 	tool.SetLegendStyle(leg1);
 	leg1 -> AddEntry(tmpHist, "Data", "l");
-	leg1 -> AddEntry(tmpHist2, "Pion assumption", "fl");
+	leg1 -> AddEntry(tmpHist2, "#pi assumption", "fl");
 	leg1->Draw("same");
 
+	gPad->SetLogy();
 	cCanvas->Update();
 	cCanvas->SaveAs( output + "PID/" + variable + ".png");
 	cCanvas->Write(variable);
+	gPad->SetLogy(0);
 //////////////////////////////////////////
 	// Plot deltaDeltaTOF 
 	variable = "deltaDeltaTOF";
@@ -109,27 +115,30 @@ void PID::PlotHistogram(){
 	tool.SetGraphStyle(tmpHist);
 	tool.SetMarkerStyle(tmpHist);
 	tmpHist->Draw();
-	tool.DrawText(tmpHist);
+	tool.DrawText(tmpHist,0,true);
+	tool.DrawTextStar(tmpHist);
 
-
+	gPad->SetLogy();
 	cCanvas->Update();
 	cCanvas->SaveAs( output + "PID/" + variable + ".png");
 	cCanvas->Write(variable);
+	gPad->SetLogy(0);
 //////////////////////////////////////////
 // Plot nSigPPion 
 	variable = "nSigPPion";
 
-	tree->Draw(variable +">>" + variable +"Sig(50, 0, 10)");
+	tree->Draw(variable +">>" + variable +"Sig(50, 0, 7)");
 	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
 	tmpHist->SetTitle(" ; n#sigma^{pair}_{#pi} ; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
 	tool.SetGraphStyle(tmpHist);
 	tool.SetMarkerStyle(tmpHist);
-	tmpHist->GetYaxis()->SetRangeUser(0,250);
+	tmpHist->GetYaxis()->SetTitleOffset(1.4);
 	tmpHist->Draw();
-	tool.DrawText(tmpHist);
+	tool.DrawText(tmpHist,0,true,0.72,0.74,0.85,0.9);
+	tool.DrawTextStar(tmpHist,2);
 
-	TLine *left4 = new TLine(3,0,3,180);
+	TLine *left4 = new TLine(3,0,3,8000);
 	tool.SetLineStyle(left4,10,1,4);
    left4->Draw("same");
 
@@ -145,12 +154,13 @@ void PID::PlotHistogram(){
 	tree->Draw(variable +"2>>" + variable +"Sig2(80,0,10)");
 	tmpHist3 = (TH1F*)gPad->GetPrimitive(variable +"Sig2");
 	tmpHist->Add(tmpHist3);
-	tmpHist->SetTitle(" ; dEdx [keV/cm]; Number of events");;
+	tmpHist->SetTitle(" ; dEdx [keV/cm]; Number of tracks");;
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
 	tool.SetGraphStyle(tmpHist);
 	tool.SetMarkerStyle(tmpHist);
 	tmpHist->Draw();
 	tool.DrawText(tmpHist);
+	tool.DrawTextStar(tmpHist);
 
 	gPad->SetLogy();
 	cCanvas->Update();
@@ -160,9 +170,10 @@ void PID::PlotHistogram(){
 
 //////////////////////////////////////////
 	TCanvas *cCanvas2D = new TCanvas("cCanvas2D","cCanvas2D",800,700);
-	gPad->SetMargin(0.1,0.09,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+	gPad->SetMargin(0.09,0.13,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
 	gStyle->SetPalette(1);
-
+	gPad->SetTickx();
+	gPad->SetTicky(); 
 	TString variable2;
 ////////// Plot dEdx ////////////	
 	variable = "dEdx";
@@ -173,9 +184,10 @@ void PID::PlotHistogram(){
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2Sig");
 	tmp2DHist->Add(tmp2DHist2);
 	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV/c] ;dE/dx [keV/cm]");
-	tool.SetGraphStyle(tmp2DHist);
+	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.8);
 	tmp2DHist->Draw("colz");
-	tool.DrawText(tmp2DHist,0.7,0.82,0.77,0.96);
+	tool.DrawText(tmp2DHist,0,true,0.08,0.78,0.25,0.9,12);
+	tool.DrawTextStar(tmp2DHist);
 
 	cCanvas2D->Update();
 	cCanvas2D->SaveAs( output + "PID/" + variable + "Vs" + variable2 + ".png");
@@ -194,12 +206,19 @@ for(int i = 0; i < 3; ++i){
 
 	variable = "nSigP" + particleID[j1];
 	variable2 = "nSigP" + particleID[j2];
+	//tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,50,100,0,50)","deltaDeltaTOF < 1 && deltaDeltaTOF > -1 ","colz");
 	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,50,100,0,50)","","colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "Sig");
 	tmp2DHist->SetTitle(" ; n#sigma^{pair}_{" + particleID[j1] + "}; n#sigma^{pair}_{" + particleID[j2] + "}");
-	tool.SetGraphStyle(tmp2DHist);
+	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.9);
 	tmp2DHist->Draw("colz");
-	tool.DrawText(tmp2DHist,0.7,0.82,0.77,0.96);
+	if(i!=0){
+		tool.DrawText(tmp2DHist,0,true,0.6,0.75,0.75,0.9);
+		tool.DrawTextStar(tmp2DHist,1);
+	}else{
+		tool.DrawText(tmp2DHist,0,true,0.08,0.78,0.25,0.9,12);
+		tool.DrawTextStar(tmp2DHist);	
+	}
 
 	cCanvas2D->Update();
 	cCanvas2D->SaveAs( output + "PID/nSigP" + particleID[j1] + "Vs" + particleID[j2] + ".png");
@@ -210,9 +229,11 @@ for(int i = 0; i < 3; ++i){
 	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,50,100,0,1)","","colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "Sig");
 	tmp2DHist->SetTitle(" ; n#sigma^{pair}_{" + particleID[i] + "}; m^{2}_{TOF} [GeV^{2}/c^{4}]");
-	tool.SetGraphStyle(tmp2DHist);
+	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,1.0);
+
 	tmp2DHist->Draw("colz");
-	tool.DrawText(tmp2DHist,0.7,0.82,0.77,0.96);
+	tool.DrawText(tmp2DHist,0,true,0.6,0.75,0.75,0.9);
+	tool.DrawTextStar(tmp2DHist,1);
 
 	cCanvas2D->Update();
 	cCanvas2D->SaveAs( output + "PID/" + variable + "Vs" + variable2 + ".png");
@@ -226,9 +247,10 @@ for(int i = 0; i < 3; ++i){
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2Sig");
 	tmp2DHist->Add(tmp2DHist2);
 	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV/c] ; n#sigma^{pair}_{" + particleID[i] + "}");
-	tool.SetGraphStyle(tmp2DHist);
+	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.9);
 	tmp2DHist->Draw("colz");
-	tool.DrawText(tmp2DHist,0.7,0.82,0.77,0.96);
+	tool.DrawText(tmp2DHist,0,true,0.08,0.78,0.25,0.9,12);
+	tool.DrawTextStar(tmp2DHist);
 
 	cCanvas2D->Update();
 	cCanvas2D->SaveAs( output + "PID/" + variable + "Vs" + variable2 + ".png");
@@ -259,10 +281,11 @@ for(int i = 0; i < 3; ++i){
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2cSig");
 	tmp2DHist->Add(tmp2DHist6);
 	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV/c] ;dE/dx [keV/cm]");
-	tool.SetGraphStyle(tmp2DHist);
+	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,1.0);
 	tool.SetMarkerStyle(tmp2DHist,4,29,1,4,1,1);;
 	tmp2DHist->Draw("SCAT");
-	tool.DrawText(tmp2DHist,0.7,0.82,0.77,0.96);
+	tool.DrawText(tmp2DHist);
+	tool.DrawTextStar(tmp2DHist);
 	tmp2DHist3->Draw("SAME");
 	tmp2DHist5->Draw("SAME");
 
