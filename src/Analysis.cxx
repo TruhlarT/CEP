@@ -63,7 +63,6 @@ int main(int argc, char** argv) {
 	BasicPlots Plots(name , output, text);
 	Plots.PlotHistogram();
 
-
 	PID PIDPlots(name, output, text);
 	PIDPlots.PlotHistogram();
 

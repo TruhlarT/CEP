@@ -212,9 +212,9 @@ void PID::PlotHistogram(){
 //////////////////////////////////////////
 	// Plot dEdx
 	variable = "dEdx";
-	tree->Draw(variable +"1>>" + variable +"Sig1(80,0,10)");
+	tree->Draw(variable +"1>>" + variable +"Sig1(80,0,25)");
 	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig1");
-	tree->Draw(variable +"2>>" + variable +"Sig2(80,0,10)");
+	tree->Draw(variable +"2>>" + variable +"Sig2(80,0,25)");
 	tmpHist3 = (TH1F*)gPad->GetPrimitive(variable +"Sig2");
 	tmpHist->Add(tmpHist3);
 	tmpHist->SetTitle(" ; dEdx [keV/cm]; Number of tracks");;
