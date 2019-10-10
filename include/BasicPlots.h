@@ -29,7 +29,7 @@ class BasicPlots{
 
 public:
 
-	BasicPlots(string innam="StRP_production_0000.root", string outnam="/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/", bool text = false);
+	BasicPlots(TFile* dataInput, TFile* fileOut, TString outnam="/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/", bool text = false, TString inputCuts="");
 	~BasicPlots();
 
 	void PlotHistogram();
@@ -42,14 +42,14 @@ public:
 	TH1D* hMissingPtExc;
 	TH1F* hCuts;
 
+	TString output;
+	TString cuts, cutsWithPrefix;
 
 	bool TEXT;
 	bool bcground;
-	TString input;
-	TString output;
-
+	
 	TFile* data;
-	TFile *fout;
+	TFile* fout;
 
 	Float_t siz;
 	Int_t font;

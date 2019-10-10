@@ -3,13 +3,21 @@
 
 
 //_____________________________________________________________________________
-BasicPlots::BasicPlots(string innam, string outnam, bool text)
+BasicPlots::BasicPlots(TFile* dataInput, TFile* fileOut, TString outnam, bool text, TString inputCuts)
 {
 	//constructor
 	TEXT = text;
 	bcground = true;
-	input = innam;
+
 	output = outnam;
+	cuts = inputCuts;
+	if(inputCuts != "")
+		cutsWithPrefix = " && " + inputCuts;
+	else
+		cutsWithPrefix="";
+
+	data = dataInput;
+	fout = fileOut;
 
 	siz = 0.045;
 	font = 42;
@@ -31,22 +39,23 @@ BasicPlots::~BasicPlots()
 //_____________________________________________________________________________
 void BasicPlots::PlotHistogram() {
 
-	data = TFile::Open(input, "read");
 	if (!data){
-      cout<<"Error: cannot open "<<input<<endl;
-      return;
-   }
+		cout<<"Error: cannot open input file"<<endl;
+		return;
+    }
 
 	TTree* tree = dynamic_cast<TTree*>( data->Get("recTree") );
 	TTree* treeBack = dynamic_cast<TTree*>( data->Get("Background") );
 	
 	if (!tree || !treeBack){
-      cout<<"Error: cannot open one of the TTree"<<endl;
-      return;
-   }
+		cout<<"Error: cannot open one of the TTree"<<endl;
+		return;
+    }
 
-   cout<<"Creating output file: "<<output<<"StRP.root"<<endl;
-	fout = new TFile(output +"StRP.root","RECREATE");
+	if (!fout){
+		cout<<"Error: cannot open output file"<<endl;
+		return;
+    }
 
 	TCanvas *cCanvas = new TCanvas("cCanvas","cCanvas",800,700);
 	gPad->SetMargin(0.11,0.02,0.105,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
@@ -62,13 +71,12 @@ void BasicPlots::PlotHistogram() {
 	treeBack->UseCurrentStyle();
 
 	Plot tool;
-
 // Plot Inv Mass Inelastic + Elastic
-	treeBack->Draw("invMass>>invMassBackground(50,0,2.5)","nSigPPion<3");
+	treeBack->Draw("invMass>>invMassBackground(50,0,2.5)","nSigPPion<3"+cutsWithPrefix);
 	TH1F *tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassBackground");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("invMass>>invMassSignal(50,0,2.5)","nSigPPion<3");
+	tree->Draw("invMass>>invMassSignal(50,0,2.5)","nSigPPion<3"+cutsWithPrefix);
 	TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassSignal");
 	tmpHist->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
@@ -100,15 +108,15 @@ void BasicPlots::PlotHistogram() {
 
 
 	cCanvas->Update();
-	cCanvas->SaveAs(output + "BasicPlots/invMass.png");
+	////cCanvas->SaveAs(output + "BasicPlots/invMass.png");
 	cCanvas->Write("invMass");
 //////////////////////////////////////////
 // Plot Inv Mass Inelastic
-	treeBack->Draw("invMass>>invMassBackground(50,0,2.5)","nSigPPion<3 && !elastic");
+	treeBack->Draw("invMass>>invMassBackground(50,0,2.5)","nSigPPion<3 && !elastic"+cutsWithPrefix);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassBackground");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("invMass>>invMassSignal(50,0,2.5)","nSigPPion<3 && !elastic");
+	tree->Draw("invMass>>invMassSignal(50,0,2.5)","nSigPPion<3 && !elastic"+cutsWithPrefix);
 	tmpHist = (TH1F*)gPad->GetPrimitive("invMassSignal");
 	tmpHist->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
@@ -126,11 +134,11 @@ void BasicPlots::PlotHistogram() {
 	leg1->Draw("same");
 
 	cCanvas->Update();
-	cCanvas->SaveAs(output + "BasicPlots/invMassIn.png");
+	////cCanvas->SaveAs(output + "BasicPlots/invMassIn.png");
 	cCanvas->Write("invMassIn");
 //////////////////////////////////////////
 // Plot Inv Mass Elastic
-	treeBack->Draw("invMass>>invMassBackground(50,0,2.5)","nSigPPion<3 && elastic");
+	treeBack->Draw("invMass>>invMassBackground(50,0,2.5)","nSigPPion<3 && elastic"+cutsWithPrefix);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassBackground");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
@@ -152,7 +160,7 @@ void BasicPlots::PlotHistogram() {
 	leg1->Draw("same");
 
 	cCanvas->Update();
-	cCanvas->SaveAs(output + "BasicPlots/invMassEl.png");
+	////cCanvas->SaveAs(output + "BasicPlots/invMassEl.png");
 	cCanvas->Write("invMassEl");
 //////////////////////////////////////////
 
@@ -203,7 +211,7 @@ void BasicPlots::PlotHistogram() {
 
 	
 	cCanvas->Update();
-	cCanvas->SaveAs(output + "BasicPlots/Cuts.png");
+	//cCanvas->SaveAs(output + "BasicPlots/Cuts.png");
 	cCanvas->Write("CutsFlow");
 //////////////////////////////////////////
 ////////////// 
@@ -248,14 +256,13 @@ void BasicPlots::PlotHistogram() {
 
 	TLine *left = new TLine(0.1,0,0.1,600000);
 	tool.SetLineStyle(left,10,1,4);
-   left->Draw("same");
+    left->Draw("same");
 
 	cCanvas->Update();
 	cCanvas-> Write("hMissingPt");
-	cCanvas->SaveAs(output + "BasicPlots/cMissingPt.png");
+	//cCanvas->SaveAs(output + "BasicPlots/cMissingPt.png");
 	cCanvas->Close();
 
-   fout->Close();
-
+  
 }//BasicPlots::PlotHistogram
 

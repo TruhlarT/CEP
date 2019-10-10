@@ -28,6 +28,7 @@
 #include "TCanvas.h"
 #include "TPaveText.h"
 #include "TLegend.h"
+#include "TDirectory.h"
 
 using namespace std;
 
@@ -38,22 +39,21 @@ class PID{
 
 public:
 
-	PID(string innam="StRP_production_0000.root", string outnam="/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/", bool text = false);
+	PID(TFile* dataInput, TFile* fileOut, TString outnam="/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/", bool text = false, TString inputCuts="");
 	~PID();
 
 	void PlotHistogram();
-	void SetBichsel(TH1* hist, Int_t color = 1, Float_t xMin = 0.2, Float_t xMax = 6, Int_t width = 4);
+	void SetBichsel(TH1* hist, Int_t color = 1, Float_t xMin = 0.2, Float_t xMax = 6, Float_t width = 4.0);
 	void DrawBichsel();
 
 	bool TEXT;
 
-	TString input;
+
 	TString output;
+	TString cuts, cutsWithPrefix;
 
 	TFile* data;
 	TFile *fout;
-
-
 
 	TH1F* tmpHist;
 	TH1F* tmpHist2;

@@ -1,6 +1,6 @@
 
 project (star-upc)
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 #sources for shared library LIB
 set (SRCS
@@ -35,7 +35,7 @@ include_directories (include)
 #ROOT section
 
 #compiler flags
-execute_process(COMMAND root-config --cflags OUTPUT_VARIABLE ROOT_FLAGS_CMD)
+execute_process(COMMAND root-config --cflags --glibs OUTPUT_VARIABLE ROOT_FLAGS_CMD)
 string(REPLACE "\n" "" ROOT_FLAGS "${ROOT_FLAGS_CMD}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ROOT_FLAGS}")
 
@@ -55,6 +55,7 @@ set (DICT G__${LIB}.cxx)
 string(REPLACE ".cxx" ".h" HDRS "${SRCS_DICT}")
 string(REPLACE "src/" "" HDRS_PLAIN "${HDRS}")
 string(REPLACE "src/" "include/" HDRS_INC "${HDRS}")
+
 
 # directory with headers for CLING
 get_directory_property(incdirs INCLUDE_DIRECTORIES)

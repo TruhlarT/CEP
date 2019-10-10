@@ -2,11 +2,19 @@
 #include "Plot.h"
 
 //_____________________________________________________________________________
-trackQuality::trackQuality(string innam, string outnam, bool text)
+trackQuality::trackQuality(TFile* dataInput, TFile* fileOut, TString outnam, bool text, TString inputCuts)
 {
 	//constructor
-	input = innam;
 	output = outnam;
+
+	cuts = inputCuts;
+	if(inputCuts != "")
+		cutsWithPrefix = " && " + inputCuts;
+	else
+		cutsWithPrefix="";
+
+	data = dataInput;
+	fout = fileOut;
 
 	TEXT = text;
 
@@ -27,22 +35,23 @@ trackQuality::~trackQuality()
 //_____________________________________________________________________________
 void trackQuality::PlotHistogram(){
 
-	data = TFile::Open(input, "read");
 	if (!data){
-      cout<<"Error: cannot open "<<input<<endl;
-      return;
-   }
+		cout<<"Error: cannot open input file"<<endl;
+		return;
+    }
 
 	TTree* tree = dynamic_cast<TTree*>( data->Get("recTree") );
 	TTree* treeBack = dynamic_cast<TTree*>( data->Get("Background") );
 	
 	if (!tree || !treeBack){
-      cout<<"Error: cannot open one of the TTree"<<endl;
-      return;
-   }
+		cout<<"Error: cannot open one of the TTree"<<endl;
+		return;
+    }
 
-  cout<<"Creating output file: "<<output<<"StRP.root"<<endl;
-	fout = new TFile(output +"StRP.root","UPDATE");
+	if (!fout){
+		cout<<"Error: cannot open output file"<<endl;
+		return;
+    }
 
 	TCanvas *cCanvas = new TCanvas("cCanvas","cCanvas",800,700);
 	gPad->SetMargin(0.12,0.02,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
@@ -57,14 +66,12 @@ void trackQuality::PlotHistogram(){
 	treeBack->UseCurrentStyle();
 
 	Plot tool;
-
-
 // Plot z vertex
-	treeBack->Draw("vertexZ>>vertexZBcg");
+	treeBack->Draw("vertexZ>>vertexZBcg",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("vertexZBcg");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("vertexZ>>vertexZSig");
+	tree->Draw("vertexZ>>vertexZSig",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("vertexZSig");
 	tmpHist->SetTitle(" ; Z_{vrtx} [cm]; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
@@ -81,29 +88,29 @@ void trackQuality::PlotHistogram(){
 	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
 	leg1->Draw("same");
 	if(TEXT){
-		TLine *left4 = new TLine(-80,0,-80,45);
+		TLine *left4 = new TLine(-80,0,-80,450);
 		tool.SetLineStyle(left4,10,1,4);
 	   left4->Draw("same");
 
-		TLine *left5 = new TLine(80,0,80,45);
+		TLine *left5 = new TLine(80,0,80,450);
 		tool.SetLineStyle(left5,10,1,4);
 	   left5->Draw("same");		
 	}
 	cCanvas->Update();
-	cCanvas->SaveAs( output + "trackQuality/zVertex.png");
+	//cCanvas->SaveAs( output + "trackQuality/zVertex.png");
 	cCanvas->Write("zVertex");
 //////////////////////////////////////////
 // Plot DCAXY vertex
-	treeBack->Draw("DcaXY1>>DcaXY1Bcg(100,0,3.5)");
+	treeBack->Draw("DcaXY1>>DcaXY1Bcg(100,0,3.5)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("DcaXY1Bcg");
-	treeBack->Draw("DcaXY2>>DcaXY2Bcg(100,0,3.5)");
+	treeBack->Draw("DcaXY2>>DcaXY2Bcg(100,0,3.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("DcaXY2Bcg");
 	tmpHist2->Add(tmpHist);
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("DcaXY1>>DcaXY1Sig(100,0,3.5)");
+	tree->Draw("DcaXY1>>DcaXY1Sig(100,0,3.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("DcaXY1Sig");
-	tree->Draw("DcaXY2>>DcaXY2Sig(100,0,3.5)");
+	tree->Draw("DcaXY2>>DcaXY2Sig(100,0,3.5)",cuts);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive("DcaXY2Sig");
 	tmpHist->Add(tmpHist3);
 	tmpHist->SetTitle(" ; DCA_{xy} [cm]; Number of tracks");
@@ -120,25 +127,25 @@ void trackQuality::PlotHistogram(){
 	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
 	leg1->Draw("same");
 	if(TEXT){
-		TLine *left6 = new TLine(1.5,0,1.5,70);
+		TLine *left6 = new TLine(1.5,0,1.5,700);
 		tool.SetLineStyle(left6,10,1,4);
 	   left6->Draw("same");
 	}
 	cCanvas->Update();
-	cCanvas->SaveAs( output + "trackQuality/DcaXY.png");
+	//cCanvas->SaveAs( output + "trackQuality/DcaXY.png");
 	cCanvas->Write("DcaXY");
 //////////////////////////////////////////
 // Plot DCAZ vertex
-	treeBack->Draw("DcaZ1>>DcaZ1Bcg(100,-1.5,1.5)");
+	treeBack->Draw("DcaZ1>>DcaZ1Bcg(100,-1.5,1.5)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("DcaZ1Bcg");
-	treeBack->Draw("DcaZ2>>DcaZ2Bcg(100,-1.5,1.5)");
+	treeBack->Draw("DcaZ2>>DcaZ2Bcg(100,-1.5,1.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("DcaZ2Bcg");
 	tmpHist2->Add(tmpHist);
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("DcaZ1>>DcaZ1Sig(100,-1.5,1.5)");
+	tree->Draw("DcaZ1>>DcaZ1Sig(100,-1.5,1.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("DcaZ1Sig");
-	tree->Draw("DcaZ2>>DcaZ2Sig(100,-1.5,1.5)");
+	tree->Draw("DcaZ2>>DcaZ2Sig(100,-1.5,1.5)",cuts);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive("DcaZ2Sig");
 	tmpHist->Add(tmpHist3);
 	tmpHist->SetTitle(" ; DCA_{z} [cm]; Number of events");
@@ -155,29 +162,29 @@ void trackQuality::PlotHistogram(){
 	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
 	leg1->Draw("same");
 	if(TEXT){
-		TLine *left7 = new TLine(1,0,1,500);
+		TLine *left7 = new TLine(1,0,1,5000);
 		tool.SetLineStyle(left7,10,1,4);
 	   left7->Draw("same");
 
-		TLine *left8 = new TLine(-1,0,-1,500);
+		TLine *left8 = new TLine(-1,0,-1,5000);
 		tool.SetLineStyle(left8,10,1,4);
 	   left8->Draw("same");
 	}
 	cCanvas->Update();
-	cCanvas->SaveAs( output + "trackQuality/DcaZ.png");
+	//cCanvas->SaveAs( output + "trackQuality/DcaZ.png");
 	cCanvas->Write("DcaZ");
 //////////////////////////////////////////
 // Plot NhitsDEdx vertex
-	treeBack->Draw("NhitsDEdx1>>NhitsDEdx1Bcg(51,0,50)");
+	treeBack->Draw("NhitsDEdx1>>NhitsDEdx1Bcg(51,0,50)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("NhitsDEdx1Bcg");
-	treeBack->Draw("NhitsDEdx2>>NhitsDEdx2Bcg(51,0,50)");
+	treeBack->Draw("NhitsDEdx2>>NhitsDEdx2Bcg(51,0,50)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("NhitsDEdx2Bcg");
 	tmpHist2->Add(tmpHist);
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("NhitsDEdx1>>NhitsDEdx1Sig(61,0,60)");
+	tree->Draw("NhitsDEdx1>>NhitsDEdx1Sig(61,0,60)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("NhitsDEdx1Sig");
-	tree->Draw("NhitsDEdx2>>NhitsDEdx2Sig(61,0,60)");
+	tree->Draw("NhitsDEdx2>>NhitsDEdx2Sig(61,0,60)",cuts);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive("NhitsDEdx2Sig");
 	tmpHist->Add(tmpHist3);
 	tmpHist->SetTitle(" ; N^{dE/dx}_{hits} ; Number of events");
@@ -195,26 +202,26 @@ void trackQuality::PlotHistogram(){
 	leg1->Draw("same");
 
 	if(TEXT){
-		TLine *left9 = new TLine(15,0,15,120);
+		TLine *left9 = new TLine(15,0,15,1200);
 		tool.SetLineStyle(left9,10,1,4);
 	   left9->Draw("same");
 	}
 
 	cCanvas->Update();
-	cCanvas->SaveAs( output + "trackQuality/NhitsDEdx.png");
+	//cCanvas->SaveAs( output + "trackQuality/NhitsDEdx.png");
 	cCanvas->Write("NhitsDEdx");
 //////////////////////////////////////////
 // Plot Eta vertex
-	treeBack->Draw("Eta1>>Eta1Bcg(100,-2,3.5)");
+	treeBack->Draw("Eta1>>Eta1Bcg(100,-2,3.5)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("Eta1Bcg");
-	treeBack->Draw("Eta2>>Eta2Bcg(100,-2,3.5)");
+	treeBack->Draw("Eta2>>Eta2Bcg(100,-2,3.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("Eta2Bcg");
 	tmpHist2->Add(tmpHist);
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("Eta1>>Eta1Sig(100,-2,3.5)");
+	tree->Draw("Eta1>>Eta1Sig(100,-2,3.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("Eta1Sig");
-	tree->Draw("Eta2>>Eta2Sig(100,-2,3.5)");
+	tree->Draw("Eta2>>Eta2Sig(100,-2,3.5)",cuts);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive("Eta2Sig");
 	tmpHist->Add(tmpHist3);
 	tmpHist->SetTitle(" ; #eta ; Number of tracks");
@@ -231,16 +238,16 @@ void trackQuality::PlotHistogram(){
 	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
 	leg1->Draw("same");
 	if(TEXT){
-		TLine *left2 = new TLine(-0.7,0,-0.7,100);
+		TLine *left2 = new TLine(-0.8,0,-0.8,1000);
 		tool.SetLineStyle(left2,10,1,4);
 	   left2->Draw("same");
 
-		TLine *left3 = new TLine(0.7,0,0.7,80);
+		TLine *left3 = new TLine(0.8,0,0.8,800);
 		tool.SetLineStyle(left3,10,1,4);
 	   left3->Draw("same");
 	}
 	cCanvas->Update();
-	cCanvas->SaveAs( output + "trackQuality/Eta.png");
+	//cCanvas->SaveAs( output + "trackQuality/Eta.png");
 	cCanvas->Write("Eta");
 //////////////////////////////////////////
 
@@ -251,7 +258,7 @@ void trackQuality::PlotHistogram(){
 	gPad->SetTicky(); 
 
 // Plot XYEastCor vertex
-	tree->Draw("yCorrelationsEast:xCorrelationsEast>>XYEastCorSig(100,-1,1.4,100,-1,1.4)","","colz");
+	tree->Draw("yCorrelationsEast:xCorrelationsEast>>XYEastCorSig(100,-1,1.4,100,-1,1.4)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive("XYEastCorSig");
 	tmp2DHist->SetTitle(" ; p_{x} [GeV/c]; p_{y} [GeV/c]");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.7);
@@ -312,12 +319,12 @@ void trackQuality::PlotHistogram(){
 		gr3->Draw("same");
 	}
 	cCanvas2D->Update();
-	cCanvas2D->SaveAs( output + "trackQuality/XYEastCor.png");
+	//cCanvas2D->SaveAs( output + "trackQuality/XYEastCor.png");
 	cCanvas2D->Write("XYEastCor");
 //////////////////////////////////////////
 
 // Plot XYWestCor vertex
-	tree->Draw("yCorrelationsWest:xCorrelationsWest>>XYWestCorSig(100,-1,1.4,100,-1,1.4)","","colz");
+	tree->Draw("yCorrelationsWest:xCorrelationsWest>>XYWestCorSig(100,-1,1.4,100,-1,1.4)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive("XYWestCorSig");
 	tmp2DHist->SetTitle(" ; p_{x} [GeV/c]; p_{y} [GeV/c]");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.7);
@@ -379,13 +386,13 @@ void trackQuality::PlotHistogram(){
 		gr3->Draw("same");
 	}
 	cCanvas2D->Update();
-	cCanvas2D->SaveAs( output + "trackQuality/hXYWestCor.png");
+	//cCanvas2D->SaveAs( output + "trackQuality/hXYWestCor.png");
 	cCanvas2D->Write("hXYWestCor");
 //////////////////////////////////////////
 // Plot ZvrtxVsEta vertex
-	tree->Draw("Eta2:vertexZ>>ZvrtxVsEta2Sig(100,-200,200,100,-1,1.5)","","colz");
+	tree->Draw("Eta2:vertexZ>>ZvrtxVsEta2Sig(100,-200,200,100,-1,1.5)",cuts,"colz");
 	tmp2DHist2 = (TH2F*)gPad->GetPrimitive("ZvrtxVsEta2Sig");
-	tree->Draw("Eta1:vertexZ>>ZvrtxVsEtaSig(100,-200,200,100,-1,1.5)","","colz");
+	tree->Draw("Eta1:vertexZ>>ZvrtxVsEtaSig(100,-200,200,100,-1,1.5)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive("ZvrtxVsEtaSig");
 	tmp2DHist->Add(tmp2DHist2);
 	tmp2DHist->SetTitle(" ; Z_{vrtx} [cm]; #eta");
@@ -411,12 +418,11 @@ void trackQuality::PlotHistogram(){
 	   line2->Draw("same");	
 	}
 	cCanvas2D->Update();
-	cCanvas2D->SaveAs( output + "trackQuality/ZvrtxVsEta.png");
+	//cCanvas2D->SaveAs( output + "trackQuality/ZvrtxVsEta.png");
 	cCanvas2D->Write("ZvrtxVsEta");
 //////////////////////////////////////////
 
 	cCanvas->Close();
 	cCanvas2D->Close();
-   fout->Close();
 }
 

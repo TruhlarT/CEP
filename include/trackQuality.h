@@ -40,7 +40,7 @@ class trackQuality{
 
 public:
 
-	trackQuality(string innam="StRP_production_0000.root", string outnam="/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/", bool text = false);
+	trackQuality(TFile* dataInput, TFile* fileOut, TString outnam="/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/", bool text = false, TString inputCuts="");
 	~trackQuality();
 
 	void PlotHistogram();
@@ -57,8 +57,8 @@ public:
 	TH2F* tmp2DHist2;
 	TH2F* tmp2DHist3;
 
-	TString input;
 	TString output;
+	TString cuts, cutsWithPrefix;
 
 	TFile* data;
 	TFile* fout;
