@@ -148,11 +148,11 @@ void trackQuality::PlotHistogram(){
 	tree->Draw("DcaZ2>>DcaZ2Sig(100,-1.5,1.5)",cuts);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive("DcaZ2Sig");
 	tmpHist->Add(tmpHist3);
-	tmpHist->SetTitle(" ; DCA_{z} [cm]; Number of events");
+	tmpHist->SetTitle(" ; DCA_{z} [cm]; Number of tracks");
 	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.4);
 	tool.SetMarkerStyle(tmpHist);
 	tmpHist->Draw("E");
-	tool.DrawText(tmpHist,0,true,0.68, 0.75, 0.9, 0.88);
+	tool.DrawText(tmpHist,0,false,0.68, 0.75, 0.9, 0.88);
 	tool.DrawTextStar(tmpHist,2);
 	tmpHist2->Draw("ESAME");
 
@@ -187,11 +187,11 @@ void trackQuality::PlotHistogram(){
 	tree->Draw("NhitsDEdx2>>NhitsDEdx2Sig(61,0,60)",cuts);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive("NhitsDEdx2Sig");
 	tmpHist->Add(tmpHist3);
-	tmpHist->SetTitle(" ; N^{dE/dx}_{hits} ; Number of events");
+	tmpHist->SetTitle(" ; N^{dE/dx}_{hits} ; Number of tracks");
 	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.4);
 	tool.SetMarkerStyle(tmpHist);
 	tmpHist->Draw("E");
-	tool.DrawText(tmpHist,0,true,0.68, 0.75, 0.9, 0.88);
+	tool.DrawText(tmpHist,0,false,0.68, 0.75, 0.9, 0.88);
 	tool.DrawTextStar(tmpHist,2);
 	tmpHist2->Draw("ESAME");
 

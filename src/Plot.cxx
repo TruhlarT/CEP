@@ -23,7 +23,8 @@ Plot::~Plot()
 
 
 void Plot::SetGraphStyle(TH1* hist, Int_t markColor, Int_t markStyle, Int_t markSize, 
-						Int_t lineColor, Int_t lineStyle, Float_t lineWidth, Float_t xOffSet, Float_t yOffSet){
+						Int_t lineColor, Int_t lineStyle, Float_t lineWidth, Float_t xOffSet, Float_t yOffSet)
+{
 	hist->GetXaxis()->SetTitleFont(font);
 	hist->GetYaxis()->SetTitleFont(font);
 	hist->GetXaxis()->SetLabelFont(font);
@@ -37,7 +38,8 @@ void Plot::SetGraphStyle(TH1* hist, Int_t markColor, Int_t markStyle, Int_t mark
 
 
 void Plot::SetMarkerStyle(TH1* hist, Int_t markColor, Int_t markStyle, Int_t markSize, 
-						Int_t lineColor, Int_t lineStyle, Float_t lineWidth){
+						Int_t lineColor, Int_t lineStyle, Float_t lineWidth)
+{
 	hist->SetMarkerColor(markColor);
 	hist->SetMarkerSize(markSize);
 	hist->SetMarkerStyle(markStyle);
@@ -45,9 +47,11 @@ void Plot::SetMarkerStyle(TH1* hist, Int_t markColor, Int_t markStyle, Int_t mar
 	hist->SetLineStyle(lineStyle);
 	hist->SetLineWidth(lineWidth);
 
-}//SetGraphStyle
+}//SetMarkerStyle
 
-void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t yMin, Float_t xMax, Float_t yMax, Int_t align){
+
+void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t yMin, Float_t xMax, Float_t yMax, Int_t align)
+{
 	TString centralState;
 	switch(state){
 		case 0:
@@ -56,13 +60,16 @@ void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t y
 			xMin+=0.02;
 			break;
 		case 1:
-			centralState = "#pi^{+} + #pi^{-}";
+			centralState = "#pi^{+} #pi^{-}";
 			break;
 		case 2:
-			centralState = "K^{+} + K^{-}";
+			centralState = "K^{+} K^{-}";
 			break;
 		case 3:
-			centralState = "p + #bar{p}";
+			centralState = "p #bar{p}";
+			break;
+		case 4:
+			centralState = "#pi^{+} #pi^{+} #pi^{-} #pi^{-}";
 			break;
 	}
 	TPaveText *textPub = new TPaveText(xMin,yMin,xMax,yMax,"brNDC");
@@ -81,7 +88,8 @@ void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t y
 
 }
 
-void Plot::DrawTextStar(TH1* hist, Int_t position, Bool_t star){
+void Plot::DrawTextStar(TH1* hist, Int_t position, Bool_t star)
+{
 	TPaveText *textSTAR;
 
 	switch(position){
@@ -106,14 +114,16 @@ void Plot::DrawTextStar(TH1* hist, Int_t position, Bool_t star){
 	textSTAR -> Draw("same");
 }
 
-void Plot::SetLegendStyle(TLegend* leg1){
+void Plot::SetLegendStyle(TLegend* leg1)
+{
 	leg1->SetFillStyle(0);
 	leg1->SetBorderSize(0);
 	leg1->SetTextSize(siz-0.005);
 	leg1->SetTextFont(font);
 }
 
-void Plot::SetTextStyle(TPaveText* text){
+void Plot::SetTextStyle(TPaveText* text)
+{
 	text->SetFillStyle(0);
 	text->SetFillColor(0);
 	text->SetBorderSize(0);
@@ -122,7 +132,8 @@ void Plot::SetTextStyle(TPaveText* text){
 }
 
 
-void Plot::SetLineStyle(TLine* line, Int_t style, Int_t color, Int_t width){
+void Plot::SetLineStyle(TLine* line, Int_t style, Int_t color, Int_t width)
+{
 	line->SetLineStyle(style);
 	line->SetLineColor(color);
 	line->SetLineWidth(width);

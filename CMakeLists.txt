@@ -8,6 +8,7 @@ set (SRCS
   src/PID.cxx  
   src/Plot.cxx  
   src/trackQuality.cxx
+  src/FourPi.cxx
   )
 
 #name of shared libarary LIB
@@ -22,6 +23,7 @@ set (SRCS_DICT
   src/PID.cxx
   src/Plot.cxx    
   src/trackQuality.cxx
+  src/FourPi.cxx
   )
 
 

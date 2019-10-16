@@ -41,6 +41,7 @@ public:
 	TH1D* hMissingPtQ0;
 	TH1D* hMissingPtExc;
 	TH1F* hCuts;
+	TH1F* hCuts2;
 
 	TString output;
 	TString cuts, cutsWithPrefix;

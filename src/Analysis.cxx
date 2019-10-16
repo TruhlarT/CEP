@@ -44,6 +44,7 @@
 #include "PID.h"
 #include "trackQuality.h"
 #include "Plot.h"
+#include "FourPi.h"
 
 using namespace std;
 
@@ -66,8 +67,8 @@ int main(int argc, char** argv) {
 	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/" + DataSet + "/";
 	
 
-	TString cutsOption[] = { TString("vertexZ<80 && vertexZ > -80"), TString("NhitFit1 >=25 && NhitFit2 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx2 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ2 < 1 && DcaZ2 > -1"), TString("DcaXY1 < 1.5 && DcaXY2 < 1.5"), TString("Eta1 > -0.8 && Eta1 < 0.8 && Eta2 > -0.8 && Eta2 < 0.8")};
-	TString cutsLabels[] = { TString("|z_{vtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"), TString("|DCA(z)| < 1 cm"), TString("DCA(XY) < 1.5 cm"), TString("|#eta| < 0.8") };
+	TString cutsOption[] = { TString("vertexZ<80 && vertexZ > -80"), TString("NhitFit1 >=25 && NhitFit2 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx2 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ2 < 1 && DcaZ2 > -1"), TString("DcaXY1 < 1.5 && DcaXY2 < 1.5"), TString("Eta1 > -0.8 && Eta1 < 0.8 && Eta2 > -0.8 && Eta2 < 0.8"), TString("!fourPiState")};
+	TString cutsLabels[] = { TString("|z_{vtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"), TString("|DCA(z)| < 1 cm"), TString("DCA(XY) < 1.5 cm"), TString("|#eta| < 0.8"), TString("!fourPiState")  };
 
 	TFile* data = TFile::Open(dataName, "read");
 	if (!data){
@@ -86,6 +87,7 @@ int main(int argc, char** argv) {
 	TFile* fout = new TFile(output +"StRP.root","RECREATE");
 
 	Plot tool;
+
 //////////////////////////////////////////////////////////////////////
 //					No cuts applied 
 //////////////////////////////////////////////////////////////////////
@@ -122,8 +124,8 @@ int main(int argc, char** argv) {
 
 	TH1F* hCutsFlow = new TH1F("cuts", "cuts", size+1, 0, size);
 	
-	tree->Draw("invMass>>invMassSignal");
-	TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassSignal");
+	tree->Draw("invMassPion>>invMassPionSignal");
+	TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
 	hCutsFlow->SetBinContent(1,tmpHist->GetEntries());
 	hCutsFlow->GetXaxis()->SetBinLabel(1, "excl. events");
 	
@@ -131,8 +133,8 @@ int main(int argc, char** argv) {
 	{
 		cuts += cutsOption[i]; 
 
-		tree->Draw("invMass>>invMassSignal",cuts);
-		TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassSignal");
+		tree->Draw("invMassPion>>invMassPionSignal",cuts);
+		TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
 		hCutsFlow->GetXaxis()->SetBinLabel(i+2, cutsLabels[i]);
 		hCutsFlow->SetBinContent(i+2,tmpHist->GetEntries());
 
@@ -184,12 +186,12 @@ int main(int argc, char** argv) {
 	textCut -> AddText("#pi #pi: (nSigPProton >= 3 || nSigPKaon <= 3 || nSigPPion <= 3)");
 	textCut -> AddText("&& (nSigPKaon >= 3 || nSigPProton >= 3 || nSigPPion <= 3)");
 
-	treeBack->Draw("invMass>>invMassBackground(50,0,2.5)",appliedCuts);
-	TH1F* tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassBackground");
+	treeBack->Draw("invMassPion>>invMassPionBackground(50,0,2.5)",appliedCuts);
+	TH1F* tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassPionBackground");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("invMass>>invMassSignal(50,0,2.5)",appliedCuts);
-	tmpHist = (TH1F*)gPad->GetPrimitive("invMassSignal");
+	tree->Draw("invMassPion>>invMassPionSignal(50,0,2.5)",appliedCuts);
+	tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
 	tmpHist->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
 	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.3);
@@ -211,12 +213,12 @@ int main(int argc, char** argv) {
 	appliedCuts = "nSigPKaon < 3 && nSigPProton > 3 && nSigPPion > 3 && " + cuts;
 	textCut -> AddText("KK: nSigPKaon < 3 && nSigPProton > 3 && nSigPPion > 3");
 
-	treeBack->Draw("invMass>>invMassBackground(50,0,2.5)",appliedCuts);
-	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassBackground");
+	treeBack->Draw("invMassKaon>>invMassKaonBackground(50,0,2.5)",appliedCuts);
+	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassKaonBackground");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("invMass>>invMassSignal(50,0,2.5)",appliedCuts);
-	tmpHist = (TH1F*)gPad->GetPrimitive("invMassSignal");
+	tree->Draw("invMassKaon>>invMassKaonSignal(50,0,2.5)",appliedCuts);
+	tmpHist = (TH1F*)gPad->GetPrimitive("invMassKaonSignal");
 	tmpHist->SetTitle(" ; m(K^{+}K^{-}) [GeV/c^{2}]; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
 	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.3);
@@ -238,12 +240,12 @@ int main(int argc, char** argv) {
 	appliedCuts = "nSigPProton < 3 && nSigPKaon > 3 && nSigPPion > 3 && " + cuts;
 	textCut -> AddText("pp: nSigPProton < 3 && nSigPKaon > 3 && nSigPPion > 3");
 
-	treeBack->Draw("invMass>>invMassBackground(50,0,2.5)",appliedCuts);
-	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassBackground");
+	treeBack->Draw("invMassProton>>invMassProtonBackground(50,0,2.5)",appliedCuts);
+	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassProtonBackground");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("invMass>>invMassSignal(50,0,2.5)",appliedCuts);
-	tmpHist = (TH1F*)gPad->GetPrimitive("invMassSignal");
+	tree->Draw("invMassProton>>invMassProtonSignal(50,0,2.5)",appliedCuts);
+	tmpHist = (TH1F*)gPad->GetPrimitive("invMassProtonSignal");
 	tmpHist->SetTitle(" ; m(p#bar{p}) [GeV/c^{2}]; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
 	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.3);
@@ -266,6 +268,16 @@ int main(int argc, char** argv) {
 	textCut->Draw("same");
 	newCanvas->Update();
 	newCanvas->Write("CutsSummary");
+
+//////////////////////////////////////////////////////////////////////
+//              4 pions state
+//////////////////////////////////////////////////////////////////////
+    TDirectory* fourPiDir = fout->mkdir("4pions");
+    fourPiDir->cd();
+
+    FourPi fourPiPlots(data, fout, output, showText);
+    fourPiPlots.PlotHistogram();
+
 //////////////////////////////////////////////////////////////////////
 	fout->Close();
 	data->Close();

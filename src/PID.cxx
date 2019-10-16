@@ -149,8 +149,8 @@ void PID::PlotHistogram(){
 	cCanvas->Write(variable);
 	gPad->SetLogy(0);
 //////////////////////////////////////////
-	// Plot deltaTOF 
-	variable = "deltaTOFexpected";
+	// Plot deltaTOF pion
+	variable = "deltaTOFPionExpected";
 	tree->Draw(variable +">>" + variable +"Bcg(200, -10, 10)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable+"Bcg");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
@@ -178,8 +178,104 @@ void PID::PlotHistogram(){
 	cCanvas->Write(variable);
 	gPad->SetLogy(0);
 //////////////////////////////////////////
-	// Plot deltaDeltaTOF 
-	variable = "deltaDeltaTOF";
+	// Plot deltaTOF kaon
+	variable = "deltaTOFKaonExpected";
+	tree->Draw(variable +">>" + variable +"Bcg(200, -10, 10)",cuts);
+	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable+"Bcg");
+	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
+	variable = "deltaTOF";
+	tree->Draw(variable +">>" + variable +"Sig(200, -10, 10)",cuts);
+	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
+	tmpHist->SetTitle(" ; #Delta TOF [ns]; Number of events");
+	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
+	tool.SetGraphStyle(tmpHist);
+	tool.SetMarkerStyle(tmpHist);
+	tmpHist->Draw("");
+	tool.DrawText(tmpHist,0,true);
+	tool.DrawTextStar(tmpHist);
+	tmpHist2->Draw("SAME");
+
+	leg1 = new TLegend(0.72, 0.68, 0.9, 0.78);
+	tool.SetLegendStyle(leg1);
+	leg1 -> AddEntry(tmpHist, "Data", "l");
+	leg1 -> AddEntry(tmpHist2, "K assumption", "fl");
+	leg1->Draw("same");
+
+	gPad->SetLogy();
+	cCanvas->Update();
+	//cCanvas->SaveAs( output + "PID/" + variable + ".png");
+	cCanvas->Write(variable);
+	gPad->SetLogy(0);	
+//////////////////////////////////////////
+	// Plot deltaTOF proton
+	variable = "deltaTOFProtonExpected";
+	tree->Draw(variable +">>" + variable +"Bcg(200, -10, 10)",cuts);
+	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable+"Bcg");
+	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
+	variable = "deltaTOF";
+	tree->Draw(variable +">>" + variable +"Sig(200, -10, 10)",cuts);
+	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
+	tmpHist->SetTitle(" ; #Delta TOF [ns]; Number of events");
+	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
+	tool.SetGraphStyle(tmpHist);
+	tool.SetMarkerStyle(tmpHist);
+	tmpHist->Draw("");
+	tool.DrawText(tmpHist,0,true);
+	tool.DrawTextStar(tmpHist);
+	tmpHist2->Draw("SAME");
+
+	leg1 = new TLegend(0.72, 0.68, 0.9, 0.78);
+	tool.SetLegendStyle(leg1);
+	leg1 -> AddEntry(tmpHist, "Data", "l");
+	leg1 -> AddEntry(tmpHist2, "p assumption", "fl");
+	leg1->Draw("same");
+
+	gPad->SetLogy();
+	cCanvas->Update();
+	//cCanvas->SaveAs( output + "PID/" + variable + ".png");
+	cCanvas->Write(variable);
+	gPad->SetLogy(0);
+//////////////////////////////////////////
+	// Plot deltaDeltaTOFPion 
+	variable = "deltaDeltaTOFPion";
+
+	tree->Draw(variable +">>" + variable +"Sig(1200, -10, 10)",cuts);
+	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
+	tmpHist->SetTitle(" ; #Delta #Delta TOF [ns]; Number of events");
+	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
+	tool.SetGraphStyle(tmpHist);
+	tool.SetMarkerStyle(tmpHist);
+	tmpHist->Draw();
+	tool.DrawText(tmpHist,0,true);
+	tool.DrawTextStar(tmpHist);
+
+	gPad->SetLogy();
+	cCanvas->Update();
+	//cCanvas->SaveAs( output + "PID/" + variable + ".png");
+	cCanvas->Write(variable);
+	gPad->SetLogy(0);
+//////////////////////////////////////////
+	// Plot deltaDeltaTOFPion 
+	variable = "deltaDeltaTOFKaon";
+
+	tree->Draw(variable +">>" + variable +"Sig(1200, -10, 10)",cuts);
+	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
+	tmpHist->SetTitle(" ; #Delta #Delta TOF [ns]; Number of events");
+	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
+	tool.SetGraphStyle(tmpHist);
+	tool.SetMarkerStyle(tmpHist);
+	tmpHist->Draw();
+	tool.DrawText(tmpHist,0,true);
+	tool.DrawTextStar(tmpHist);
+
+	gPad->SetLogy();
+	cCanvas->Update();
+	//cCanvas->SaveAs( output + "PID/" + variable + ".png");
+	cCanvas->Write(variable);
+	gPad->SetLogy(0);
+//////////////////////////////////////////
+	// Plot deltaDeltaTOFPion 
+	variable = "deltaDeltaTOFProton";
 
 	tree->Draw(variable +">>" + variable +"Sig(1200, -10, 10)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
