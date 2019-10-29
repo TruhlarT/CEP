@@ -71,105 +71,12 @@ void BasicPlots::PlotHistogram() {
 	treeBack->UseCurrentStyle();
 
 	Plot tool;
-// Plot Inv Mass Inelastic + Elastic
-	treeBack->Draw("invMassPion>>invMassPionBackground(50,0,2.5)","nSigPPion<3"+cutsWithPrefix);
-	TH1F *tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassPionBackground");
-	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
-
-	tree->Draw("invMassPion>>invMassPionSignal(50,0,2.5)","nSigPPion<3"+cutsWithPrefix);
-	TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
-	tmpHist->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Number of events");
-	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
-	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(tmpHist);
-	tmpHist->Draw("E");
-	tool.DrawText(tmpHist, 1, true);
-	tool.DrawTextStar(tmpHist);
-	tmpHist2->Draw("ESAME");
-
-	TLegend* leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"In+El (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
-	leg1->Draw("same");
-
-
-	if(TEXT){
-		TPaveText *textPub3 = new TPaveText(0.6,0.6,0.7,0.7,"brNDC");
-		tool.SetTextStyle(textPub3);
-		textPub3 -> AddText("Drop at about 1 GeV");
-		textPub3 -> Draw("same");
-
-		TPaveText *textPub4 = new TPaveText(0.75,0.5,0.8,0.6,"brNDC");
-		tool.SetTextStyle(textPub4);
-		textPub4 -> AddText("Peak at about 1270 MeV");
-		textPub4 -> Draw("same");	
-	}
-
-
-	cCanvas->Update();
-	////cCanvas->SaveAs(output + "BasicPlots/invMassPion.png");
-	cCanvas->Write("invMassPion");
-//////////////////////////////////////////
-// Plot Inv Mass Inelastic
-	treeBack->Draw("invMassPion>>invMassPionBackground(50,0,2.5)","nSigPPion<3 && !elastic"+cutsWithPrefix);
-	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassPionBackground");
-	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
-
-	tree->Draw("invMassPion>>invMassPionSignal(50,0,2.5)","nSigPPion<3 && !elastic"+cutsWithPrefix);
-	tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
-	tmpHist->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Number of events");
-	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
-	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(tmpHist);
-	tmpHist->Draw("E");
-	tool.DrawText(tmpHist, 1, true);
-	tool.DrawTextStar(tmpHist);
-	tmpHist2->Draw("ESAME");
-
-	leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"In (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"In (like-sign pairs)","p");
-	leg1->Draw("same");
-
-	cCanvas->Update();
-	////cCanvas->SaveAs(output + "BasicPlots/invMassPionIn.png");
-	cCanvas->Write("invMassPionIn");
-//////////////////////////////////////////
-// Plot Inv Mass Elastic
-	treeBack->Draw("invMassPion>>invMassPionBackground(50,0,2.5)","nSigPPion<3 && elastic"+cutsWithPrefix);
-	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassPionBackground");
-	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
-
-	tree->Draw("invMassPion>>invMassPionSignal(50,0,2.5)","nSigPPion<3 && elastic");
-	tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
-	tmpHist->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Number of events");
-	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
-	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(tmpHist);
-	tmpHist->Draw("E");
-	tool.DrawText(tmpHist, 1, true);
-	tool.DrawTextStar(tmpHist);
-	tmpHist2->Draw("ESAME");
-
-	leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"El (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"El (like-sign pairs)","p");
-	leg1->Draw("same");
-
-	cCanvas->Update();
-	////cCanvas->SaveAs(output + "BasicPlots/invMassPionEl.png");
-	cCanvas->Write("invMassPionEl");
 //////////////////////////////////////////
 
 	hCuts = (TH1F*)data -> Get("AnalysisFlow");
-	hCuts2 = (TH1F*)data -> Get("AnalysisFlow2");
-	hMissingPtTPC = (TH1D*)data -> Get("All/MissingPt_TPC2t_Combi");
-	hMissingPtTOF = (TH1D*)data -> Get("All/MissingPt_TOF2trk_Combi");
-	hMissingPtQ0 = (TH1D*)data -> Get("All/MissingPt_Q0_Combi");
-	hMissingPtExc = (TH1D*)data -> Get("All/MissingPt_Excl_Combi");
+	hMissingPtTPC = (TH1D*)data -> Get("All/MissingPt_TPC2t_Combi2part");
+	hMissingPtQ0 = (TH1D*)data -> Get("All/MissingPt_Q0_Combi2part");
+	hMissingPtExc = (TH1D*)data -> Get("All/MissingPt_Excl_Combi2part");
 
 // //////////////////////////////////////////////////////////
 // Plot Cuts Flow
@@ -184,12 +91,10 @@ void BasicPlots::PlotHistogram() {
 		if(tb==3){
 			hCutsFlow->GetXaxis()->SetBinLabel(tb, Labels[tb-1]);
 			hCutsFlow->SetBinContent(tb,hCuts->GetBinContent(i)+hCuts->GetBinContent((++i)++));
-			cout<<hCutsFlow->GetBinContent(tb)<<endl;
 			continue;
 		}
 		hCutsFlow->GetXaxis()->SetBinLabel(tb, Labels[tb-1]);
 		hCutsFlow->SetBinContent(tb,hCuts->GetBinContent(i));
-		cout<<hCutsFlow->GetBinContent(tb)<<endl;
 		i++;
 	}
 //	hCutsFlow->GetXaxis()->SetBinLabel(8, "4 #pi");
@@ -215,45 +120,6 @@ void BasicPlots::PlotHistogram() {
 	//cCanvas->SaveAs(output + "BasicPlots/Cuts.png");
 	cCanvas->Write("CutsFlow");
 //////////////////////////////////////////
-	// Plot Cuts Flow for 4 pion
-	TString Labels2[] = { TString("All"), TString("CPT trigger"), TString("El+InEl"), TString("4 TPC-TOF tracks"), 
-	                  TString("Same vertex"), TString("TotCharge 0"), TString("p_{T}^{miss} < 0.1 GeV/c"), TString(""),};
-	//gPad->SetMargin(0.9,0.02,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
-	gPad->SetLogy();
-
-	TH1F* hCutsFlow2 = new TH1F("cuts2", "cuts", 8, 1, 9);
-	i = 1;
-	for(int tb=1; tb<8; ++tb){ 
-		if(tb==3){
-			hCutsFlow2->GetXaxis()->SetBinLabel(tb, Labels2[tb-1]);
-			hCutsFlow2->SetBinContent(tb,hCuts2->GetBinContent(i)+hCuts2->GetBinContent((++i)++));
-			cout<<hCutsFlow2->GetBinContent(tb)<<endl;
-			continue;
-		}
-		hCutsFlow2->GetXaxis()->SetBinLabel(tb, Labels2[tb-1]);
-		hCutsFlow2->SetBinContent(tb,hCuts2->GetBinContent(i));
-		cout<<hCutsFlow2->GetBinContent(tb)<<endl;
-		i++;
-	}
-	hCutsFlow2->SetTitle("; ; Number of events");
-	tool.SetGraphStyle(hCutsFlow2);
-	tool.SetMarkerStyle(hCutsFlow2);
-	//hCutsFlow->GetYaxis()->SetRangeUser(800,300000000);
-	hCutsFlow2->GetXaxis()->SetLabelSize(0.045);
-	hCutsFlow2->Draw();
-	tool.DrawTextStar(hCutsFlow2,2);
-
-	textPub = new TPaveText(0.75,0.74,0.9,0.9,"brNDC");
-	tool.SetTextStyle(textPub);
-	textPub -> AddText("p + p #rightarrow p' + X + p'");
-	textPub -> AddText("#sqrt{s} = 510 GeV");
-	textPub -> AddText("Cuts flow");
-	textPub -> Draw("same");
-
-	
-	cCanvas->Update();
-	//cCanvas->SaveAs(output + "BasicPlots/Cuts.png");
-	cCanvas->Write("CutsFlow4Pi");
 //////////////////////////////////////////
 ////////////// 
 	gPad->SetLogy();

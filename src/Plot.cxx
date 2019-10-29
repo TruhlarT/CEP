@@ -77,7 +77,7 @@ void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t y
 	textPub -> SetTextAlign(align);
 	textPub -> SetFillColor(0);
 	textPub -> SetTextFont(font);
-	textPub -> AddText("p + p #rightarrow p' + " + centralState +" + p'");
+	textPub -> AddText("p + p #rightarrow p + " + centralState +" + p");
 	textPub -> AddText("#sqrt{s} = 510 GeV");
 	int NentriesEl = hist->GetEntries();
 	TString tileIdStrEl; tileIdStrEl.Form("%i #pi_{cand}^{Exc}",NentriesEl);

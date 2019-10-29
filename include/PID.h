@@ -58,6 +58,7 @@ public:
 	TH1F* tmpHist;
 	TH1F* tmpHist2;
 	TH1F* tmpHist3;
+	TH1F* tmpHist4;
 
 	TH2F* tmp2DHist;
 	TH2F* tmp2DHist2;

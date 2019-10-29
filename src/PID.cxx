@@ -149,40 +149,22 @@ void PID::PlotHistogram(){
 	cCanvas->Write(variable);
 	gPad->SetLogy(0);
 //////////////////////////////////////////
-	// Plot deltaTOF pion
-	variable = "deltaTOFPionExpected";
-	tree->Draw(variable +">>" + variable +"Bcg(200, -10, 10)",cuts);
-	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable+"Bcg");
-	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
-	variable = "deltaTOF";
-	tree->Draw(variable +">>" + variable +"Sig(200, -10, 10)",cuts);
-	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
-	tmpHist->SetTitle(" ; #Delta TOF [ns]; Number of events");
-	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
-	tool.SetGraphStyle(tmpHist);
-	tool.SetMarkerStyle(tmpHist);
-	tmpHist->Draw("");
-	tool.DrawText(tmpHist,0,true);
-	tool.DrawTextStar(tmpHist);
-	tmpHist2->Draw("SAME");
-
-	TLegend* leg1 = new TLegend(0.72, 0.68, 0.9, 0.78);
-	tool.SetLegendStyle(leg1);
-	leg1 -> AddEntry(tmpHist, "Data", "l");
-	leg1 -> AddEntry(tmpHist2, "#pi assumption", "fl");
-	leg1->Draw("same");
-
-	gPad->SetLogy();
-	cCanvas->Update();
-	//cCanvas->SaveAs( output + "PID/" + variable + ".png");
-	cCanvas->Write(variable);
-	gPad->SetLogy(0);
-//////////////////////////////////////////
 	// Plot deltaTOF kaon
 	variable = "deltaTOFKaonExpected";
 	tree->Draw(variable +">>" + variable +"Bcg(200, -10, 10)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable+"Bcg");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
+
+    variable = "deltaTOFPionExpected";
+    tree->Draw(variable +">>" + variable +"Bcg(200, -10, 10)",cuts);
+    tmpHist3 = (TH1F*)gPad->GetPrimitive(variable+"Bcg");
+    tool.SetMarkerStyle(tmpHist3,2,20,1,3,1,1);
+
+    variable = "deltaTOFProtonExpected";
+    tree->Draw(variable +">>" + variable +"Bcg(200, -10, 10)",cuts);
+    tmpHist4 = (TH1F*)gPad->GetPrimitive(variable+"Bcg");
+    tool.SetMarkerStyle(tmpHist4,2,20,1,4,1,1);
+
 	variable = "deltaTOF";
 	tree->Draw(variable +">>" + variable +"Sig(200, -10, 10)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
@@ -193,12 +175,16 @@ void PID::PlotHistogram(){
 	tmpHist->Draw("");
 	tool.DrawText(tmpHist,0,true);
 	tool.DrawTextStar(tmpHist);
-	tmpHist2->Draw("SAME");
+	tmpHist3->Draw("SAME");
+    tmpHist2->Draw("SAME");
+    tmpHist4->Draw("SAME");
 
-	leg1 = new TLegend(0.72, 0.68, 0.9, 0.78);
+	TLegend *leg1 = new TLegend(0.72, 0.58, 0.9, 0.78);
 	tool.SetLegendStyle(leg1);
 	leg1 -> AddEntry(tmpHist, "Data", "l");
+    leg1 -> AddEntry(tmpHist3, "#pi assumption", "fl");
 	leg1 -> AddEntry(tmpHist2, "K assumption", "fl");
+    leg1 -> AddEntry(tmpHist4, "p assumption", "fl");
 	leg1->Draw("same");
 
 	gPad->SetLogy();
@@ -206,35 +192,6 @@ void PID::PlotHistogram(){
 	//cCanvas->SaveAs( output + "PID/" + variable + ".png");
 	cCanvas->Write(variable);
 	gPad->SetLogy(0);	
-//////////////////////////////////////////
-	// Plot deltaTOF proton
-	variable = "deltaTOFProtonExpected";
-	tree->Draw(variable +">>" + variable +"Bcg(200, -10, 10)",cuts);
-	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable+"Bcg");
-	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
-	variable = "deltaTOF";
-	tree->Draw(variable +">>" + variable +"Sig(200, -10, 10)",cuts);
-	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
-	tmpHist->SetTitle(" ; #Delta TOF [ns]; Number of events");
-	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
-	tool.SetGraphStyle(tmpHist);
-	tool.SetMarkerStyle(tmpHist);
-	tmpHist->Draw("");
-	tool.DrawText(tmpHist,0,true);
-	tool.DrawTextStar(tmpHist);
-	tmpHist2->Draw("SAME");
-
-	leg1 = new TLegend(0.72, 0.68, 0.9, 0.78);
-	tool.SetLegendStyle(leg1);
-	leg1 -> AddEntry(tmpHist, "Data", "l");
-	leg1 -> AddEntry(tmpHist2, "p assumption", "fl");
-	leg1->Draw("same");
-
-	gPad->SetLogy();
-	cCanvas->Update();
-	//cCanvas->SaveAs( output + "PID/" + variable + ".png");
-	cCanvas->Write(variable);
-	gPad->SetLogy(0);
 //////////////////////////////////////////
 	// Plot deltaDeltaTOFPion 
 	variable = "deltaDeltaTOFPion";
@@ -385,10 +342,10 @@ for(int i = 0; i < 3; ++i){
 		j2 = 2;
 	}
 
-	variable = "nSigP" + particleID[j1];
-	variable2 = "nSigP" + particleID[j2];
+	variable = "nSigP" + particleID[j2];
+	variable2 = "nSigP" + particleID[j1];
 	//tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,50,100,0,50)","deltaDeltaTOF < 1 && deltaDeltaTOF > -1 ","colz");
-	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,50,100,0,50)",cuts,"colz");
+	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,35,100,0,35)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "Sig");
 	tmp2DHist->SetTitle(" ; n#sigma^{pair}_{" + particleID[j1] + "}; n#sigma^{pair}_{" + particleID[j2] + "}");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.9);
@@ -403,11 +360,11 @@ for(int i = 0; i < 3; ++i){
 
 	cCanvas2D->Update();
 	//cCanvas2D->SaveAs( output + "PID/nSigP" + particleID[j1] + "Vs" + particleID[j2] + ".png");
-	cCanvas2D->Write("nSigP" + particleID[j1] + "Vs" + particleID[j2]);
+	cCanvas2D->Write("nSigP" + particleID[j2] + "Vs" + particleID[j1]);
 
 	variable = "nSigP" + particleID[i];
 	variable2 = "mSquared";
-	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,50,100,0,1)",cuts,"colz");
+	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,16,100,-0.5,1.5)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "Sig");
 	tmp2DHist->SetTitle(" ; n#sigma^{pair}_{" + particleID[i] + "}; m^{2}_{TOF} [GeV^{2}/c^{4}]");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,1.0);
@@ -418,7 +375,7 @@ for(int i = 0; i < 3; ++i){
 
 	cCanvas2D->Update();
 	//cCanvas2D->SaveAs( output + "PID/" + variable + "Vs" + variable2 + ".png");
-	cCanvas2D->Write(variable + "Vs" + variable2);
+	cCanvas2D->Write(variable2 + "Vs" + variable);
 
 	variable = "momentum";
 	variable2 = "nSigP" + particleID[i];
@@ -435,7 +392,7 @@ for(int i = 0; i < 3; ++i){
 
 	cCanvas2D->Update();
 	//cCanvas2D->SaveAs( output + "PID/" + variable + "Vs" + variable2 + ".png");
-	cCanvas2D->Write(variable + "Vs" + variable2);
+	cCanvas2D->Write(variable2 + "Vs" + variable);
 
 }	
 /////////////////////////////////////////////////////	

@@ -213,11 +213,11 @@ int main(int argc, char** argv) {
 	appliedCuts = "nSigPKaon < 3 && nSigPProton > 3 && nSigPPion > 3 && " + cuts;
 	textCut -> AddText("KK: nSigPKaon < 3 && nSigPProton > 3 && nSigPPion > 3");
 
-	treeBack->Draw("invMassKaon>>invMassKaonBackground(50,0,2.5)",appliedCuts);
+	treeBack->Draw("invMassKaon>>invMassKaonBackground(50,0.5,3.5)",appliedCuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassKaonBackground");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("invMassKaon>>invMassKaonSignal(50,0,2.5)",appliedCuts);
+	tree->Draw("invMassKaon>>invMassKaonSignal(50,0.5,3.5)",appliedCuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("invMassKaonSignal");
 	tmpHist->SetTitle(" ; m(K^{+}K^{-}) [GeV/c^{2}]; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
@@ -240,11 +240,11 @@ int main(int argc, char** argv) {
 	appliedCuts = "nSigPProton < 3 && nSigPKaon > 3 && nSigPPion > 3 && " + cuts;
 	textCut -> AddText("pp: nSigPProton < 3 && nSigPKaon > 3 && nSigPPion > 3");
 
-	treeBack->Draw("invMassProton>>invMassProtonBackground(50,0,2.5)",appliedCuts);
+	treeBack->Draw("invMassProton>>invMassProtonBackground(50,1.0,4.5)",appliedCuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassProtonBackground");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("invMassProton>>invMassProtonSignal(50,0,2.5)",appliedCuts);
+	tree->Draw("invMassProton>>invMassProtonSignal(50,1.0,4.5)",appliedCuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("invMassProtonSignal");
 	tmpHist->SetTitle(" ; m(p#bar{p}) [GeV/c^{2}]; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
