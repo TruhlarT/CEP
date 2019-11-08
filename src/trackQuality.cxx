@@ -101,16 +101,16 @@ void trackQuality::PlotHistogram(){
 	cCanvas->Write("zVertex");
 //////////////////////////////////////////
 // Plot DCAXY vertex
-	treeBack->Draw("DcaXY1>>DcaXY1Bcg(100,0,3.5)",cuts);
+	treeBack->Draw("DcaXY0>>DcaXY1Bcg(100,0,3.5)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("DcaXY1Bcg");
-	treeBack->Draw("DcaXY2>>DcaXY2Bcg(100,0,3.5)",cuts);
+	treeBack->Draw("DcaXY1>>DcaXY2Bcg(100,0,3.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("DcaXY2Bcg");
 	tmpHist2->Add(tmpHist);
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-	tree->Draw("DcaXY1>>DcaXY1Sig(100,0,3.5)",cuts);
+	tree->Draw("DcaXY0>>DcaXY1Sig(100,0,3.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("DcaXY1Sig");
-	tree->Draw("DcaXY2>>DcaXY2Sig(100,0,3.5)",cuts);
+	tree->Draw("DcaXY1>>DcaXY2Sig(100,0,3.5)",cuts);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive("DcaXY2Sig");
 	tmpHist->Add(tmpHist3);
 	tmpHist->SetTitle(" ; DCA_{xy} [cm]; Number of tracks");
@@ -136,16 +136,16 @@ void trackQuality::PlotHistogram(){
 	cCanvas->Write("DcaXY");
 //////////////////////////////////////////
 // Plot DCAZ vertex
-	treeBack->Draw("DcaZ1>>DcaZ1Bcg(100,-1.5,1.5)",cuts);
+	treeBack->Draw("DcaZ0>>DcaZ1Bcg(100,-1.5,1.5)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("DcaZ1Bcg");
-	treeBack->Draw("DcaZ2>>DcaZ2Bcg(100,-1.5,1.5)",cuts);
+	treeBack->Draw("DcaZ1>>DcaZ2Bcg(100,-1.5,1.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("DcaZ2Bcg");
 	tmpHist2->Add(tmpHist);
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
 	tree->Draw("DcaZ1>>DcaZ1Sig(100,-1.5,1.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("DcaZ1Sig");
-	tree->Draw("DcaZ2>>DcaZ2Sig(100,-1.5,1.5)",cuts);
+	tree->Draw("DcaZ0>>DcaZ2Sig(100,-1.5,1.5)",cuts);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive("DcaZ2Sig");
 	tmpHist->Add(tmpHist3);
 	tmpHist->SetTitle(" ; DCA_{z} [cm]; Number of tracks");
@@ -177,14 +177,14 @@ void trackQuality::PlotHistogram(){
 // Plot NhitsDEdx vertex
 	treeBack->Draw("NhitsDEdx1>>NhitsDEdx1Bcg(51,0,50)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("NhitsDEdx1Bcg");
-	treeBack->Draw("NhitsDEdx2>>NhitsDEdx2Bcg(51,0,50)",cuts);
+	treeBack->Draw("NhitsDEdx0>>NhitsDEdx2Bcg(51,0,50)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("NhitsDEdx2Bcg");
 	tmpHist2->Add(tmpHist);
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
 	tree->Draw("NhitsDEdx1>>NhitsDEdx1Sig(61,0,60)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("NhitsDEdx1Sig");
-	tree->Draw("NhitsDEdx2>>NhitsDEdx2Sig(61,0,60)",cuts);
+	tree->Draw("NhitsDEdx0>>NhitsDEdx2Sig(61,0,60)",cuts);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive("NhitsDEdx2Sig");
 	tmpHist->Add(tmpHist3);
 	tmpHist->SetTitle(" ; N^{dE/dx}_{hits} ; Number of tracks");
@@ -214,14 +214,14 @@ void trackQuality::PlotHistogram(){
 // Plot Eta vertex
 	treeBack->Draw("Eta1>>Eta1Bcg(100,-2,3.5)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("Eta1Bcg");
-	treeBack->Draw("Eta2>>Eta2Bcg(100,-2,3.5)",cuts);
+	treeBack->Draw("Eta0>>Eta2Bcg(100,-2,3.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("Eta2Bcg");
 	tmpHist2->Add(tmpHist);
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
 	tree->Draw("Eta1>>Eta1Sig(100,-2,3.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("Eta1Sig");
-	tree->Draw("Eta2>>Eta2Sig(100,-2,3.5)",cuts);
+	tree->Draw("Eta0>>Eta2Sig(100,-2,3.5)",cuts);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive("Eta2Sig");
 	tmpHist->Add(tmpHist3);
 	tmpHist->SetTitle(" ; #eta ; Number of tracks");
@@ -258,7 +258,7 @@ void trackQuality::PlotHistogram(){
 	gPad->SetTicky(); 
 
 // Plot XYEastCor vertex
-	tree->Draw("yCorrelationsEast:xCorrelationsEast>>XYEastCorSig(100,-1,1.4,100,-1,1.4)",cuts,"colz");
+	tree->Draw("yCorrelationsRpEast:xCorrelationsRpEast>>XYEastCorSig(100,-1,1.4,100,-1,1.4)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive("XYEastCorSig");
 	tmp2DHist->SetTitle(" ; p_{x} [GeV/c]; p_{y} [GeV/c]");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.7);
@@ -324,7 +324,7 @@ void trackQuality::PlotHistogram(){
 //////////////////////////////////////////
 
 // Plot XYWestCor vertex
-	tree->Draw("yCorrelationsWest:xCorrelationsWest>>XYWestCorSig(100,-1,1.4,100,-1,1.4)",cuts,"colz");
+	tree->Draw("yCorrelationsRpWest:xCorrelationsRpWest>>XYWestCorSig(100,-1,1.4,100,-1,1.4)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive("XYWestCorSig");
 	tmp2DHist->SetTitle(" ; p_{x} [GeV/c]; p_{y} [GeV/c]");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.7);
@@ -390,7 +390,7 @@ void trackQuality::PlotHistogram(){
 	cCanvas2D->Write("hXYWestCor");
 //////////////////////////////////////////
 // Plot ZvrtxVsEta vertex
-	tree->Draw("Eta2:vertexZ>>ZvrtxVsEta2Sig(100,-200,200,100,-1,1.5)",cuts,"colz");
+	tree->Draw("Eta0:vertexZ>>ZvrtxVsEta2Sig(100,-200,200,100,-1,1.5)",cuts,"colz");
 	tmp2DHist2 = (TH2F*)gPad->GetPrimitive("ZvrtxVsEta2Sig");
 	tree->Draw("Eta1:vertexZ>>ZvrtxVsEtaSig(100,-200,200,100,-1,1.5)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive("ZvrtxVsEtaSig");

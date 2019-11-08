@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
 	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/" + DataSet + "/";
 	
 
-	TString cutsOption[] = { TString("vertexZ<80 && vertexZ > -80"), TString("NhitFit1 >=25 && NhitFit2 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx2 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ2 < 1 && DcaZ2 > -1"), TString("DcaXY1 < 1.5 && DcaXY2 < 1.5"), TString("Eta1 > -0.8 && Eta1 < 0.8 && Eta2 > -0.8 && Eta2 < 0.8"), TString("!fourPiState")};
+	TString cutsOption[] = { TString("vertexZ<80 && vertexZ > -80"), TString("NhitsFit1 >=25 && NhitsFit0 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx0 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ0 < 1 && DcaZ0 > -1"), TString("DcaXY1 < 1.5 && DcaXY0 < 1.5"), TString("Eta1 > -0.8 && Eta1 < 0.8 && Eta0 > -0.8 && Eta0 < 0.8"), TString("!fourPiState")};
 	TString cutsLabels[] = { TString("|z_{vtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"), TString("|DCA(z)| < 1 cm"), TString("DCA(XY) < 1.5 cm"), TString("|#eta| < 0.8"), TString("!fourPiState")  };
 
 	TFile* data = TFile::Open(dataName, "read");
@@ -167,9 +167,72 @@ int main(int argc, char** argv) {
 	PID PIDPlotsWithCuts(data, fout, output, showCutsLine, cuts);
 	PIDPlotsWithCuts.PlotHistogram();
 
-	cutsDir->mkdir("trackQuality")->cd();
-	trackQuality TrackPlotsWithCuts(data, fout, output, showCutsLine, cuts);
-	TrackPlotsWithCuts.PlotHistogram();
+    cutsDir->mkdir("trackQuality")->cd();
+    trackQuality TrackPlotsWithCuts(data, fout, output, showCutsLine, cuts);
+    TrackPlotsWithCuts.PlotHistogram();
+
+///////////////////////////////////////////////////////////////
+    TDirectory* TomasDir = cutsDir->mkdir("PID_Tomas");
+    TomasDir->cd();
+    TomasDir->mkdir("Pions")->cd();
+    PID PIDPlotsWithCuts1(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (nSigPairKaon > 3 || mSquared < 0.2 || mSquared > 0.32) && (nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+    PIDPlotsWithCuts1.PlotHistogram();
+
+    TomasDir->mkdir("Kaons")->cd();
+    PID PIDPlotsWithCuts2(data, fout, output, showCutsLine, cuts + "&& nSigPairKaon < 3 && mSquared > 0.2 && mSquared < 0.32 && (nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+    PIDPlotsWithCuts2.PlotHistogram();
+
+    TomasDir->mkdir("Protons")->cd();
+    PID PIDPlotsWithCuts3(data, fout, output, showCutsLine, cuts + "&& nSigPairProton < 3 && mSquared > 0.7 && mSquared < 1.1");
+    PIDPlotsWithCuts3.PlotHistogram();
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+    TDirectory* TomasDir2 = cutsDir->mkdir("PID_Tomas2");
+    TomasDir2->cd();
+    TomasDir2->mkdir("Pions")->cd();
+    PID PIDPlotsWithCuts4(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (nSigPairKaon > 3 || ((mSquared < 0.2 || mSquared > 0.32) && (deltaDeltaTOFKaon < -0.5 || deltaDeltaTOFKaon > 0.5))) && (nSigPairProton > 3 || ((mSquared < 0.7 || mSquared > 1.1) && (deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)))");
+    PIDPlotsWithCuts4.PlotHistogram();
+
+    TomasDir2->mkdir("Kaons")->cd();
+    PID PIDPlotsWithCuts5(data, fout, output, showCutsLine, cuts + "&& nSigPairKaon < 3 && ((mSquared > 0.2 && mSquared < 0.32) || (deltaDeltaTOFKaon > -0.5 && deltaDeltaTOFKaon < 0.5)) && (nSigPairProton > 3 || ((mSquared < 0.7 || mSquared > 1.1) && (deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)))");
+    PIDPlotsWithCuts5.PlotHistogram();
+
+    TomasDir2->mkdir("Protons")->cd();
+    PID PIDPlotsWithCuts6(data, fout, output, showCutsLine, cuts + "&& nSigPairProton < 3 && ((mSquared > 0.7 && mSquared < 1.1) || (deltaDeltaTOFProton > -0.5 && deltaDeltaTOFProton < 0.5))");
+    PIDPlotsWithCuts6.PlotHistogram();
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+    TDirectory* RafalDir = cutsDir->mkdir("PID_Rafal");
+    RafalDir->cd();
+    RafalDir->mkdir("Pions")->cd();
+    PID PIDPlotsWithCuts7(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (nSigPairPion < 3 || nSigPairKaon > 3 || nSigPairProton < 3 || mSquared < 0.2 || mSquared > 0.32) && (nSigPairPion < 3 || nSigPairKaon < 3 || nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+    PIDPlotsWithCuts7.PlotHistogram();
+
+    RafalDir->mkdir("Kaons")->cd();
+    PID PIDPlotsWithCuts8(data, fout, output, showCutsLine, cuts + "&& nSigPairPion > 3 && nSigPairKaon < 3 && nSigPairProton > 3 && mSquared > 0.2 && mSquared < 0.32 && (nSigPairPion < 3 || nSigPairKaon < 3 || nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+    PIDPlotsWithCuts8.PlotHistogram();
+
+    RafalDir->mkdir("Protons")->cd();
+    PID PIDPlotsWithCuts9(data, fout, output, showCutsLine, cuts + "&& nSigPairPion > 3 && nSigPairKaon > 3 && nSigPairProton < 3 && mSquared > 0.7 && mSquared < 1.1");
+    PIDPlotsWithCuts9.PlotHistogram();
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+    TDirectory* DanielDir = cutsDir->mkdir("PID_Daniel");
+    DanielDir->cd();
+    DanielDir->mkdir("Pions")->cd();
+    PID PIDPlotsWithCuts10(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (nSigPairKaon > 3 || deltaDeltaTOFKaon < -0.5 || deltaDeltaTOFKaon > 0.5) && (nSigPairProton > 3 || deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)");
+    PIDPlotsWithCuts10.PlotHistogram();
+
+    DanielDir->mkdir("Kaons")->cd();
+    PID PIDPlotsWithCuts11(data, fout, output, showCutsLine, cuts + "&& nSigPairKaon < 3 && deltaDeltaTOFKaon > -0.5 && deltaDeltaTOFKaon < 0.5  && (nSigPairProton > 3 || deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)");
+    PIDPlotsWithCuts11.PlotHistogram();
+
+    DanielDir->mkdir("Protons")->cd();
+    PID PIDPlotsWithCuts12(data, fout, output, showCutsLine, cuts + "&& nSigPairProton < 3 && deltaDeltaTOFProton > -0.5 && deltaDeltaTOFProton < 0.5");
+    PIDPlotsWithCuts12.PlotHistogram();
+///////////////////////////////////////////////////////////////
+
+
 //////////////////////////////////////////////////////////////////////
 //				PID cuts applied
 //////////////////////////////////////////////////////////////////////
@@ -181,10 +244,10 @@ int main(int argc, char** argv) {
 	TPaveText *textCut = new TPaveText(0.1,0.1,0.95,0.9,"brNDC");
 	tool.SetTextStyle(textCut);
 
-	TString appliedCuts = "(nSigPProton >= 3 || nSigPKaon <= 3 || nSigPPion <= 3) && (nSigPKaon >= 3 || nSigPProton >= 3 || nSigPPion <= 3) && " + cuts;
+	TString appliedCuts = "(nSigPairProton >= 3 || nSigPairKaon <= 3 || nSigPairPion <= 3) && (nSigPairKaon >= 3 || nSigPairProton >= 3 || nSigPairPion <= 3) && " + cuts;
 	textCut -> AddText("All track quality cuts applied");
-	textCut -> AddText("#pi #pi: (nSigPProton >= 3 || nSigPKaon <= 3 || nSigPPion <= 3)");
-	textCut -> AddText("&& (nSigPKaon >= 3 || nSigPProton >= 3 || nSigPPion <= 3)");
+	textCut -> AddText("#pi #pi: (nSigPairProton >= 3 || nSigPairKaon <= 3 || nSigPairPion <= 3)");
+	textCut -> AddText("&& (nSigPairKaon >= 3 || nSigPairProton >= 3 || nSigPairPion <= 3)");
 
 	treeBack->Draw("invMassPion>>invMassPionBackground(50,0,2.5)",appliedCuts);
 	TH1F* tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassPionBackground");
@@ -210,8 +273,8 @@ int main(int argc, char** argv) {
 	newCanvas->Update();
 	newCanvas->Write("invMassPion");
 
-	appliedCuts = "nSigPKaon < 3 && nSigPProton > 3 && nSigPPion > 3 && " + cuts;
-	textCut -> AddText("KK: nSigPKaon < 3 && nSigPProton > 3 && nSigPPion > 3");
+	appliedCuts = "nSigPairKaon < 3 && nSigPairProton > 3 && nSigPairPion > 3 && " + cuts;
+	textCut -> AddText("KK: nSigPairKaon < 3 && nSigPairProton > 3 && nSigPairPion > 3");
 
 	treeBack->Draw("invMassKaon>>invMassKaonBackground(50,0.5,3.5)",appliedCuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassKaonBackground");
@@ -237,8 +300,8 @@ int main(int argc, char** argv) {
 	newCanvas->Update();
 	newCanvas->Write("invMassKaon");
 
-	appliedCuts = "nSigPProton < 3 && nSigPKaon > 3 && nSigPPion > 3 && " + cuts;
-	textCut -> AddText("pp: nSigPProton < 3 && nSigPKaon > 3 && nSigPPion > 3");
+	appliedCuts = "nSigPairProton < 3 && nSigPairKaon > 3 && nSigPairPion > 3 && " + cuts;
+	textCut -> AddText("pp: nSigPairProton < 3 && nSigPairKaon > 3 && nSigPairPion > 3");
 
 	treeBack->Draw("invMassProton>>invMassProtonBackground(50,1.0,4.5)",appliedCuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassProtonBackground");

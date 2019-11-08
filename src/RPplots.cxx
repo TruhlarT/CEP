@@ -68,8 +68,8 @@ void RPplots::PlotHistogram() {
 //////////////////////////////////////////////////
 // Plot XYEastCor vertex
     gPad->SetLogz();
-    variable = "yCorrelationsEast";
-    variable2 = "xCorrelationsEast";
+    variable = "yCorrelationsRpEast";
+    variable2 = "xCorrelationsRpEast";
     cutsOption = cuts;
     nBins = 100;
     min = -1;
@@ -144,8 +144,8 @@ void RPplots::PlotHistogram() {
 //////////////////////////////////////////////////
 // Plot XYEastCor vertex
     gPad->SetLogz();
-    variable = "yCorrelationsWest";
-    variable2 = "xCorrelationsWest";
+    variable = "yCorrelationsRpWest";
+    variable2 = "xCorrelationsRpWest";
     cutsOption = cuts;
     nBins = 100;
     min = -1;

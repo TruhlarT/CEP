@@ -67,7 +67,7 @@ public:
 	TH2F* tmp2DHist5;
 	TH2F* tmp2DHist6;
 
-
+	TLegend *leg1;
 };
 
 

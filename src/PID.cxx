@@ -133,15 +133,60 @@ void PID::PlotHistogram(){
 	TString variable;
 // Plot mSquared 
 	variable = "mSquared";
-	tree->Draw(variable +">>" + variable +"Sig( 200, -0.5, 2.0)",cuts);
+
+	tree->Draw(variable +">>" + variable + "Pion( 200, -0.5, 1.5)", "nSigPairPion < 3 " + cutsWithPrefix);
+	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable + "Pion");
+	tool.SetMarkerStyle(tmpHist2,2,20,1,3,1,1);
+	tree->Draw(variable +">>" + variable + "Kaon( 200, -0.5, 1.5)", "nSigPairKaon < 3 && nSigPairPion > 3 && nSigPairProton > 3 " + cutsWithPrefix);
+	tmpHist3 = (TH1F*)gPad->GetPrimitive(variable + "Kaon");
+	tool.SetMarkerStyle(tmpHist3,2,20,1,2,1,1);
+	tree->Draw(variable +">>" + variable + "Proton( 200, -0.5, 1.5)", "nSigPairProton < 3 && nSigPairKaon > 3 && nSigPairPion > 3" + cutsWithPrefix);
+	tmpHist4 = (TH1F*)gPad->GetPrimitive(variable + "Proton");
+	tool.SetMarkerStyle(tmpHist4,2,20,1,1,1,1);
+
+	tree->Draw(variable +">>" + variable +"Sig( 200, -0.5, 1.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
 	tmpHist->SetTitle(" ; m^{2}_{TOF} [GeV^{2}/c^{4}]; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
 	tool.SetGraphStyle(tmpHist);
 	tool.SetMarkerStyle(tmpHist);
 	tmpHist->Draw();
-	tool.DrawText(tmpHist);
-	tool.DrawTextStar(tmpHist);
+	//tool.DrawText(tmpHist);
+	//tool.DrawTextStar(tmpHist);
+    tmpHist2->Draw("SAME");
+	tmpHist3->Draw("SAME");
+    tmpHist4->Draw("SAME");
+
+	TLine *mLine = new TLine(0.2,0,0.2,8000);
+	tool.SetLineStyle(mLine,10,1,4);
+    mLine->Draw("same");
+
+    mLine = new TLine(0.32,0,0.32,8000);
+	tool.SetLineStyle(mLine,10,1,4);
+    mLine->Draw("same");
+
+    mLine = new TLine(0.7,0,0.7,8000);
+	tool.SetLineStyle(mLine,10,1,4);
+    mLine->Draw("same");
+
+    mLine = new TLine(1.1,0,1.1,8000);
+	tool.SetLineStyle(mLine,10,1,4);
+    mLine->Draw("same");
+
+	TPaveText *textPub = new TPaveText(0.72,0.8,0.84,0.95,"brNDC");
+	textPub -> SetTextSize(0.04);
+	textPub -> SetFillColor(0);
+	textPub -> SetTextFont(42);
+	textPub -> AddText("Pair PID based on dE/dx");
+	textPub -> Draw("same");
+
+	leg1 = new TLegend(0.72, 0.65, 0.9, 0.8);
+	tool.SetLegendStyle(leg1);
+	leg1 -> AddEntry(tmpHist, "All pairs", "l");
+    leg1 -> AddEntry(tmpHist2, "#pi^{+} #pi^{-}", "fl");
+	leg1 -> AddEntry(tmpHist3, "K^{+}K^{-}", "fl");
+    leg1 -> AddEntry(tmpHist4, "p#bar{p}", "fl");
+	leg1->Draw("same");
 
 	gPad->SetLogy();
 	cCanvas->Update();
@@ -150,20 +195,20 @@ void PID::PlotHistogram(){
 	gPad->SetLogy(0);
 //////////////////////////////////////////
 	// Plot deltaTOF kaon
-	variable = "deltaTOFKaonExpected";
-	tree->Draw(variable +">>" + variable +"Bcg(200, -10, 10)",cuts);
-	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable+"Bcg");
+	variable = "deltaTOFExpectedKaon";
+	tree->Draw(variable +">>" + variable +"Assump(200, -10, 10)",cuts);
+	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable+"Assump");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
 
-    variable = "deltaTOFPionExpected";
-    tree->Draw(variable +">>" + variable +"Bcg(200, -10, 10)",cuts);
-    tmpHist3 = (TH1F*)gPad->GetPrimitive(variable+"Bcg");
+    variable = "deltaTOFExpectedPion";
+    tree->Draw(variable +">>" + variable +"Assump(200, -10, 10)",cuts);
+    tmpHist3 = (TH1F*)gPad->GetPrimitive(variable+"Assump");
     tool.SetMarkerStyle(tmpHist3,2,20,1,3,1,1);
 
-    variable = "deltaTOFProtonExpected";
-    tree->Draw(variable +">>" + variable +"Bcg(200, -10, 10)",cuts);
-    tmpHist4 = (TH1F*)gPad->GetPrimitive(variable+"Bcg");
-    tool.SetMarkerStyle(tmpHist4,2,20,1,4,1,1);
+    variable = "deltaTOFExpectedProton";
+    tree->Draw(variable +">>" + variable +"Assump(200, -10, 10)",cuts);
+    tmpHist4 = (TH1F*)gPad->GetPrimitive(variable+"Assump");
+    tool.SetMarkerStyle(tmpHist4,2,20,1,1,1,1);
 
 	variable = "deltaTOF";
 	tree->Draw(variable +">>" + variable +"Sig(200, -10, 10)",cuts);
@@ -179,11 +224,11 @@ void PID::PlotHistogram(){
     tmpHist2->Draw("SAME");
     tmpHist4->Draw("SAME");
 
-	TLegend *leg1 = new TLegend(0.72, 0.58, 0.9, 0.78);
+	leg1 = new TLegend(0.72, 0.58, 0.9, 0.78);
 	tool.SetLegendStyle(leg1);
 	leg1 -> AddEntry(tmpHist, "Data", "l");
-    leg1 -> AddEntry(tmpHist3, "#pi assumption", "fl");
-	leg1 -> AddEntry(tmpHist2, "K assumption", "fl");
+    leg1 -> AddEntry(tmpHist2, "#pi assumption", "fl");
+	leg1 -> AddEntry(tmpHist3, "K assumption", "fl");
     leg1 -> AddEntry(tmpHist4, "p assumption", "fl");
 	leg1->Draw("same");
 
@@ -250,8 +295,8 @@ void PID::PlotHistogram(){
 	cCanvas->Write(variable);
 	gPad->SetLogy(0);
 //////////////////////////////////////////
-// Plot nSigPPion 
-	variable = "nSigPPion";
+// Plot nSigPairPion 
+	variable = "nSigPairPion";
 
 	tree->Draw(variable +">>" + variable +"Sig(50, 0, 7)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
@@ -277,7 +322,7 @@ void PID::PlotHistogram(){
 	variable = "dEdx";
 	tree->Draw(variable +"1>>" + variable +"Sig1(80,0,25)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig1");
-	tree->Draw(variable +"2>>" + variable +"Sig2(80,0,25)",cuts);
+	tree->Draw(variable +"0>>" + variable +"Sig2(80,0,25)",cuts);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive(variable +"Sig2");
 	tmpHist->Add(tmpHist3);
 	tmpHist->SetTitle(" ; dEdx [keV/cm]; Number of tracks");;
@@ -304,9 +349,9 @@ void PID::PlotHistogram(){
 ////////// Plot dEdx ////////////	
 	variable = "dEdx";
 	variable2 = "momentum";
-	tree->Draw(variable + "1:charge1*tranMomenta1" + ">>" + variable + "Vs" + variable2 + "1Sig(120,-3,3,80,0,10)",cuts,"colz");
+	tree->Draw(variable + "1:charge1*transMomentum1" + ">>" + variable + "Vs" + variable2 + "1Sig(120,-3,3,80,0,10)",cuts,"colz");
 	tmp2DHist2 = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "1Sig");
-	tree->Draw(variable + "2:charge2*tranMomenta2" + ">>" + variable + "Vs" + variable2 + "2Sig(120,-3,3,80,0,10)",cuts,"colz");
+	tree->Draw(variable + "0:charge0*transMomentum0" + ">>" + variable + "Vs" + variable2 + "2Sig(120,-3,3,80,0,10)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2Sig");
 	tmp2DHist->Add(tmp2DHist2);
 	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV/c] ;dE/dx [keV/cm]");
@@ -342,12 +387,12 @@ for(int i = 0; i < 3; ++i){
 		j2 = 2;
 	}
 
-	variable = "nSigP" + particleID[j2];
-	variable2 = "nSigP" + particleID[j1];
+	variable = "nSigPair" + particleID[j2];
+	variable2 = "nSigPair" + particleID[j1];
 	//tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,50,100,0,50)","deltaDeltaTOF < 1 && deltaDeltaTOF > -1 ","colz");
 	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,35,100,0,35)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "Sig");
-	tmp2DHist->SetTitle(" ; n#sigma^{pair}_{" + particleID[j1] + "}; n#sigma^{pair}_{" + particleID[j2] + "}");
+	tmp2DHist->SetTitle(" ; n#sigma^{pair}_{" + particleID[j2] + "}; n#sigma^{pair}_{" + particleID[j1] + "}");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.9);
 	tmp2DHist->Draw("colz");
 	if(i!=0){
@@ -359,10 +404,10 @@ for(int i = 0; i < 3; ++i){
 	}
 
 	cCanvas2D->Update();
-	//cCanvas2D->SaveAs( output + "PID/nSigP" + particleID[j1] + "Vs" + particleID[j2] + ".png");
-	cCanvas2D->Write("nSigP" + particleID[j2] + "Vs" + particleID[j1]);
+	//cCanvas2D->SaveAs( output + "PID/nSigPair" + particleID[j1] + "Vs" + particleID[j2] + ".png");
+	cCanvas2D->Write("nSigPair" + particleID[j2] + "Vs" + particleID[j1]);
 
-	variable = "nSigP" + particleID[i];
+	variable = "nSigPair" + particleID[i];
 	variable2 = "mSquared";
 	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,16,100,-0.5,1.5)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "Sig");
@@ -378,10 +423,10 @@ for(int i = 0; i < 3; ++i){
 	cCanvas2D->Write(variable2 + "Vs" + variable);
 
 	variable = "momentum";
-	variable2 = "nSigP" + particleID[i];
-	tree->Draw(variable2 + ":" + "charge1*tranMomenta1" + ">>" + variable + "Vs" + variable2 + "Sig(80,-4,4,100,0,50)",cuts,"colz");
+	variable2 = "nSigPair" + particleID[i];
+	tree->Draw(variable2 + ":" + "charge1*transMomentum1" + ">>" + variable + "Vs" + variable2 + "Sig(80,-4,4,100,0,50)",cuts,"colz");
 	tmp2DHist2 = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "Sig");
-	tree->Draw(variable2 + ":" + "charge2*tranMomenta2" + ">>" + variable + "Vs" + variable2 + "2Sig(80,-4,4,100,0,50)",cuts,"colz");
+	tree->Draw(variable2 + ":" + "charge0*transMomentum0" + ">>" + variable + "Vs" + variable2 + "2Sig(80,-4,4,100,0,50)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2Sig");
 	tmp2DHist->Add(tmp2DHist2);
 	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV/c] ; n#sigma^{pair}_{" + particleID[i] + "}");
@@ -401,21 +446,21 @@ for(int i = 0; i < 3; ++i){
 	cCanvas->cd();
 	variable = "dEdx";
 	variable2 = "momentum";
-	tree->Draw(variable + "1:charge1*tranMomenta1" + ">>" + variable + "Vs" + variable2 + "1Sig(120,-3,3,80,0,10)","nSigPProton < 3 && nSigPKaon > 3 && nSigPPion > 3" + cutsWithPrefix,"colz");
+	tree->Draw(variable + "1:charge1*transMomentum1" + ">>" + variable + "Vs" + variable2 + "1Sig(120,-3,3,80,0,10)","nSigPairProton < 3" + cutsWithPrefix,"colz");
 	tmp2DHist2 = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "1Sig");
-	tree->Draw(variable + "2:charge2*tranMomenta2" + ">>" + variable + "Vs" + variable2 + "2Sig(120,-3,3,80,0,10)","nSigPProton < 3 && nSigPKaon > 3 && nSigPPion > 3" + cutsWithPrefix,"colz");
+	tree->Draw(variable + "0:charge0*transMomentum0" + ">>" + variable + "Vs" + variable2 + "2Sig(120,-3,3,80,0,10)","nSigPairProton < 3" + cutsWithPrefix,"colz");
 	tmp2DHist3 = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2Sig");
 	tmp2DHist3->Add(tmp2DHist2);
 	tool.SetMarkerStyle(tmp2DHist3,8,29,1,8,1,1);
-	tree->Draw(variable + "1:charge1*tranMomenta1" + ">>" + variable + "Vs" + variable2 + "1bSig(120,-3,3,80,0,10)","nSigPKaon < 3 && nSigPProton > 3 && nSigPPion > 3" + cutsWithPrefix,"colz");
+	tree->Draw(variable + "1:charge1*transMomentum1" + ">>" + variable + "Vs" + variable2 + "1bSig(120,-3,3,80,0,10)","nSigPairKaon < 3" + cutsWithPrefix,"colz");
 	tmp2DHist4 = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "1bSig");
-	tree->Draw(variable + "2:charge2*tranMomenta2" + ">>" + variable + "Vs" + variable2 + "2bSig(120,-3,3,80,0,10)","nSigPKaon < 3 && nSigPProton > 3 && nSigPPion > 3" + cutsWithPrefix,"colz");
+	tree->Draw(variable + "0:charge0*transMomentum0" + ">>" + variable + "Vs" + variable2 + "2bSig(120,-3,3,80,0,10)","nSigPairKaon < 3 " + cutsWithPrefix,"colz");
 	tmp2DHist5 = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2bSig");
 	tmp2DHist5->Add(tmp2DHist4);
 	tool.SetMarkerStyle(tmp2DHist5,2,29,1,8,1,1);
-	tree->Draw(variable + "1:charge1*tranMomenta1" + ">>" + variable + "Vs" + variable2 + "1cSig(120,-3,3,80,0,10)","(nSigPProton >= 3 || nSigPKaon <= 3 || nSigPPion <= 3) && (nSigPKaon >= 3 || nSigPProton >= 3 || nSigPPion <= 3) " + cutsWithPrefix,"colz");
+	tree->Draw(variable + "1:charge1*transMomentum1" + ">>" + variable + "Vs" + variable2 + "1cSig(120,-3,3,80,0,10)","nSigPairPion < 3" + cutsWithPrefix,"colz");
 	tmp2DHist6 = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "1cSig");
-	tree->Draw(variable + "2:charge2*tranMomenta2" + ">>" + variable + "Vs" + variable2 + "2cSig(120,-3,3,80,0,10)","(nSigPProton >= 3 || nSigPKaon <= 3 || nSigPPion <= 3) && (nSigPKaon >= 3 || nSigPProton >= 3 || nSigPPion <= 3) " + cutsWithPrefix,"colz");
+	tree->Draw(variable + "0:charge0*transMomentum0" + ">>" + variable + "Vs" + variable2 + "2cSig(120,-3,3,80,0,10)"," nSigPairPion < 3" + cutsWithPrefix,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2cSig");
 	tmp2DHist->Add(tmp2DHist6);
 	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV/c] ;dE/dx [keV/cm]");

@@ -110,7 +110,7 @@ void BasicPlots::PlotHistogram() {
 
 	TPaveText *textPub = new TPaveText(0.75,0.74,0.9,0.9,"brNDC");
 	tool.SetTextStyle(textPub);
-	textPub -> AddText("p + p #rightarrow p' + X + p'");
+	textPub -> AddText("p + p #rightarrow p + X + p");
 	textPub -> AddText("#sqrt{s} = 510 GeV");
 	textPub -> AddText("Cuts flow");
 	textPub -> Draw("same");
@@ -156,7 +156,7 @@ void BasicPlots::PlotHistogram() {
 
 	TPaveText *textPub2 = new TPaveText(0.75,0.79,0.9,0.9,"brNDC");
 	tool.SetTextStyle(textPub2);
-	textPub2 -> AddText("p + p #rightarrow p' + X + p'");
+	textPub2 -> AddText("p + p #rightarrow p + X + p");
 	textPub2 -> AddText("#sqrt{s} = 510 GeV");
 	textPub2 -> Draw("same");
 	tool.DrawTextStar(tmpHist,2);
