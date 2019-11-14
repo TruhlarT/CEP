@@ -244,10 +244,10 @@ int main(int argc, char** argv) {
 	TPaveText *textCut = new TPaveText(0.1,0.1,0.95,0.9,"brNDC");
 	tool.SetTextStyle(textCut);
 
-	TString appliedCuts = "(nSigPairProton >= 3 || nSigPairKaon <= 3 || nSigPairPion <= 3) && (nSigPairKaon >= 3 || nSigPairProton >= 3 || nSigPairPion <= 3) && " + cuts;
-	textCut -> AddText("All track quality cuts applied");
-	textCut -> AddText("#pi #pi: (nSigPairProton >= 3 || nSigPairKaon <= 3 || nSigPairPion <= 3)");
-	textCut -> AddText("&& (nSigPairKaon >= 3 || nSigPairProton >= 3 || nSigPairPion <= 3)");
+	TString appliedCuts = "nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (nSigPairKaon > 3 || mSquared < 0.2 || mSquared > 0.32) && (nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1) && " + cuts;
+//	textCut -> AddText("All track quality cuts applied");
+//	textCut -> AddText("#pi #pi: (nSigPairProton >= 3 || nSigPairKaon <= 3 || nSigPairPion <= 3)");
+//	textCut -> AddText("&& (nSigPairKaon >= 3 || nSigPairProton >= 3 || nSigPairPion <= 3)");
 
 	treeBack->Draw("invMassPion>>invMassPionBackground(50,0,2.5)",appliedCuts);
 	TH1F* tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassPionBackground");
@@ -273,7 +273,7 @@ int main(int argc, char** argv) {
 	newCanvas->Update();
 	newCanvas->Write("invMassPion");
 
-	appliedCuts = "nSigPairKaon < 3 && nSigPairProton > 3 && nSigPairPion > 3 && " + cuts;
+	appliedCuts = "nSigPairKaon < 3 && mSquared > 0.2 && mSquared < 0.32 && (nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1) && " + cuts;
 	textCut -> AddText("KK: nSigPairKaon < 3 && nSigPairProton > 3 && nSigPairPion > 3");
 
 	treeBack->Draw("invMassKaon>>invMassKaonBackground(50,0.5,3.5)",appliedCuts);
@@ -300,7 +300,7 @@ int main(int argc, char** argv) {
 	newCanvas->Update();
 	newCanvas->Write("invMassKaon");
 
-	appliedCuts = "nSigPairProton < 3 && nSigPairKaon > 3 && nSigPairPion > 3 && " + cuts;
+	appliedCuts = "nSigPairProton < 3 && mSquared > 0.7 && mSquared < 1.13 && " + cuts;
 	textCut -> AddText("pp: nSigPairProton < 3 && nSigPairKaon > 3 && nSigPairPion > 3");
 
 	treeBack->Draw("invMassProton>>invMassProtonBackground(50,1.0,4.5)",appliedCuts);
@@ -327,10 +327,10 @@ int main(int argc, char** argv) {
 	newCanvas->Update();
 	newCanvas->Write("invMassProton");
 
-	hCutsSum->Draw();
-	textCut->Draw("same");
-	newCanvas->Update();
-	newCanvas->Write("CutsSummary");
+	//hCutsSum->Draw();
+//	textCut->Draw("same");
+//	newCanvas->Update();
+//	newCanvas->Write("CutsSummary");
 
 //////////////////////////////////////////////////////////////////////
 //              4 pions state

@@ -1,4 +1,4 @@
-// c++ headers
+ // c++ headers
 #include <iostream>
 #include <utility>
 #include <sstream> 
@@ -44,6 +44,7 @@ using namespace std;
 
 const double speedOfLight = 299792458; // m/s
 const double pionMass = 0.13957; // GeV /c^2
+const double protonMass = 0.93827; // GeV /c^2
 
 enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
 enum PARTICLES {Pion = 0, Kaon = 1, Proton = 2, nParticles};
@@ -135,7 +136,7 @@ void Make();
 
 void analysis()
 {
-	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/0711.root";
+	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/allNewPico.root";
 	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/TOFtracks.root";
 
 	data = TFile::Open(input, "read");
@@ -278,12 +279,18 @@ void analysis()
 
 void Make(){
 
-	//cout<<"RP angle diff: "<<thetaRpEastX - thetaEastX<<endl;
-	Double_t R = sqrt(rpX[East]*rpX[East] + rpY[East]*rpY[East]);
-	Double_t z0 = R/(tan(thetaRp[East])) - rpZ[East];
-	hvertexZ->Fill(vertexesZ[0]);
-	hvertexRP->Fill(z0);
-	//cout<<vertexZ <<" "<< NhitFit[0]<<" "<< NhitFit[1]<<" "<< NhitsDEdx[0]<<" "<< NhitsDEdx[1]<<" "<< DcaZ[0]<<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1]<<endl;
+	
+	Double_t sqrtWest = sqrt(1 + (protonMass*protonMass)/(pRp[West]*pRp[West]));
+    Double_t sqrtEast = sqrt(1 + (protonMass*protonMass)/(pRp[East]*pRp[East]));
+    Double_t deltaTRP = (timeRp[East] - timeRp[West]);
+    cout<<"RP time: "<<timeRp[East]*speedOfLight<<"  "<< timeRp[West]*speedOfLight<< " "<<sqrtWest << " "<<rpZ[East]<< " "<<sqrtEast<<endl;
+    Double_t z0 = ((deltaTRP*speedOfLight + rpZ[West]*sqrtWest + rpZ[East]*sqrtEast)/(sqrtWest + sqrtEast))*100; // covert from m to cm 
+    Double_t z01 = ((deltaTRP*speedOfLight)/(2))*100; // covert from m to cm 
+
+    hvertexZ->Fill(vertexesZ[0]);
+    hvertexRP->Fill(z0 - z01);
+
+    	//cout<<vertexZ <<" "<< NhitFit[0]<<" "<< NhitFit[1]<<" "<< NhitsDEdx[0]<<" "<< NhitsDEdx[1]<<" "<< DcaZ[0]<<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1]<<endl;
 	if(vertexesZ[0]<80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.8 && Eta[0] < 0.8 && Eta[1] > -0.8 && Eta[1] < 0.8  && !fourPiState){
 		hDeltaVertex->Fill(vertexesZ[0] - z0);
 		hvertexRPGolden->Fill(z0);
