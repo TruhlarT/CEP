@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 	//open output file
 
 	bool showText = false;
-	bool showCutsLine = true;
+	bool showCutsLine = false;
 
 	if(argc != 2){
 		cout<<"Error: wrong input"<<endl;

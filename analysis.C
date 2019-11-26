@@ -48,9 +48,11 @@ const double protonMass = 0.93827; // GeV /c^2
 
 enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
 enum PARTICLES {Pion = 0, Kaon = 1, Proton = 2, nParticles};
+enum RP_ID {E1U, E1D, E2U, E2D, W1U, W1D, W2U, W2D, nRomanPots};
 
 TString particleLables[nParticles] = { TString("Pion"), TString("Kaon"), TString("Proton")};
 TString sideLabel[nSides] = { TString("East"), TString("West")};
+TString rpNames[nRomanPots] = { TString("E1U"), TString("E1D"), TString("E2U"), TString("E2D"), TString("W1U"), TString("W1D"), TString("W2U"), TString("W2D")};
 
 TFile* data;
 TFile* fout;
@@ -67,10 +69,14 @@ TH1D* hTime[2];
 TH1D* hTofLength[2];
 TH1D* hRunNumber[2];
 
+TH2D* hSlewing[16];
+
 TH1D* hNSigPairPion[nParticles];
 TH1D* hNSigPairKaon[nParticles];
 TH1D* hNSigPairProton[nParticles];
 TH1D* hMSquered[nParticles];
+TH1D* hPtCharged[2];
+TH1D* hRatio;
 
 TH2D* hDEdxRafal[nParticles], *hDEdxTomas[nParticles], *hDEdxTomas2[nParticles], *hDEdxDaniel[nParticles];
 
@@ -106,6 +112,8 @@ Double_t rpY[nSides];
 Double_t t[nSides];
 Double_t xi[nSides];
 
+Double_t ADC[nRomanPots][2]; // RP_ID   0,    1,    2,   3,   4,   5,   6, 7
+Double_t TAC[nRomanPots][2]; // RP_name E1U, E1D, E2U, E2D, W1U, W1D, W2U, W2D
 
 Double_t dEdx[4];
 Double_t momentum[4];
@@ -137,7 +145,9 @@ void Make();
 void analysis()
 {
 	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/allNewPico.root";
-	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/TOFtracks.root";
+    //TString input = "/home/truhlar/Desktop/STAR/CEP/DCAxyRHICf.root";
+    //TString input = "/home/truhlar/Desktop/STAR/CEP/DCAxyFull.root";
+	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/dcaFullGolden.root";
 
 	data = TFile::Open(input, "read");
 	if (!data)
@@ -145,6 +155,7 @@ void analysis()
 		cout<<"Error: cannot open "<<input<<endl;
 		return;
 	}
+
 
 	fout = new TFile(output,"RECREATE");
 	Init(); // Preparing histograms 
@@ -267,11 +278,18 @@ void analysis()
     cCanvas->Update();
     cCanvas->Write("dEdxByTomas2");
 
-
+    for (int i = 1; i < 100; ++i)
+    {
+        if(hPtCharged[0]->GetBinContent(i) != 0)    
+            hRatio->SetBinContent(i,hPtCharged[1]->GetBinContent(i)/hPtCharged[0]->GetBinContent(i));
+        else
+            hRatio->SetBinContent(i,0);
+    }
 
     cCanvas->Close();
 	fout->Write();
 	fout->Close();
+    
 }
 
 
@@ -283,17 +301,33 @@ void Make(){
 	Double_t sqrtWest = sqrt(1 + (protonMass*protonMass)/(pRp[West]*pRp[West]));
     Double_t sqrtEast = sqrt(1 + (protonMass*protonMass)/(pRp[East]*pRp[East]));
     Double_t deltaTRP = (timeRp[East] - timeRp[West]);
-    cout<<"RP time: "<<timeRp[East]*speedOfLight<<"  "<< timeRp[West]*speedOfLight<< " "<<sqrtWest << " "<<rpZ[East]<< " "<<sqrtEast<<endl;
+   // cout<<"RP time: "<<timeRp[East]*speedOfLight<<"  "<< timeRp[West]*speedOfLight<< " "<<sqrtWest << " "<<rpZ[East]<< " "<<sqrtEast<<endl;
     Double_t z0 = ((deltaTRP*speedOfLight + rpZ[West]*sqrtWest + rpZ[East]*sqrtEast)/(sqrtWest + sqrtEast))*100; // covert from m to cm 
     Double_t z01 = ((deltaTRP*speedOfLight)/(2))*100; // covert from m to cm 
 
     hvertexZ->Fill(vertexesZ[0]);
     hvertexRP->Fill(z0 - z01);
 
-    	//cout<<vertexZ <<" "<< NhitFit[0]<<" "<< NhitFit[1]<<" "<< NhitsDEdx[0]<<" "<< NhitsDEdx[1]<<" "<< DcaZ[0]<<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1]<<endl;
+    //cout<<vertexZ <<" "<< NhitFit[0]<<" "<< NhitFit[1]<<" "<< NhitsDEdx[0]<<" "<< NhitsDEdx[1]<<" "<< DcaZ[0]<<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1]<<endl;
 	if(vertexesZ[0]<80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.8 && Eta[0] < 0.8 && Eta[1] > -0.8 && Eta[1] < 0.8  && !fourPiState){
 		hDeltaVertex->Fill(vertexesZ[0] - z0);
 		hvertexRPGolden->Fill(z0);
+
+        if(charge[0] == 1)
+            hPtCharged[1]->Fill(momentum[0]);
+        else
+            hPtCharged[0]->Fill(momentum[0]);
+        if(charge[1] == 1)
+            hPtCharged[1]->Fill(momentum[1]);
+        else
+            hPtCharged[0]->Fill(momentum[1]);
+        
+//        for (int i = 0; i < 16; ++i)
+//        {
+//            if(ADC[i/2][i%2] != 0 && TAC[i/2][i%2] != 0)
+//                hSlewing[i]->Fill(ADC[i/2][i%2], TAC[i/2][i%2]);
+//        }
+
 		if(TOFtime[1] < 0 || TOFlength[0] < 0 || TOFlength[1] < 0 || TOFtime[0] < 0){
 			hRunNumber[1]->Fill(runNumber);
 			if(TOFtime[1] == TOFlength[1] && TOFtime[1] == -999)
@@ -408,6 +442,16 @@ void Init(){
 	hvertexRPGolden = new TH1D("vertexRPGolden", "vertexRP for golden events", 200, -200, 200);
 	hDeltaVertex = new TH1D("DeltaVertex", "vertexZ - vertexRP for golden events", 200, -200, 200);
 
+
+
+    hPtCharged[0] = new TH1D("ptPositive", "Pt of negative primary tracks", 100, 0 ,10);
+    hPtCharged[1] = new TH1D("ptNegative", "Pt of positive primary tracks", 100, 0 ,10);
+
+    hRatio = new TH1D("ratio", "Ratio of positive and negative primary tracks", 100, 0 ,10);
+    for (int i = 0; i < 16; ++i)
+        hSlewing[i] = new TH2D("Slewing_" + rpNames[i/2] + Form("_%i",i%2), "Slewing_" + rpNames[i/2] + Form("_%i",i%2), 100,0,800,200,0,1600);
+
+
     for (int i = 0; i < nParticles; ++i)
     {
         hDEdxRafal[i] = new TH2D("dEdxRafal" + particleLables[i], "dEdx" + particleLables[i], 120,-3,3,80,0,10);
@@ -494,6 +538,14 @@ void ConnectInput(){
         recTree->SetBranchAddress("yCorrelationsRp" + sideLabel[i], &yCorrelationsRp[i]);
         recTree->SetBranchAddress("t" + sideLabel[i], &t[i]);
         recTree->SetBranchAddress("xi" + sideLabel[i], &xi[i]);
+    }
+// RP event info
+    for (int i = 0; i < nRomanPots; ++i)
+    {
+        recTree->SetBranchAddress("ADC_" + rpNames[i] + "V", &ADC[i][0]);
+        recTree->SetBranchAddress("ADC_" + rpNames[i] + "H", &ADC[i][1]);
+        recTree->SetBranchAddress("TAC_" + rpNames[i] + "V", &TAC[i][0]);
+        recTree->SetBranchAddress("TAC_" + rpNames[i] + "H", &TAC[i][1]);
     }
 
 // event info
