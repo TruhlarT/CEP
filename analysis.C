@@ -70,6 +70,7 @@ TH1D* hTofLength[2];
 TH1D* hRunNumber[2];
 
 TH2D* hSlewing[16];
+TH2D* hPosition[nSides];
 
 TH1D* hNSigPairPion[nParticles];
 TH1D* hNSigPairKaon[nParticles];
@@ -95,6 +96,7 @@ Double_t deltaTOFExpected[nParticles];
 /////////////////////////////////
 
 Bool_t elastic, fourPiState;
+Bool_t trigger[17];
 
 UInt_t BBCSmall[nSides]; // BBC truncated sum, small tiles
 UInt_t BBCLarge[nSides]; // BBC truncated sum, large tiles 
@@ -136,7 +138,7 @@ Double_t Chi2[4];
 ///////////////////
 UInt_t	nTOFBadTracks;
 UInt_t	nTOFGoodTracks;
-UInt_t	nWierdTOFInfo;
+UInt_t	nWierdTOFInfo, triggerOn, triggerOff;
 
 void Init();
 void ConnectInput();
@@ -180,6 +182,7 @@ void analysis()
 	cout<<"Tracks with good TOF inof: "<<nTOFGoodTracks<<" "<< (nTOFGoodTracks*100.0)/totalTracks<<endl;
 	cout<<"Tracks with bad TOF inof: "<<nTOFBadTracks<<" "<< (nTOFBadTracks*100.0)/totalTracks<<endl;
 	cout<<"Tracks with just one bad TOF inof: "<<nWierdTOFInfo<<" "<< (nWierdTOFInfo*100.0)/totalTracks<<endl;
+    cout<<"Trigger on: "<<triggerOn<<" and off: "<<triggerOff<<endl;
     fout->cd();
 
     TCanvas *cCanvas = new TCanvas("cCanvas","cCanvas",800,700);
@@ -297,7 +300,17 @@ void analysis()
 
 void Make(){
 
+    for (int i = 0; i < 17; ++i)
+    {
+        if(trigger[i])
+            triggerOn++;
+        else
+            triggerOff++;
+    }
 	
+    hPosition[East]->Fill(rpX[East], rpY[East]);
+    hPosition[West]->Fill(rpX[West], rpY[West]);
+
 	Double_t sqrtWest = sqrt(1 + (protonMass*protonMass)/(pRp[West]*pRp[West]));
     Double_t sqrtEast = sqrt(1 + (protonMass*protonMass)/(pRp[East]*pRp[East]));
     Double_t deltaTRP = (timeRp[East] - timeRp[West]);
@@ -442,7 +455,8 @@ void Init(){
 	hvertexRPGolden = new TH1D("vertexRPGolden", "vertexRP for golden events", 200, -200, 200);
 	hDeltaVertex = new TH1D("DeltaVertex", "vertexZ - vertexRP for golden events", 200, -200, 200);
 
-
+    hPosition[East] = new TH2D("PositionE", "Position East", 100,-0.1,0.1,100,-0.1,0.1);
+    hPosition[West] = new TH2D("PositionW", "Position West", 100,-0.1,0.1,100,-0.1,0.1);
 
     hPtCharged[0] = new TH1D("ptPositive", "Pt of negative primary tracks", 100, 0 ,10);
     hPtCharged[1] = new TH1D("ptNegative", "Pt of positive primary tracks", 100, 0 ,10);
@@ -560,6 +574,12 @@ void ConnectInput(){
         recTree->SetBranchAddress("BBCSmall" + sideLabel[i], &BBCSmall[i]);
         recTree->SetBranchAddress("BBCLarge" + sideLabel[i], &BBCLarge[i]); 
     }
+    recTree->SetBranchAddress("RP_CPT2_570701", &trigger[3]);
+    recTree->SetBranchAddress("RP_CPT2noBBCL_570705", &trigger[7]);
+    recTree->SetBranchAddress("RP_CPT2_570711", &trigger[9]);
+    recTree->SetBranchAddress("RP_CPT2_590701", &trigger[12]);
+    recTree->SetBranchAddress("RP_CPT2noBBCL_590705", &trigger[14]);
+    recTree->SetBranchAddress("RP_CPTnoBBCL_590708", &trigger[15]);
 }
 
 

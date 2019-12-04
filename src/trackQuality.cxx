@@ -421,7 +421,22 @@ void trackQuality::PlotHistogram(){
 	//cCanvas2D->SaveAs( output + "trackQuality/ZvrtxVsEta.png");
 	cCanvas2D->Write("ZvrtxVsEta");
 //////////////////////////////////////////
+// Plot PhiVsDCAXY vertex
+	tree->Draw("Phi0:DcaXY0>>PhiVsDCAXY2Sig(50,0,4,50,-3.5,3.5)",cuts,"colz");
+	tmp2DHist2 = (TH2F*)gPad->GetPrimitive("PhiVsDCAXY2Sig");
+	tree->Draw("Phi1:DcaXY1>>PhiVsDCAXYSig(50,0,4,50,-3.5,3.5)",cuts,"colz");
+	tmp2DHist = (TH2F*)gPad->GetPrimitive("PhiVsDCAXYSig");
+	tmp2DHist->Add(tmp2DHist2);
+	tmp2DHist->SetTitle(" ; DCA_{xy} [cm] ; #phi");
+	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,1.0);
+	tmp2DHist->Draw("colz");
+	tool.DrawText(tmp2DHist,0,true,0.61,0.75,0.76,0.9);
+	tool.DrawTextStar(tmp2DHist,1);
 
+	cCanvas2D->Update();
+	//cCanvas2D->SaveAs( output + "trackQuality/PhiVsDCAXY.png");
+	cCanvas2D->Write("PhiVsDCAXY");
+//////////////////////////////////////////
 	cCanvas->Close();
 	cCanvas2D->Close();
 }
