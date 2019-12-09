@@ -45,6 +45,7 @@ using namespace std;
 const double speedOfLight = 299792458; // m/s
 const double pionMass = 0.13957; // GeV /c^2
 const double protonMass = 0.93827; // GeV /c^2
+const double convertToDegree = 57.2957795;
 
 enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
 enum PARTICLES {Pion = 0, Kaon = 1, Proton = 2, nParticles};
@@ -56,9 +57,15 @@ TString rpNames[nRomanPots] = { TString("E1U"), TString("E1D"), TString("E2U"), 
 
 TFile* data;
 TFile* fout;
+TFile* TPCeff;
+TFile* TOFeff;
 
 TTree* recTree;
 
+TH3D* hTOFeff[6]; // 0 = pi- 1 = K- 2 = pbar
+TH3D* hTPCeff[6]; // 3 = pi+ 4 = K+ 5 = p
+
+TH1D* hInvMass[nParticles];
 TH1D* hDeltaTime;
 TH1D* hvertexZ;
 TH1D* hvertexRP;
@@ -134,7 +141,6 @@ Double_t Eta[4];
 Double_t Phi[4];
 Double_t Chi2[4];
 
-
 ///////////////////
 UInt_t	nTOFBadTracks;
 UInt_t	nTOFGoodTracks;
@@ -147,9 +153,23 @@ void Make();
 void analysis()
 {
 	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/allNewPico.root";
-    //TString input = "/home/truhlar/Desktop/STAR/CEP/DCAxyRHICf.root";
-    //TString input = "/home/truhlar/Desktop/STAR/CEP/DCAxyFull.root";
-	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/dcaFullGolden.root";
+    TString TPCeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/etaPhiEfficiency_16_01_19_delta015_twoRuns.root";
+    TString TOFeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effWithBinningForSystematics.root";
+	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/anaOutput.root";
+
+    TPCeff = TFile::Open(TPCeffInput, "read");
+    if (!TPCeff)
+    {
+        cout<<"Error: cannot open "<<TPCeffInput<<endl;
+        return;
+    }
+
+    TOFeff = TFile::Open(TOFeffInput, "read");
+    if (!TOFeff)
+    {
+        cout<<"Error: cannot open "<<TOFeffInput<<endl;
+        return;
+    }
 
 	data = TFile::Open(input, "read");
 	if (!data)
@@ -157,6 +177,13 @@ void analysis()
 		cout<<"Error: cannot open "<<input<<endl;
 		return;
 	}
+
+
+    for (int i = 0; i < 6; ++i)
+    {    
+        hTPCeff[i] = (TH3D*)TPCeff -> Get(Form("hTPCEffiCD%i120",i));
+        hTOFeff[i] = (TH3D*)TOFeff -> Get(Form("hTOFEffiCD%i12",i)); 
+    }
 
 
 	fout = new TFile(output,"RECREATE");
@@ -298,8 +325,10 @@ void analysis()
 
 
 
-void Make(){
-
+void Make()
+{
+    double effTotal, effTPC, effTOF;
+    unsigned int PID;
     for (int i = 0; i < 17; ++i)
     {
         if(trigger[i])
@@ -401,16 +430,50 @@ void Make(){
                 hMSquered[Pion]->Fill(mSquared);
             }
 
-
+            effTotal = 1;
+            PID = 0;
             if(nSigPair[Pion] > 3 && nSigPair[Kaon] > 3 && nSigPair[Proton] < 3 && mSquared > 0.7 && mSquared < 1.1)
+            {
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
-                    hDEdxRafal[Proton]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
+                {
+                    hDEdxRafal[Proton]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]); 
+                    if(charge[iTrack] > 0)
+                        PID = 3;
+                    effTPC = hTPCeff[2 + PID]->GetBinContent( hTPCeff[2 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[2 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[2 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
+                    effTOF = hTOFeff[2 + PID]->GetBinContent( hTOFeff[2 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[2 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[2 + PID]->GetZaxis()->FindBin(Eta[iTrack]));  
+                    effTotal = effTotal*effTPC*effTOF;
+                }
+                if(effTotal)
+                    hInvMass[Proton]->Fill(invMass[Proton], 1/effTotal);
+            }
             else if(nSigPair[Pion] > 3 && nSigPair[Kaon] < 3 && nSigPair[Proton] > 3 && mSquared > 0.2 && mSquared < 0.32)
+            {
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
+                {
                     hDEdxRafal[Kaon]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
+                    if(charge[iTrack] > 0)
+                        PID = 3;
+                    effTPC = hTPCeff[1 + PID]->GetBinContent( hTPCeff[1 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[1 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[1 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
+                    effTOF = hTOFeff[1 + PID]->GetBinContent( hTOFeff[1 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[1 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[1 + PID]->GetZaxis()->FindBin(Eta[iTrack]));  
+                    effTotal = effTotal*effTPC*effTOF;
+                }
+                if(effTotal)
+                    hInvMass[Kaon]->Fill(invMass[Kaon], 1/effTotal);
+            }
             else if( nSigmaTPC[Pion][0] < 3 && nSigmaTPC[Pion][0] > -3 && nSigmaTPC[Pion][1] > -3 && nSigmaTPC[Pion][1] < 3)
+            {
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
+                {
                     hDEdxRafal[Pion]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
+                    if(charge[iTrack] > 0)
+                        PID = 3;
+                    effTPC = hTPCeff[0 + PID]->GetBinContent( hTPCeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
+                    effTOF = hTOFeff[0 + PID]->GetBinContent( hTOFeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack])); 
+                    effTotal = effTotal*effTPC*effTOF;
+                }
+                if(effTotal)
+                    hInvMass[Pion]->Fill(invMass[Pion], 1/effTotal);
+            }
 
             if(nSigPair[Proton] < 3 && mSquared > 0.7 && mSquared < 1.1)
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
@@ -476,6 +539,7 @@ void Init(){
         hNSigPairKaon[i]  = new TH1D("nSigPairKaonFor" + particleLables[i], "nSigPairKaon For" + particleLables[i], 100, 0, 35);
         hNSigPairProton[i]  = new TH1D("nSigPairProtonFor" + particleLables[i], "nSigPairProton For" + particleLables[i], 100, 0, 35);
         hMSquered[i]  = new TH1D("mSquaredFor" + particleLables[i], "mSquared for " + particleLables[i] , 200, -0.5, 2.5);
+        hInvMass[i]  = new TH1D("invMass" + particleLables[i], "inv. mass " + particleLables[i] , 100, 0, 3.5);
     }
 
 	fout->mkdir("GoodTOFinfo")->cd();

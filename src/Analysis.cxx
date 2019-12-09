@@ -18,6 +18,7 @@
 #include <TH2.h> 
 #include <TF1.h> 
 #include <TF2.h> 
+#include <TH3.h> 
 #include <THStack.h> 
 #include <TStyle.h> 
 #include <TGraph.h> 
@@ -48,6 +49,39 @@
 
 using namespace std;
 
+enum PARTICLES {Pion = 0, Kaon = 1, Proton = 2, nParticles};
+TString particleLables[nParticles] = { TString("Pion"), TString("Kaon"), TString("Proton")};
+
+TFile* TPCeff;
+TFile* TOFeff;
+
+TTree* tree;
+TTree* treeBack;
+
+TH3D* hTOFeff[6]; // 0 = pi- 1 = K- 2 = pbar
+TH3D* hTPCeff[6]; // 3 = pi+ 4 = K+ 5 = p
+TH1D* hInvMass[nParticles][2]; // 0 - signal, 1 - Background
+
+Double_t nSigPair[nParticles]; 
+Double_t invMass[nParticles];
+Double_t mSquared;
+Double_t transMomentum[4];
+Double_t charge[4];
+Double_t nSigmaTPC[nParticles][4];
+Double_t vertexesZ[4];
+Double_t DcaXY[4];
+Double_t DcaZ[4];
+Double_t NhitsFit[4];
+Double_t NhitsDEdx[4];
+Double_t Eta[4];
+Double_t Phi[4];
+
+Bool_t fourPiState;
+
+void Init();
+void ConnectInput(TTree* tree);
+void Make(int signal);
+
 //_____________________________________________________________________________
 int main(int argc, char** argv) {
 	//open output file
@@ -67,8 +101,8 @@ int main(int argc, char** argv) {
 	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/" + DataSet + "/";
 	
 
-	TString cutsOption[] = { TString("vertexZ<80 && vertexZ > -80"), TString("NhitsFit1 >=25 && NhitsFit0 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx0 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ0 < 1 && DcaZ0 > -1"), TString("DcaXY1 < 1.5 && DcaXY0 < 1.5"), TString("Eta1 > -0.8 && Eta1 < 0.8 && Eta0 > -0.8 && Eta0 < 0.8"), TString("!fourPiState")};
-	TString cutsLabels[] = { TString("|z_{vtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"), TString("|DCA(z)| < 1 cm"), TString("DCA(XY) < 1.5 cm"), TString("|#eta| < 0.8"), TString("!fourPiState")  };
+	TString cutsOption[] = { TString("vertexZ<80 && vertexZ > -80"), TString("NhitsFit1 >=25 && NhitsFit0 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx0 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ0 < 1 && DcaZ0 > -1"), TString("DcaXY1 < 1.5 && DcaXY0 < 1.5"), TString("Eta1 > -0.7 && Eta1 < 0.7 && Eta0 > -0.7 && Eta0 < 0.7"), TString("!fourPiState")};
+	TString cutsLabels[] = { TString("|z_{vtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"), TString("|DCA(z)| < 1 cm"), TString("DCA(XY) < 1.5 cm"), TString("|#eta| < 0.7"), TString("!fourPiState")  };
 
 	TFile* data = TFile::Open(dataName, "read");
 	if (!data){
@@ -76,13 +110,37 @@ int main(int argc, char** argv) {
 		return 2;
     }
 
-	TTree* tree = dynamic_cast<TTree*>( data->Get("recTree") );
-	TTree* treeBack = dynamic_cast<TTree*>( data->Get("Background") );
+	tree = dynamic_cast<TTree*>( data->Get("recTree") );
+	treeBack = dynamic_cast<TTree*>( data->Get("Background") );
 	
 	if (!tree || !treeBack){
 		cout<<"Error: cannot open one of the TTree"<<endl;
 		return 3;
     }
+
+    TString TPCeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/etaPhiEfficiency_16_01_19_delta015_twoRuns.root";
+    TString TOFeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effWithBinningForSystematics.root";
+
+    TPCeff = TFile::Open(TPCeffInput, "read");
+    if (!TPCeff)
+    {
+        cout<<"Error: cannot open "<<TPCeffInput<<endl;
+        return 4;
+    }
+
+    TOFeff = TFile::Open(TOFeffInput, "read");
+    if (!TOFeff)
+    {
+        cout<<"Error: cannot open "<<TOFeffInput<<endl;
+        return 5;
+    }
+
+    for (int i = 0; i < 6; ++i)
+    {    
+        hTPCeff[i] = (TH3D*)TPCeff -> Get(Form("hTPCEffiCD%i120",i));
+        hTOFeff[i] = (TH3D*)TOFeff -> Get(Form("hTOFEffiCD%i12",i)); 
+    }
+
 
 	TFile* fout = new TFile(output +"StRP.root","RECREATE");
 
@@ -190,15 +248,15 @@ int main(int argc, char** argv) {
     TDirectory* TomasDir2 = cutsDir->mkdir("PID_Tomas2");
     TomasDir2->cd();
     TomasDir2->mkdir("Pions")->cd();
-    PID PIDPlotsWithCuts4(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (nSigPairKaon > 3 || ((mSquared < 0.2 || mSquared > 0.32) && (deltaDeltaTOFKaon < -0.5 || deltaDeltaTOFKaon > 0.5))) && (nSigPairProton > 3 || ((mSquared < 0.7 || mSquared > 1.1) && (deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)))");
+    PID PIDPlotsWithCuts4(data, fout, output, showCutsLine, cuts + "&& nSigPairPion < 3.46 && (nSigPairPion < 3 || nSigPairKaon > 3 || mSquared < 0.15) && (nSigPairPion < 3 || nSigPairKaon < 3 || nSigPairProton > 3 || mSquared < 0.6)");
     PIDPlotsWithCuts4.PlotHistogram();
 
     TomasDir2->mkdir("Kaons")->cd();
-    PID PIDPlotsWithCuts5(data, fout, output, showCutsLine, cuts + "&& nSigPairKaon < 3 && ((mSquared > 0.2 && mSquared < 0.32) || (deltaDeltaTOFKaon > -0.5 && deltaDeltaTOFKaon < 0.5)) && (nSigPairProton > 3 || ((mSquared < 0.7 || mSquared > 1.1) && (deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)))");
+    PID PIDPlotsWithCuts5(data, fout, output, showCutsLine, cuts + "&& nSigPairPion > 3 && nSigPairKaon < 3 && mSquared > 0.15 && (nSigPairPion < 3 || nSigPairKaon < 3 || nSigPairProton > 3 || mSquared < 0.6)");
     PIDPlotsWithCuts5.PlotHistogram();
 
     TomasDir2->mkdir("Protons")->cd();
-    PID PIDPlotsWithCuts6(data, fout, output, showCutsLine, cuts + "&& nSigPairProton < 3 && ((mSquared > 0.7 && mSquared < 1.1) || (deltaDeltaTOFProton > -0.5 && deltaDeltaTOFProton < 0.5))");
+    PID PIDPlotsWithCuts6(data, fout, output, showCutsLine, cuts + "&& nSigPairPion > 3 && nSigPairKaon > 3 && nSigPairProton < 3 && mSquared > 0.6");
     PIDPlotsWithCuts6.PlotHistogram();
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
@@ -213,7 +271,7 @@ int main(int argc, char** argv) {
     PIDPlotsWithCuts8.PlotHistogram();
 
     RafalDir->mkdir("Protons")->cd();
-    PID PIDPlotsWithCuts9(data, fout, output, showCutsLine, cuts + "&& nSigPairPion > 3 && nSigPairKaon > 3 && nSigPairProton < 3 && mSquared > 0.7 && mSquared < 1.1");
+    PID PIDPlotsWithCuts9(data, fout, output, showCutsLine, cuts + "&& nSigPairPion > 3 && nSigPairKaon > 3 && nSigPairProton < 3 && mSquared > 0.6 && mSquared < 1.1");
     PIDPlotsWithCuts9.PlotHistogram();
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
@@ -237,92 +295,73 @@ int main(int argc, char** argv) {
 //				PID cuts applied
 //////////////////////////////////////////////////////////////////////
 	gPad->SetLogy(0);
-	TDirectory* PIDDir = fout->mkdir("AppliedPID");
+	TDirectory* PIDDir = fout->mkdir("FinalPlots");
 	PIDDir->cd();
 
-	TH1F* hCutsSum = new TH1F("cutsSummary", "cuts", size+1, 0, size);
-	TPaveText *textCut = new TPaveText(0.1,0.1,0.95,0.9,"brNDC");
-	tool.SetTextStyle(textCut);
+    Init();
+    ConnectInput(tree);
+    for(Long64_t iev=0; iev<tree->GetEntries(); ++iev)
+    { //get the event
+        tree->GetEntry(iev); 
+        Make(0);
+    } 
 
-	TString appliedCuts = "nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (nSigPairKaon > 3 || mSquared < 0.2 || mSquared > 0.32) && (nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1) && " + cuts;
-//	textCut -> AddText("All track quality cuts applied");
-//	textCut -> AddText("#pi #pi: (nSigPairProton >= 3 || nSigPairKaon <= 3 || nSigPairPion <= 3)");
-//	textCut -> AddText("&& (nSigPairKaon >= 3 || nSigPairProton >= 3 || nSigPairPion <= 3)");
+    ConnectInput(treeBack);
+    for(Long64_t iev=0; iev<treeBack->GetEntries(); ++iev)
+    { //get the event
+        treeBack->GetEntry(iev); 
+        Make(1);
+    } 
+	hInvMass[Pion][0]->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Number of events");
+	tool.SetGraphStyle(hInvMass[Pion][0],4,20,1,4,1,1,0.9,1.3);
+	tool.SetMarkerStyle(hInvMass[Pion][0]);
+	hInvMass[Pion][0]->Draw("E");
+	tool.DrawText(hInvMass[Pion][0], 1, true);
+	tool.DrawTextStar(hInvMass[Pion][0]);
+    tool.SetMarkerStyle(hInvMass[Pion][1],2,20,1,2,1,1);
+    hInvMass[Pion][1]->Draw("ESAME");
 
-	treeBack->Draw("invMassPion>>invMassPionBackground(50,0,2.5)",appliedCuts);
-	TH1F* tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassPionBackground");
-	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
-
-	tree->Draw("invMassPion>>invMassPionSignal(50,0,2.5)",appliedCuts);
-	tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
-	tmpHist->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Number of events");
-	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
-	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(tmpHist);
-	tmpHist->Draw("E");
-	tool.DrawText(tmpHist, 1, true);
-	tool.DrawTextStar(tmpHist);
-	tmpHist2->Draw("ESAME");
-
-	TLegend* leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"In+El (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
-	leg1->Draw("same");
+    TLegend* leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
+    tool.SetLegendStyle(leg1);
+    leg1->AddEntry(hInvMass[Pion][0],"In+El (unlike-sign pairs)","p");
+    leg1->AddEntry(hInvMass[Pion][1],"In+El (like-sign pairs)","p");
+    leg1->Draw("same");
 
 	newCanvas->Update();
 	newCanvas->Write("invMassPion");
 
-	appliedCuts = "nSigPairKaon < 3 && mSquared > 0.2 && mSquared < 0.32 && (nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1) && " + cuts;
-	textCut -> AddText("KK: nSigPairKaon < 3 && nSigPairProton > 3 && nSigPairPion > 3");
+	hInvMass[Kaon][0]->SetTitle(" ; m(K^{+}K^{-}) [GeV/c^{2}]; Number of events");
+	tool.SetGraphStyle(hInvMass[Kaon][0],4,20,1,4,1,1,0.9,1.3);
+	tool.SetMarkerStyle(hInvMass[Kaon][0]);
+	hInvMass[Kaon][0]->Draw("E");
+	tool.DrawText(hInvMass[Kaon][0], 2, true);
+	tool.DrawTextStar(hInvMass[Kaon][0]);
+    tool.SetMarkerStyle(hInvMass[Kaon][1],2,20,1,2,1,1);
+    hInvMass[Kaon][1]->Draw("ESAME");
 
-	treeBack->Draw("invMassKaon>>invMassKaonBackground(50,0.5,3.5)",appliedCuts);
-	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassKaonBackground");
-	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
-
-	tree->Draw("invMassKaon>>invMassKaonSignal(50,0.5,3.5)",appliedCuts);
-	tmpHist = (TH1F*)gPad->GetPrimitive("invMassKaonSignal");
-	tmpHist->SetTitle(" ; m(K^{+}K^{-}) [GeV/c^{2}]; Number of events");
-	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
-	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(tmpHist);
-	tmpHist->Draw("E");
-	tool.DrawText(tmpHist, 2, true);
-	tool.DrawTextStar(tmpHist);
-	tmpHist2->Draw("ESAME");
-
-	leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"In+El (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
-	leg1->Draw("same");
+    leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
+    tool.SetLegendStyle(leg1);
+    leg1->AddEntry(hInvMass[Kaon][0],"In+El (unlike-sign pairs)","p");
+    leg1->AddEntry(hInvMass[Kaon][1],"In+El (like-sign pairs)","p");
+    leg1->Draw("same");
 
 	newCanvas->Update();
 	newCanvas->Write("invMassKaon");
 
-	appliedCuts = "nSigPairProton < 3 && mSquared > 0.7 && mSquared < 1.13 && " + cuts;
-	textCut -> AddText("pp: nSigPairProton < 3 && nSigPairKaon > 3 && nSigPairPion > 3");
+	hInvMass[Proton][0]->SetTitle(" ; m(p#bar{p}) [GeV/c^{2}]; Number of events");
+	tool.SetGraphStyle(hInvMass[Proton][0],4,20,1,4,1,1,0.9,1.3);
+	tool.SetMarkerStyle(hInvMass[Proton][0]);
+	hInvMass[Proton][0]->Draw("E");
+	tool.DrawText(hInvMass[Proton][0],3, true);
+	tool.DrawTextStar(hInvMass[Proton][0]);
+    tool.SetMarkerStyle(hInvMass[Proton][1],2,20,1,2,1,1);
+    hInvMass[Proton][1]->Draw("ESAME");   
 
-	treeBack->Draw("invMassProton>>invMassProtonBackground(50,1.0,4.5)",appliedCuts);
-	tmpHist2 = (TH1F*)gPad->GetPrimitive("invMassProtonBackground");
-	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
-
-	tree->Draw("invMassProton>>invMassProtonSignal(50,1.0,4.5)",appliedCuts);
-	tmpHist = (TH1F*)gPad->GetPrimitive("invMassProtonSignal");
-	tmpHist->SetTitle(" ; m(p#bar{p}) [GeV/c^{2}]; Number of events");
-	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
-	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(tmpHist);
-	tmpHist->Draw("E");
-	tool.DrawText(tmpHist,3, true);
-	tool.DrawTextStar(tmpHist);
-	tmpHist2->Draw("ESAME");
-
-	leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"In+El (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
-	leg1->Draw("same");
+    leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
+    tool.SetLegendStyle(leg1);
+    leg1->AddEntry(hInvMass[Proton][0],"In+El (unlike-sign pairs)","p");
+    leg1->AddEntry(hInvMass[Proton][1],"In+El (like-sign pairs)","p");
+    leg1->Draw("same");
 
 	newCanvas->Update();
 	newCanvas->Write("invMassProton");
@@ -335,6 +374,7 @@ int main(int argc, char** argv) {
 //////////////////////////////////////////////////////////////////////
 //              4 pions state
 //////////////////////////////////////////////////////////////////////
+ 
     TDirectory* fourPiDir = fout->mkdir("4pions");
     fourPiDir->cd();
 
@@ -349,3 +389,107 @@ int main(int argc, char** argv) {
 	return 0;
 }//main
 
+
+void Init()
+{
+    hInvMass[0][0]  = new TH1D("invMass" + particleLables[0] + "Sig", "inv. mass " + particleLables[0] , 100, 0.3, 6); // 64, 0.3, 3.5);
+    hInvMass[1][0]  = new TH1D("invMass" + particleLables[1] + "Sig", "inv. mass " + particleLables[1] , 100, 0.3, 6); // 44, 0.8, 3);
+    hInvMass[2][0]  = new TH1D("invMass" + particleLables[2] + "Sig", "inv. mass " + particleLables[2] , 100, 0.3, 6); // 24, 1.6, 4);
+
+    hInvMass[0][1]  = new TH1D("invMass" + particleLables[0] + "Bcg", "inv. mass " + particleLables[0] , 100, 0.3, 6); // 64, 0.3, 3.5);
+    hInvMass[1][1]  = new TH1D("invMass" + particleLables[1] + "Bcg", "inv. mass " + particleLables[1] , 100, 0.3, 6); // 44, 0.8, 3);
+    hInvMass[2][1]  = new TH1D("invMass" + particleLables[2] + "Bcg", "inv. mass " + particleLables[2] , 100, 0.3, 6); // 24, 1.6, 4);
+}
+
+
+void ConnectInput(TTree* tree)
+{
+
+// PID and some quality event info
+    tree->SetBranchAddress("mSquared", &mSquared); 
+    tree->SetBranchAddress("nSigTrk1Pion", &nSigmaTPC[Pion][0]);
+    tree->SetBranchAddress("nSigTrk2Pion", &nSigmaTPC[Pion][1]);
+    for (int iPart = 0; iPart < nParticles; ++iPart)
+    {
+        tree->SetBranchAddress("invMass" + particleLables[iPart], &invMass[iPart]);
+        tree->SetBranchAddress("nSigPair" + particleLables[iPart], &nSigPair[iPart]);
+    }
+
+
+// Vertex info
+    tree->SetBranchAddress("vertexZ", &vertexesZ[0]);
+
+// Central track info
+    for (int i = 0; i < 4; ++i)
+    {
+        tree->SetBranchAddress(Form("transMomentum%i",i), &transMomentum[i]);
+        tree->SetBranchAddress(Form("charge%i",i), &charge[i]);
+        tree->SetBranchAddress(Form("DcaXY%i",i), &DcaXY[i]);
+        tree->SetBranchAddress(Form("DcaZ%i",i), &DcaZ[i]);
+        tree->SetBranchAddress(Form("NhitsFit%i",i), &NhitsFit[i]);
+        tree->SetBranchAddress(Form("NhitsDEdx%i",i), &NhitsDEdx[i]);
+        tree->SetBranchAddress(Form("Eta%i",i), &Eta[i]);
+        tree->SetBranchAddress(Form("Phi%i",i), &Phi[i]);
+
+    }
+
+// event info
+    tree->SetBranchAddress("fourPiState", &fourPiState);
+
+}
+
+void Make(int signal)
+{
+    double effTotal, effTPC, effTOF;
+    unsigned int PID;
+   // cout<< vertexesZ[0] <<" "<< NhitsFit[0]<<" "<<NhitsFit[1] <<" "<< NhitsDEdx[0]<<" "<<NhitsDEdx[1] <<" "<<DcaZ[0] <<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1] <<" "<< !fourPiState<<endl; 
+    if(vertexesZ[0] < 80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7  && !fourPiState)
+    {
+
+        effTotal = 1;
+        if(nSigPair[Pion] > 3 && nSigPair[Kaon] > 3 && nSigPair[Proton] < 3 && mSquared > 0.6) // it is... proton!
+        {
+            for (int iTrack = 0; iTrack < 2; ++iTrack)
+            {
+                PID = 0;
+                if(charge[iTrack] > 0)
+                    PID = 3;
+                effTPC = hTPCeff[2 + PID]->GetBinContent( hTPCeff[2 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[2 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[2 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
+                effTOF = hTOFeff[2 + PID]->GetBinContent( hTOFeff[2 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[2 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[2 + PID]->GetZaxis()->FindBin(Eta[iTrack]));  
+                effTotal = effTotal*effTPC*effTOF;
+            }
+            if(effTotal != 0 && transMomentum[0] > 0.4 && transMomentum[1] > 0.4 && (transMomentum[0] < 1.1 || transMomentum[1] < 1.1) )
+                hInvMass[Proton][signal]->Fill(invMass[Proton], 1/effTotal);
+        }
+        else if(nSigPair[Pion] > 3 && nSigPair[Kaon] < 3 && nSigPair[Proton] > 3 && mSquared > 0.15) // it is... kaon!
+        {
+            for (int iTrack = 0; iTrack < 2; ++iTrack)
+            {
+                PID = 0;
+                if(charge[iTrack] > 0)
+                    PID = 3;
+                effTPC = hTPCeff[1 + PID]->GetBinContent( hTPCeff[1 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[1 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[1 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
+                effTOF = hTOFeff[1 + PID]->GetBinContent( hTOFeff[1 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[1 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[1 + PID]->GetZaxis()->FindBin(Eta[iTrack]));  
+                effTotal = effTotal*effTPC*effTOF;
+            }
+            if(effTotal != 0 && transMomentum[0] > 0.3 && transMomentum[1] > 0.3 && (transMomentum[0] < 0.7 || transMomentum[1] < 0.7) )
+                hInvMass[Kaon][signal]->Fill(invMass[Kaon], 1/effTotal);
+        }
+        else if( nSigPair[Pion] < sqrt(12)) // it is... pion!
+        {
+            for (int iTrack = 0; iTrack < 2; ++iTrack)
+            {
+                PID = 0;
+                if(charge[iTrack] > 0)
+                    PID = 3;
+                effTPC = hTPCeff[0 + PID]->GetBinContent( hTPCeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
+                effTOF = hTOFeff[0 + PID]->GetBinContent( hTOFeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack])); 
+                effTotal = effTotal*effTPC*effTOF;
+            }
+            if(effTotal != 0 && transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
+                hInvMass[Pion][signal]->Fill(invMass[Pion], 1/effTotal);
+        }
+
+    }
+
+}
