@@ -54,7 +54,7 @@ const int triggerID[] = { 570209, 570219, 570229, 570701, 570702, 570703, 570704
                   570709, 570711, 570712, 570719, 590701, 590703, 590705, 590708, 590709};
 // 570702 RP_UPC // 570712 RP_UPC // 570703 RP_SDT // 570709 RP_ET // 570719 RP_ET // 570701 RP_CPT2 // 570711 RP_CPT2 // 570705 RP_CPT2noBBCL // 570704 RP_Zerobias // 590703 RP_SDT // 590709 RP_ET // 590701 RP_CPT2 // 590705 RP_CPT2noBBCL // 590708 RP_CPTnoBBCL // 570209 JPsi*HTTP // 570219 JPsi*HTTP // 570229 JPsi*HTTP
 
-TString rpNames[nRomanPots] = { TString("E1U"), TString("E1D"), TString("E2U"), TString("E2D"), TString("W1U"), TString("W1D"), TString("W2U"), TString("W2D")};
+TString rpNames[nRomanPots] = { TString("E1U"), TString("E1D"), TString("W1U"), TString("W1D"),  TString("E2U"), TString("E2D"), TString("W2U"), TString("W2D")};
 TString side[nSides] = { TString("East"), TString("West")};
 TString position[2] = { TString("Up"), TString("Down")};
 TString pmtID[2] = { TString("V"), TString("H")};
@@ -63,33 +63,21 @@ TString branchNames[nBranches] = { TString("EU"), TString("ED"), TString("WU"), 
 TFile* data;
 TFile* fout;
 
-TH2D* hPosition;
-TH2D* hSlewing[24][2]; // 12 + 2xPMTs
-// East - Up - 3x x-region, East - Down - 6x x-region
-// West - Up - 3x x-region, West - Down - 6x x-region 
+TH1D* hCorrection[16];
+
 
 const int nIterations = 4;
-TH2D* hDeltaTac[16][6][nIterations];
-Float_t TACaverage[100][nIterations];
-
+TH2D* hDeltaTac[8][nIterations];
+double tacAvrg[8][100][nIterations];
+/// meaning of 8:    0 - channel1 EU  2 - channel1 ED ....
+///                  1 - channel2 EU  3 - channel2 ED ....
 
 TTree *recTree[nRomanPots];
 
+int counter[nIterations];
 
 Double_t ADC[2][2]; 
 Double_t TAC[2][2];
-Double_t rpX[2], rpY[2], rpZ[2]; 
-
-Double_t y[nSides][4] = 
-{
-    { -0.066, -0.024, 0.024, 0.062},
-    { -0.057, -0.024, 0.026, 0.072}
-};
-Double_t x[nSides][7] = 
-{
-    { -0.02, -0.01, 0.0, 0.01, 0.02, 0.03, 0.045},
-    { -0.016, -0.01, 0.0, 0.01, 0.02, 0.03, 0.042}
-};
 
 Int_t branchID;
 
@@ -98,10 +86,12 @@ void ConnectInput();
 void Make();
 
 void MakeIteration(int iter);
+double avrg(int bin, int iteration, int ihist);
+double tac(int iter,int station,int channel);
 
 void slewing()
 {
-	TString input = "/home/truhlar/Desktop/STAR/CEP/bigTestSlewing.root";
+	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/slewingElastic.root";
 	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/Slew.root";
 
 	data = TFile::Open(input, "read");
@@ -116,54 +106,20 @@ void slewing()
 	Init(); // Preparing histograms 
 	ConnectInput(); // Connecting input
 
-    for (int i = 0; i < 100; ++i)
-    {
-        for (int j = 0; j < nIterations; ++j)
-        {
-            
-            TACaverage[i][j] = 0;
-        }
-    }
+    for (int iCh = 0; iCh < 8; ++iCh)
+        for (int i = 0; i < 100; ++i)
+            for (int j = 0; j < nIterations; ++j)    
+                tacAvrg[iCh][i][j] = 0;
 
+    for (int i = 0; i < nIterations; ++i)
+    {
+        counter[i] = 0;
+    }
 	////////////// Making histograms
-	for (int i = 0; i < nBranches; ++i)
-	{ //get the event   
-        branchID = i; 
-    	Long64_t nev = recTree[i]->GetEntries();
-    	cout<<"Proccesing branch " + branchNames[i] + " with "<<nev<<" events"<<endl;
-        for(Long64_t iev=0; iev<nev; ++iev) 
-        {
-            recTree[i]->GetEntry(iev); 
-            Make();
-            MakeIteration(0);
-        }	   
-    } 
 
     double average, norm;
-    for (int iter = 1; iter < nIterations; ++iter)
+    for (int iter = 0; iter < nIterations; ++iter)
     {
-        for (int i = 0; i < 16; ++i)
-        {
-            for (int j = 0; j < 6; ++j)
-            { 
-                for(int adcBin = 0; adcBin < 100; ++adcBin)
-                {
-                    average = 0;
-                    norm = 0;
-                    for(int dTACbin = 0; dTACbin < 100; ++dTACbin)
-                    {
-                        average += (20*dTACbin - 995)*hDeltaTac[i][j][iter - 1]->GetBinContent(adcBin,dTACbin);
-                        norm += hDeltaTac[i][j][iter - 1]->GetBinContent(adcBin,dTACbin);
-                    }
-                    if(!norm)
-                        continue;
-                    for (int ii = iter; ii < nIterations; ++ii)
-                    {
-                        TACaverage[adcBin][ii] += pow(-1,iter)*(average / norm);
-                    }
-                }
-            }
-        }
         for (int i = 0; i < nBranches; ++i)
         { //get the event   
             branchID = i; 
@@ -173,68 +129,100 @@ void slewing()
             {
                 recTree[i]->GetEntry(iev); 
                 MakeIteration(iter);
-            }      
+            }
+            for (int iCh = 0; iCh < 2; ++iCh)
+            {
+                //cout<<"____________Making fit__________"<<endl;
+                TF1 *gaus = new TF1("gaus","gaus(0)",hDeltaTac[branchID*2 + iCh][iter]->GetMean(2) - 200, hDeltaTac[branchID*2 + iCh][iter]->GetMean(2) + 200);
+                hDeltaTac[branchID*2 + iCh][iter]->FitSlicesY(gaus,0,-1,0,"QR");
+                TH1D *h2_1 = (TH1D*)gDirectory->Get("DeltaTac_" + rpNames[i + (iter%2)*4] + Form("Channel_%i",iCh) + "_1");
+                if(!h2_1)
+                    cout<<"shit"<<endl;
+                for (int iBin = 0; iBin < 100; ++iBin)
+                {
+                    tacAvrg[branchID*2 + iCh][iBin][iter] = h2_1->GetBinContent(iBin+1);
+                    //cout<<"Mean by fit: "<< h2_1->GetBinContent(iBin+1)<<" for bin: "<< iBin<<endl;
+                }
+                    //tacAvrg[branchID*2 + iCh][iBin][iter] = avrg(iBin+1,iter,branchID*2 + iCh );
+            }
+            
         }
     }
+    for (int iBranch = 0; iBranch < 4; ++iBranch)
+    {
+        for (int iRp = 0; iRp < 2; ++iRp)
+        {
+            for (int iChnl = 0; iChnl < 2; ++iChnl)
+            {
+                for (int iBin = 1; iBin < 101; ++iBin)
+                {
+                    double tmp = 0;
+                    for (int i = iRp; i < nIterations; i+=2)
+                    {
+                        tmp =  tmp - tacAvrg[2*iBranch + iChnl][iBin-1][i];
+                    }
+                    hCorrection[iBranch*2 + iRp*8 + iChnl]->SetBinContent(iBin, tmp);
+                    
+                }
+                
+            }
+        }
+    }
+
+
     fout->cd();
 	fout->Write();
 	fout->Close();
     
 }
 
-
+double avrg(int bin, int iteration, int ihist)
+{
+    //cout <<  << endl;
+    TF1 *f = new TF1("f","gaus(0)");
+    hDeltaTac[ihist][iteration]->FitSlicesY();
+    cout<< f->GetParameter(0) <<endl;
+    return f->GetParameter(0);
+}
+ 
 void MakeIteration(int iter)
 {
-
-    for (int i = 0; i < 4; ++i)
+    int activRp = iter%2;
+    int fixRp = (iter+1)%2;
+    double deltaT[2]; // TAC [station][chanell]
+    for (int iChnl = 0; iChnl < 2; ++iChnl)
     {
-        for (int k = 0; k < 6; ++k)
-        {
-            if(rpX[0] > x[branchID/2][k] && rpX[0] < x[branchID/2][k+1] && rpX[1] > x[branchID/2][k] && rpX[1] < x[branchID/2][k+1])
-            {
-                hDeltaTac[4*branchID + i][k][iter]->Fill(ADC[i%2][i/2], TAC[1][i/2] - TAC[0][i/2] + TACaverage[int(ADC[i%2][i/2])/8][iter]);
-            }
-        }
+        deltaT[iChnl] = tac(iter, activRp, iChnl) - ((tac(iter, fixRp, 0) + tac(iter, fixRp, 1))/2);
+        //cout<<deltaT[iChnl]<<" = "<<tac(iter, activRp, iChnl)<<" - "<<((tac(iter, fixRp, 0) + tac(iter, fixRp, 1))/2) <<endl;
+        hDeltaTac[2*branchID + iChnl][iter] -> Fill(ADC[activRp][iChnl], deltaT[iChnl]); 
+        if(deltaT[iChnl] < 1)
+            counter[iter]++;              
     }
 
 }
 
+double tac(int iter, int station, int channel)
+{
+    double tmp = TAC[station][channel];
+    for (int i = station; i < iter; i+=2)
+    {
+        tmp =  tmp - tacAvrg[2*branchID + channel][hDeltaTac[0][0]->GetXaxis()->FindBin(ADC[station][channel] -1)][i];
+    }
+    return tmp; 
+}
+
 void Make()
 {
-    for (int i = 0; i < 2; ++i)
-    {
-        hPosition->Fill(rpX[i],rpY[i]);
-        
-        if(rpY[i] > y[branchID/2][2 - (branchID%2)*2] && rpY[i] < y[branchID/2][3 - (branchID%2)*2])
-        {
-            for (int k = 0; k < 6; ++k)
-            {
-                if(rpX[i] > x[branchID/2][k] && rpX[i] < x[branchID/2][k+1])
-                {
-                    hSlewing[(branchID/2)*12 + (branchID%2)*6 + k][0]->Fill(ADC[i][0],TAC[i][0]);
-                    hSlewing[(branchID/2)*12 + (branchID%2)*6 + k][1]->Fill(ADC[i][1],TAC[i][1]);
-                }
-            }
-        }
-    }
+
 
 }
 
 
 void Init()
 {
-
-    hPosition = new TH2D("Position", "Position", 100,-0.1,0.1,100,-0.1,0.1);
-
-    for (int i = 0; i < 24; ++i)
+    for (int i = 0; i < 16; ++i)
     {
-        hSlewing[i][0] = new TH2D("Slewing_" + side[i/12] + position[(i/6)%2] + Form("(%.2lf-%.2lf)",x[i/12][(i%6)],x[i/12][(i%6) + 1]) + "_V", "Slewing " + side[i/12] + position[(i/6)%2] + Form("(%.2lf-%.2lf)",x[i/12][(i%6)],x[(i/6)%2][(i%6) + 1]) + "_V", 100,0,800,100,0,1400);
-    }
-
-    for (int i = 0; i < 24; ++i)
-    {
-        hSlewing[i][1] = new TH2D("Slewing_" + side[i/12] + position[(i/6)%2] + Form("(%.2lf-%.2lf)",x[i/12][(i%6)],x[i/12][(i%6) + 1]) + "_H", "Slewing " + side[i/12] + position[(i/6)%2] + Form("(%.2lf-%.2lf)",x[i/12][(i%6)],x[(i/6)%2][(i%6) + 1]) + "_H", 100,0,800,100,0,1400);
-        
+        hCorrection[i] = new TH1D("corr" + rpNames[i/2] + Form("Channel_%i",i%2), "corr" + rpNames[i/2] + Form("Channel_%i",i%2),100,0,100);
     }
 
     for (int iter = 0; iter < nIterations; ++iter)
@@ -242,12 +230,9 @@ void Init()
 
         fout->mkdir(Form("Iter%i", iter))->cd();
 
-        for (int i = 0; i < 16; ++i)
-        {
-            for (int j = 0; j < 6; ++j)
-            {
-                hDeltaTac[i][j][iter] = new TH2D("DeltaTac_" + rpNames[(i/8)*4 + (i/4)%2] + "-" + rpNames[(i/8)*4 + (i/4)%2 + 2] +  Form("(%.2lf-%.2lf)",x[i/8][j],x[i/8][j+1]) + pmtID[(i%4)/2] + Form("%i",(i%4)%2 +1), "DeltaTac_" + rpNames[(i/8)*4 + (i/4)%2] + "-" + rpNames[(i/8)*4 + (i/4)%2 + 2] +  Form("(%.2lf-%.2lf)",x[i/8][j],x[i/8][j+1]) + pmtID[(i%4)/2] + Form("%i",(i%4)%2 +1), 100,0,800,100,-1000,1000);
-            }                                            
+        for (int i = 0; i < 8; ++i)
+        {                      
+                hDeltaTac[i][iter] = new TH2D("DeltaTac_" + rpNames[i/2 + (iter%2)*4] + Form("Channel_%i",i%2), "DeltaTac_" + rpNames[i/2 + (iter%2)*4] + Form("Channel_%i",i%2), 100,0,800,100,-1000,1000);                                           
         }
     }
 }
@@ -272,9 +257,6 @@ void ConnectInput(){
             recTree[i]->SetBranchAddress(Form("ADC_H_%i",j+1), &ADC[j][1]);
             recTree[i]->SetBranchAddress(Form("TAC_V_%i",j+1), &TAC[j][0]);
             recTree[i]->SetBranchAddress(Form("TAC_H_%i",j+1), &TAC[j][1]);
-            recTree[i]->SetBranchAddress(Form("rpX_%i",j+1), &rpX[j]);
-            recTree[i]->SetBranchAddress(Form("rpY_%i",j+1), &rpY[j]);
-            recTree[i]->SetBranchAddress(Form("rpZ_%i",j+1), &rpZ[j]);
         }
     }
 }

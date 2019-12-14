@@ -60,7 +60,8 @@ TTree* treeBack;
 
 TH3D* hTOFeff[6]; // 0 = pi- 1 = K- 2 = pbar
 TH3D* hTPCeff[6]; // 3 = pi+ 4 = K+ 5 = p
-TH1D* hInvMass[nParticles][2]; // 0 - signal, 1 - Background
+TH1D* hInvMassCorr[nParticles][2]; // 0 - signal, 1 - Background
+TH1D* hInvMassUncorr[nParticles][2]; // 0 - signal, 1 - Background
 
 Double_t nSigPair[nParticles]; 
 Double_t invMass[nParticles];
@@ -294,9 +295,6 @@ int main(int argc, char** argv) {
 //////////////////////////////////////////////////////////////////////
 //				PID cuts applied
 //////////////////////////////////////////////////////////////////////
-	gPad->SetLogy(0);
-	TDirectory* PIDDir = fout->mkdir("FinalPlots");
-	PIDDir->cd();
 
     Init();
     ConnectInput(tree);
@@ -311,61 +309,123 @@ int main(int argc, char** argv) {
     { //get the event
         treeBack->GetEntry(iev); 
         Make(1);
-    } 
-	hInvMass[Pion][0]->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Number of events");
-	tool.SetGraphStyle(hInvMass[Pion][0],4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(hInvMass[Pion][0]);
-	hInvMass[Pion][0]->Draw("E");
-	tool.DrawText(hInvMass[Pion][0], 1, true);
-	tool.DrawTextStar(hInvMass[Pion][0]);
-    tool.SetMarkerStyle(hInvMass[Pion][1],2,20,1,2,1,1);
-    hInvMass[Pion][1]->Draw("ESAME");
+    }
+
+    gPad->SetLogy(0);
+    TDirectory* uncorrDir = fout->mkdir("FinalPlots-uncorrected");
+    uncorrDir->cd();
+
+	hInvMassUncorr[Pion][0]->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Number of events");
+	tool.SetGraphStyle(hInvMassUncorr[Pion][0],4,20,1,4,1,1,0.9,1.3);
+	tool.SetMarkerStyle(hInvMassUncorr[Pion][0]);
+	hInvMassUncorr[Pion][0]->Draw("E");
+	tool.DrawText(hInvMassUncorr[Pion][0], 1, true);
+	tool.DrawTextStar(hInvMassUncorr[Pion][0]);
+    tool.SetMarkerStyle(hInvMassUncorr[Pion][1],2,20,1,2,1,1);
+    hInvMassUncorr[Pion][1]->Draw("ESAME");
 
     TLegend* leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
     tool.SetLegendStyle(leg1);
-    leg1->AddEntry(hInvMass[Pion][0],"In+El (unlike-sign pairs)","p");
-    leg1->AddEntry(hInvMass[Pion][1],"In+El (like-sign pairs)","p");
+    leg1->AddEntry(hInvMassUncorr[Pion][0],"In+El (unlike-sign pairs)","p");
+    leg1->AddEntry(hInvMassUncorr[Pion][1],"In+El (like-sign pairs)","p");
     leg1->Draw("same");
 
 	newCanvas->Update();
-	newCanvas->Write("invMassPion");
+	newCanvas->Write("uncorrInvMassPion");
 
-	hInvMass[Kaon][0]->SetTitle(" ; m(K^{+}K^{-}) [GeV/c^{2}]; Number of events");
-	tool.SetGraphStyle(hInvMass[Kaon][0],4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(hInvMass[Kaon][0]);
-	hInvMass[Kaon][0]->Draw("E");
-	tool.DrawText(hInvMass[Kaon][0], 2, true);
-	tool.DrawTextStar(hInvMass[Kaon][0]);
-    tool.SetMarkerStyle(hInvMass[Kaon][1],2,20,1,2,1,1);
-    hInvMass[Kaon][1]->Draw("ESAME");
+	hInvMassUncorr[Kaon][0]->SetTitle(" ; m(K^{+}K^{-}) [GeV/c^{2}]; Number of events");
+	tool.SetGraphStyle(hInvMassUncorr[Kaon][0],4,20,1,4,1,1,0.9,1.3);
+	tool.SetMarkerStyle(hInvMassUncorr[Kaon][0]);
+	hInvMassUncorr[Kaon][0]->Draw("E");
+	tool.DrawText(hInvMassUncorr[Kaon][0], 2, true);
+	tool.DrawTextStar(hInvMassUncorr[Kaon][0]);
+    tool.SetMarkerStyle(hInvMassUncorr[Kaon][1],2,20,1,2,1,1);
+    hInvMassUncorr[Kaon][1]->Draw("ESAME");
 
     leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
     tool.SetLegendStyle(leg1);
-    leg1->AddEntry(hInvMass[Kaon][0],"In+El (unlike-sign pairs)","p");
-    leg1->AddEntry(hInvMass[Kaon][1],"In+El (like-sign pairs)","p");
+    leg1->AddEntry(hInvMassUncorr[Kaon][0],"In+El (unlike-sign pairs)","p");
+    leg1->AddEntry(hInvMassUncorr[Kaon][1],"In+El (like-sign pairs)","p");
     leg1->Draw("same");
 
 	newCanvas->Update();
-	newCanvas->Write("invMassKaon");
+	newCanvas->Write("uncorrInvMassKaon");
 
-	hInvMass[Proton][0]->SetTitle(" ; m(p#bar{p}) [GeV/c^{2}]; Number of events");
-	tool.SetGraphStyle(hInvMass[Proton][0],4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(hInvMass[Proton][0]);
-	hInvMass[Proton][0]->Draw("E");
-	tool.DrawText(hInvMass[Proton][0],3, true);
-	tool.DrawTextStar(hInvMass[Proton][0]);
-    tool.SetMarkerStyle(hInvMass[Proton][1],2,20,1,2,1,1);
-    hInvMass[Proton][1]->Draw("ESAME");   
+	hInvMassUncorr[Proton][0]->SetTitle(" ; m(p#bar{p}) [GeV/c^{2}]; Number of events");
+	tool.SetGraphStyle(hInvMassUncorr[Proton][0],4,20,1,4,1,1,0.9,1.3);
+	tool.SetMarkerStyle(hInvMassUncorr[Proton][0]);
+	hInvMassUncorr[Proton][0]->Draw("E");
+	tool.DrawText(hInvMassUncorr[Proton][0],3, true);
+	tool.DrawTextStar(hInvMassUncorr[Proton][0]);
+    tool.SetMarkerStyle(hInvMassUncorr[Proton][1],2,20,1,2,1,1);
+    hInvMassUncorr[Proton][1]->Draw("ESAME");   
 
     leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
     tool.SetLegendStyle(leg1);
-    leg1->AddEntry(hInvMass[Proton][0],"In+El (unlike-sign pairs)","p");
-    leg1->AddEntry(hInvMass[Proton][1],"In+El (like-sign pairs)","p");
+    leg1->AddEntry(hInvMassUncorr[Proton][0],"In+El (unlike-sign pairs)","p");
+    leg1->AddEntry(hInvMassUncorr[Proton][1],"In+El (like-sign pairs)","p");
     leg1->Draw("same");
 
 	newCanvas->Update();
-	newCanvas->Write("invMassProton");
+	newCanvas->Write("uncorrInvMassProton");
 
+    gPad->SetLogy(0);
+    TDirectory* corrDir = fout->mkdir("FinalPlots-corrected");
+    corrDir->cd();
+ 
+    hInvMassCorr[Pion][0]->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Corrected counts");
+    tool.SetGraphStyle(hInvMassCorr[Pion][0],4,20,1,4,1,1,0.9,1.3);
+    tool.SetMarkerStyle(hInvMassCorr[Pion][0]);
+    hInvMassCorr[Pion][0]->Draw("E");
+    tool.DrawText(hInvMassCorr[Pion][0], 1, true);
+    tool.DrawTextStar(hInvMassCorr[Pion][0]);
+    tool.SetMarkerStyle(hInvMassCorr[Pion][1],2,20,1,2,1,1);
+    hInvMassCorr[Pion][1]->Draw("ESAME");
+
+    leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
+    tool.SetLegendStyle(leg1);
+    leg1->AddEntry(hInvMassCorr[Pion][0],"In+El (unlike-sign pairs)","p");
+    leg1->AddEntry(hInvMassCorr[Pion][1],"In+El (like-sign pairs)","p");
+    leg1->Draw("same");
+
+    newCanvas->Update();
+    newCanvas->Write("corrInvMassPion");
+
+    hInvMassCorr[Kaon][0]->SetTitle(" ; m(K^{+}K^{-}) [GeV/c^{2}]; Corrected counts");
+    tool.SetGraphStyle(hInvMassCorr[Kaon][0],4,20,1,4,1,1,0.9,1.3);
+    tool.SetMarkerStyle(hInvMassCorr[Kaon][0]);
+    hInvMassCorr[Kaon][0]->Draw("E");
+    tool.DrawText(hInvMassCorr[Kaon][0], 2, true);
+    tool.DrawTextStar(hInvMassCorr[Kaon][0]);
+    tool.SetMarkerStyle(hInvMassCorr[Kaon][1],2,20,1,2,1,1);
+    hInvMassCorr[Kaon][1]->Draw("ESAME");
+
+    leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
+    tool.SetLegendStyle(leg1);
+    leg1->AddEntry(hInvMassCorr[Kaon][0],"In+El (unlike-sign pairs)","p");
+    leg1->AddEntry(hInvMassCorr[Kaon][1],"In+El (like-sign pairs)","p");
+    leg1->Draw("same");
+
+    newCanvas->Update();
+    newCanvas->Write("corrInvMassKaon");
+
+    hInvMassCorr[Proton][0]->SetTitle(" ; m(p#bar{p}) [GeV/c^{2}]; Corrected counts");
+    tool.SetGraphStyle(hInvMassCorr[Proton][0],4,20,1,4,1,1,0.9,1.3);
+    tool.SetMarkerStyle(hInvMassCorr[Proton][0]);
+    hInvMassCorr[Proton][0]->Draw("E");
+    tool.DrawText(hInvMassCorr[Proton][0],3, true);
+    tool.DrawTextStar(hInvMassCorr[Proton][0]);
+    tool.SetMarkerStyle(hInvMassCorr[Proton][1],2,20,1,2,1,1);
+    hInvMassCorr[Proton][1]->Draw("ESAME");   
+
+    leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
+    tool.SetLegendStyle(leg1);
+    leg1->AddEntry(hInvMassCorr[Proton][0],"In+El (unlike-sign pairs)","p");
+    leg1->AddEntry(hInvMassCorr[Proton][1],"In+El (like-sign pairs)","p");
+    leg1->Draw("same");
+
+    newCanvas->Update();
+    newCanvas->Write("corrInvMassProton");
 	//hCutsSum->Draw();
 //	textCut->Draw("same");
 //	newCanvas->Update();
@@ -392,13 +452,20 @@ int main(int argc, char** argv) {
 
 void Init()
 {
-    hInvMass[0][0]  = new TH1D("invMass" + particleLables[0] + "Sig", "inv. mass " + particleLables[0] , 100, 0.3, 6); // 64, 0.3, 3.5);
-    hInvMass[1][0]  = new TH1D("invMass" + particleLables[1] + "Sig", "inv. mass " + particleLables[1] , 100, 0.3, 6); // 44, 0.8, 3);
-    hInvMass[2][0]  = new TH1D("invMass" + particleLables[2] + "Sig", "inv. mass " + particleLables[2] , 100, 0.3, 6); // 24, 1.6, 4);
+    
+    hInvMassCorr[0][0]  = new TH1D("corrInvMass" + particleLables[0] + "Sig", "Corrected inv. mass " + particleLables[0] , 64, 0.3, 3.5);
+    hInvMassCorr[1][0]  = new TH1D("corrInvMass" + particleLables[1] + "Sig", "Corrected inv. mass " + particleLables[1] , 44, 0.8, 3);
+    hInvMassCorr[2][0]  = new TH1D("corrInvMass" + particleLables[2] + "Sig", "Corrected inv. mass " + particleLables[2] , 24, 1.6, 4);
+    hInvMassCorr[0][1]  = new TH1D("corrInvMass" + particleLables[0] + "Bcg", "Corrected inv. mass " + particleLables[0] , 64, 0.3, 3.5);
+    hInvMassCorr[1][1]  = new TH1D("corrInvMass" + particleLables[1] + "Bcg", "Corrected inv. mass " + particleLables[1] , 44, 0.8, 3);
+    hInvMassCorr[2][1]  = new TH1D("corrInvMass" + particleLables[2] + "Bcg", "Corrected inv. mass " + particleLables[2] , 24, 1.6, 4);
 
-    hInvMass[0][1]  = new TH1D("invMass" + particleLables[0] + "Bcg", "inv. mass " + particleLables[0] , 100, 0.3, 6); // 64, 0.3, 3.5);
-    hInvMass[1][1]  = new TH1D("invMass" + particleLables[1] + "Bcg", "inv. mass " + particleLables[1] , 100, 0.3, 6); // 44, 0.8, 3);
-    hInvMass[2][1]  = new TH1D("invMass" + particleLables[2] + "Bcg", "inv. mass " + particleLables[2] , 100, 0.3, 6); // 24, 1.6, 4);
+    hInvMassUncorr[0][0]  = new TH1D("uncorrInvMass" + particleLables[0] + "Sig", "Uncorrected inv. mass " + particleLables[0] , 64, 0.3, 3.5);
+    hInvMassUncorr[1][0]  = new TH1D("uncorrInvMass" + particleLables[1] + "Sig", "Uncorrected inv. mass " + particleLables[1] , 44, 0.8, 3);
+    hInvMassUncorr[2][0]  = new TH1D("uncorrInvMass" + particleLables[2] + "Sig", "Uncorrected inv. mass " + particleLables[2] , 24, 1.6, 4);
+    hInvMassUncorr[0][1]  = new TH1D("uncorrInvMass" + particleLables[0] + "Bcg", "Uncorrected inv. mass " + particleLables[0] , 64, 0.3, 3.5);
+    hInvMassUncorr[1][1]  = new TH1D("uncorrInvMass" + particleLables[1] + "Bcg", "Uncorrected inv. mass " + particleLables[1] , 44, 0.8, 3);
+    hInvMassUncorr[2][1]  = new TH1D("uncorrInvMass" + particleLables[2] + "Bcg", "Uncorrected inv. mass " + particleLables[2] , 24, 1.6, 4);
 }
 
 
@@ -459,7 +526,9 @@ void Make(int signal)
                 effTotal = effTotal*effTPC*effTOF;
             }
             if(effTotal != 0 && transMomentum[0] > 0.4 && transMomentum[1] > 0.4 && (transMomentum[0] < 1.1 || transMomentum[1] < 1.1) )
-                hInvMass[Proton][signal]->Fill(invMass[Proton], 1/effTotal);
+                hInvMassCorr[Proton][signal]->Fill(invMass[Proton], 1/effTotal);
+            if(transMomentum[0] > 0.4 && transMomentum[1] > 0.4 && (transMomentum[0] < 1.1 || transMomentum[1] < 1.1) )
+                hInvMassUncorr[Proton][signal]->Fill(invMass[Proton]);
         }
         else if(nSigPair[Pion] > 3 && nSigPair[Kaon] < 3 && nSigPair[Proton] > 3 && mSquared > 0.15) // it is... kaon!
         {
@@ -473,7 +542,9 @@ void Make(int signal)
                 effTotal = effTotal*effTPC*effTOF;
             }
             if(effTotal != 0 && transMomentum[0] > 0.3 && transMomentum[1] > 0.3 && (transMomentum[0] < 0.7 || transMomentum[1] < 0.7) )
-                hInvMass[Kaon][signal]->Fill(invMass[Kaon], 1/effTotal);
+                hInvMassCorr[Kaon][signal]->Fill(invMass[Kaon], 1/effTotal);
+            if(transMomentum[0] > 0.3 && transMomentum[1] > 0.3 && (transMomentum[0] < 0.7 || transMomentum[1] < 0.7) )
+                hInvMassUncorr[Kaon][signal]->Fill(invMass[Kaon]);
         }
         else if( nSigPair[Pion] < sqrt(12)) // it is... pion!
         {
@@ -487,7 +558,9 @@ void Make(int signal)
                 effTotal = effTotal*effTPC*effTOF;
             }
             if(effTotal != 0 && transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
-                hInvMass[Pion][signal]->Fill(invMass[Pion], 1/effTotal);
+                hInvMassCorr[Pion][signal]->Fill(invMass[Pion], 1/effTotal);
+            if(transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
+                hInvMassUncorr[Pion][signal]->Fill(invMass[Pion]);
         }
 
     }
