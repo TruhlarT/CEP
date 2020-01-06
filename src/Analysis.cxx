@@ -26,6 +26,8 @@
 #include <TGraphErrors.h> 
 #include <TCanvas.h> 
 #include <TLegend.h> 
+#include <TPad.h>
+#include <TMinuit.h>
 #include <TGaxis.h> 
 #include <TString.h> 
 #include <TColor.h> 
@@ -88,7 +90,7 @@ int main(int argc, char** argv) {
 	//open output file
 
 	bool showText = false;
-	bool showCutsLine = false;
+	bool showCutsLine = true;
 
 	if(argc != 2){
 		cout<<"Error: wrong input"<<endl;
@@ -142,7 +144,6 @@ int main(int argc, char** argv) {
         hTOFeff[i] = (TH3D*)TOFeff -> Get(Form("hTOFEffiCD%i12",i)); 
     }
 
-
 	TFile* fout = new TFile(output +"StRP.root","RECREATE");
 
 	Plot tool;
@@ -181,7 +182,7 @@ int main(int argc, char** argv) {
 	gStyle->SetLineWidth(2);      //axis line
 	gStyle->SetFrameLineWidth(2); //frame line
 
-	TH1F* hCutsFlow = new TH1F("cuts", "cuts", size+1, 0, size);
+	TH1F* hCutsFlow = new TH1F("cuts", "cuts", size, 0, size-1);
 	
 	tree->Draw("invMassPion>>invMassPionSignal");
 	TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
@@ -194,13 +195,21 @@ int main(int argc, char** argv) {
 
 		tree->Draw("invMassPion>>invMassPionSignal",cuts);
 		TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
-		hCutsFlow->GetXaxis()->SetBinLabel(i+2, cutsLabels[i]);
-		hCutsFlow->SetBinContent(i+2,tmpHist->GetEntries());
+		if(i != size -1)
+        {
+            hCutsFlow->GetXaxis()->SetBinLabel(i+2, cutsLabels[i]);
+            hCutsFlow->SetBinContent(i+2,tmpHist->GetEntries());
+        }
+
+        cutsDir->mkdir(Form("trckQ_%i",i))->cd();
+        trackQuality pokus(data, fout, output, showCutsLine, cuts);
+        pokus.PlotHistogram();
+
 
 		if(i != size -1)
 			cuts += " && ";
 	}
-
+    cutsDir->cd();
 	cout<<cuts<<endl;
 
 	hCutsFlow->SetTitle("; ; Number of events");
@@ -213,7 +222,7 @@ int main(int argc, char** argv) {
 
 	TPaveText *textPub = new TPaveText(0.75,0.74,0.9,0.9,"brNDC");
 	tool.SetTextStyle(textPub);
-	textPub -> AddText("p + p #rightarrow p' + X + p'");
+	textPub -> AddText("p + p #rightarrow p + X + p");
 	textPub -> AddText("#sqrt{s} = 510 GeV");
 	textPub -> AddText("Cuts flow");
 	textPub -> Draw("same");
@@ -230,6 +239,7 @@ int main(int argc, char** argv) {
     trackQuality TrackPlotsWithCuts(data, fout, output, showCutsLine, cuts);
     TrackPlotsWithCuts.PlotHistogram();
 
+/*
 ///////////////////////////////////////////////////////////////
     TDirectory* TomasDir = cutsDir->mkdir("PID_Tomas");
     TomasDir->cd();
@@ -291,7 +301,7 @@ int main(int argc, char** argv) {
     PIDPlotsWithCuts12.PlotHistogram();
 ///////////////////////////////////////////////////////////////
 
-
+*/
 //////////////////////////////////////////////////////////////////////
 //				PID cuts applied
 //////////////////////////////////////////////////////////////////////
@@ -430,7 +440,104 @@ int main(int argc, char** argv) {
 //	textCut->Draw("same");
 //	newCanvas->Update();
 //	newCanvas->Write("CutsSummary");
+//////////////////////////////////////////////////////////////////////
+////        Ratio Plot                                          //////
+//////////////////////////////////////////////////////////////////////
+    fout->cd();
 
+
+    //configure layout of the plot
+    gStyle->SetPadTickY(1);
+    gStyle->SetPadTickX(1);
+    gStyle->SetTickLength(0.02,"Y");
+
+    Double_t pdiv = 0.4;
+    TPad *pad1 = new TPad("p1", "p1", 0., pdiv, 1., 1.); // upper
+    TPad *pad2 = new TPad("p2", "p2", 0., 0., 1., pdiv); // lower
+    pad1->Draw();
+    pad2->Draw();
+
+    pad1->cd();  
+    Float_t siz = 0.065; 
+    gPad->SetLeftMargin(0.11);
+    gPad->SetRightMargin(0.02);
+    gPad->SetTopMargin(0.025);//0.11
+    gPad->SetBottomMargin(0.02);
+
+    tool.SetGraphStyle(hInvMassCorr[Pion][0]);
+    tool.SetMarkerStyle(hInvMassCorr[Pion][0],2,20,1,2,1,1);
+    hInvMassCorr[Pion][0]->GetYaxis()->SetTitleSize(siz);
+    hInvMassCorr[Pion][0]->GetYaxis()->SetTitleOffset(0.9);
+    hInvMassCorr[Pion][0]->GetYaxis()->SetLabelSize(siz-0.01);
+    hInvMassCorr[Pion][0]->GetXaxis()->SetLabelSize(0.0);
+    hInvMassCorr[Pion][0]->SetTitle(";; Counts");
+    hInvMassCorr[Pion][0]->Draw();
+    Double_t norm = hInvMassCorr[Pion][0]->Integral()/hInvMassUncorr[Pion][0]->GetEntries();
+    hInvMassUncorr[Pion][0]->Scale(norm);
+    hInvMassUncorr[Pion][0]->Draw("same");
+
+    TPaveText *textSTAR = new TPaveText(0.65,0.89,0.85,0.9,"brNDC");
+    textSTAR -> SetTextSize(siz-0.005);
+    textSTAR -> SetFillColor(0);
+    textSTAR -> SetTextFont(62);
+    textSTAR -> AddText("STAR Internal");
+    textSTAR -> Draw("same");
+
+    textPub = new TPaveText(0.65,0.7,0.85,0.85,"brNDC");
+    tool.SetTextStyle(textPub);
+    textPub -> SetTextSize(siz);
+    textPub -> AddText("p + p #rightarrow p + #pi^{+} #pi^{-} + p");
+    textPub -> AddText("#sqrt{s} = 510 GeV");
+    textPub -> Draw("same");
+
+    leg1 = new TLegend(0.6, 0.5, 0.75, 0.7);
+    tool.SetLegendStyle(leg1);
+    leg1->SetTextSize(siz);
+    leg1->AddEntry(hInvMassCorr[Pion][0],"Corrected","p");
+    leg1->AddEntry(hInvMassUncorr[Pion][0],"Uncorrected (scaled)","p");
+    leg1->Draw("same");
+
+    pad2->cd();
+
+    gPad->SetLeftMargin(0.11);
+    gPad->SetRightMargin(0.02);
+    gPad->SetTopMargin(0.);//0.025
+    gPad->SetBottomMargin(0.25);
+ /*   TH1F* frame2 = gPad->DrawFrame(0.3,0.6,3.5,1.4-1.e-5); // 0.1, 2
+    frame2->Draw();
+    frame2->GetXaxis()->SetMoreLogLabels();
+    frame2->GetYaxis()->SetTitleOffset(0.9);
+    frame2->GetYaxis()->SetTitleSize(siz);
+    frame2->GetYaxis()->SetLabelSize(siz-0.01);
+    frame2->GetXaxis()->SetTitleSize(siz);
+    frame2->GetXaxis()->SetLabelSize(siz-0.01);
+    frame2->SetTitle(";m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Corrected / Uncorrected");
+*/
+    siz = 0.1;
+    TH1D *h3 = (TH1D*)hInvMassCorr[Pion][0]->Clone("h3");
+    h3->SetMarkerColor(kBlack);
+    h3->SetLineColor(kBlack);
+    h3->GetYaxis()->SetTitleOffset(0.5);
+    h3->GetXaxis()->SetTitleOffset(1.1);
+    h3->GetYaxis()->SetTitleSize(siz);
+    h3->GetYaxis()->SetLabelSize(siz-0.01);
+    h3->GetXaxis()->SetTitleSize(siz);
+    h3->GetXaxis()->SetLabelSize(siz-0.01);
+    h3->Divide(hInvMassUncorr[Pion][0]);
+    h3->SetTitle(";m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Corrected / Uncorrected");
+    h3->Draw("PE");
+
+    TLine *unity = new TLine(0.3, 1., 3.5, 1.);
+    unity->SetLineColor(kBlack);
+    unity->SetLineWidth(2);
+    unity->Draw("same");
+
+
+
+    newCanvas->Update();
+    newCanvas->Write("ratioPlots");
+
+/*
 //////////////////////////////////////////////////////////////////////
 //              4 pions state
 //////////////////////////////////////////////////////////////////////
@@ -442,6 +549,7 @@ int main(int argc, char** argv) {
     fourPiPlots.PlotHistogram();
 
 //////////////////////////////////////////////////////////////////////
+*/
 	fout->Close();
 	data->Close();
 
@@ -529,6 +637,7 @@ void Make(int signal)
                 hInvMassCorr[Proton][signal]->Fill(invMass[Proton], 1/effTotal);
             if(transMomentum[0] > 0.4 && transMomentum[1] > 0.4 && (transMomentum[0] < 1.1 || transMomentum[1] < 1.1) )
                 hInvMassUncorr[Proton][signal]->Fill(invMass[Proton]);
+
         }
         else if(nSigPair[Pion] > 3 && nSigPair[Kaon] < 3 && nSigPair[Proton] > 3 && mSquared > 0.15) // it is... kaon!
         {
@@ -555,14 +664,20 @@ void Make(int signal)
                     PID = 3;
                 effTPC = hTPCeff[0 + PID]->GetBinContent( hTPCeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
                 effTOF = hTOFeff[0 + PID]->GetBinContent( hTOFeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack])); 
+                
+                //cout<<hTPCeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack])<<" | "<< hTPCeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack])<<" | "<< hTPCeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack])<<endl;
+
                 effTotal = effTotal*effTPC*effTOF;
             }
             if(effTotal != 0 && transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
                 hInvMassCorr[Pion][signal]->Fill(invMass[Pion], 1/effTotal);
             if(transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
                 hInvMassUncorr[Pion][signal]->Fill(invMass[Pion]);
+
         }
 
     }
 
 }
+
+

@@ -80,7 +80,7 @@ void BasicPlots::PlotHistogram() {
 
 // //////////////////////////////////////////////////////////
 // Plot Cuts Flow
-	TString Labels[] = { TString("All"), TString("CPT trigger"), TString("El+InEl"), TString("2 TPC-TOF tracks"), 
+	TString Labels[] = { TString("All"), TString("CPT2noBBCL"), TString("El+InEl"), TString("2 TPC-TOF tracks"), 
 	                  TString("Same vertex"), TString("TotCharge 0"), TString("p_{T}^{miss} < 0.1 GeV/c"), TString(""),};
 	//gPad->SetMargin(0.9,0.02,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
 	gPad->SetLogy();

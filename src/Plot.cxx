@@ -80,7 +80,7 @@ void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t y
 	textPub -> AddText("p + p #rightarrow p + " + centralState +" + p");
 	textPub -> AddText("#sqrt{s} = 510 GeV");
 	int NentriesEl = hist->GetEntries();
-	TString tileIdStrEl; tileIdStrEl.Form("%i #pi_{cand}^{Exc}",NentriesEl);
+	TString tileIdStrEl; tileIdStrEl.Form("%i h_{cand}^{Exc}",NentriesEl);
 	if(pair)
 		tileIdStrEl.Form("%i Excl. events",NentriesEl);
 	textPub -> AddText(tileIdStrEl);
@@ -104,11 +104,11 @@ void Plot::DrawTextStar(TH1* hist, Int_t position, Bool_t star)
 			break;
 	}
 	
-	textSTAR -> SetTextSize(siz);
+	textSTAR -> SetTextSize(siz-0.005);
 	textSTAR -> SetFillColor(0);
 	textSTAR -> SetTextFont(62);
 	if(star)
-		textSTAR->AddText("STAR");
+		textSTAR->AddText("STAR Internal");
 	else
 		textSTAR -> AddText("THIS THESIS");
 	textSTAR -> Draw("same");

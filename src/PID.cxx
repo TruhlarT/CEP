@@ -157,21 +157,14 @@ void PID::PlotHistogram(){
 	tmpHist3->Draw("SAME");
     tmpHist4->Draw("SAME");
 
-	TLine *mLine = new TLine(0.2,0,0.2,8000);
+	TLine *mLine = new TLine(0.15,0,0.15,tmpHist->GetMaximum()/2);
+	tool.SetLineStyle(mLine,10,2,4);
+    mLine->Draw("same");
+
+    mLine = new TLine(0.6,0,0.6,tmpHist->GetMaximum()/2);
 	tool.SetLineStyle(mLine,10,1,4);
     mLine->Draw("same");
 
-    mLine = new TLine(0.32,0,0.32,8000);
-	tool.SetLineStyle(mLine,10,1,4);
-    mLine->Draw("same");
-
-    mLine = new TLine(0.7,0,0.7,8000);
-	tool.SetLineStyle(mLine,10,1,4);
-    mLine->Draw("same");
-
-    mLine = new TLine(1.1,0,1.1,8000);
-	tool.SetLineStyle(mLine,10,1,4);
-    mLine->Draw("same");
 
 	TPaveText *textPub = new TPaveText(0.72,0.8,0.84,0.95,"brNDC");
 	textPub -> SetTextSize(0.04);
