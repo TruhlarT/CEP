@@ -65,7 +65,7 @@ TH3D* hTPCeff[6]; // 3 = pi+ 4 = K+ 5 = p
 TH1D* hInvMassCorr[nParticles][2]; // 0 - signal, 1 - Background
 TH1D* hInvMassUncorr[nParticles][2]; // 0 - signal, 1 - Background
 
-Double_t nSigPair[nParticles]; 
+Double_t chiPair[nParticles]; 
 Double_t invMass[nParticles];
 Double_t mSquared;
 Double_t transMomentum[4];
@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
 
     for (int i = 0; i < 6; ++i)
     {    
-        hTPCeff[i] = (TH3D*)TPCeff -> Get(Form("hTPCEffiCD%i120",i));
+        hTPCeff[i] = (TH3D*)TPCeff -> Get(Form("hTPCEffiCD%i121",i)); // hTPCEffiCD%i120" for dead sector 19
         hTOFeff[i] = (TH3D*)TOFeff -> Get(Form("hTOFEffiCD%i12",i)); 
     }
 
@@ -192,22 +192,22 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < size; ++i)
 	{
 		cuts += cutsOption[i]; 
-
+        cout<<"Applying cuts: "<<cuts<<endl;
 		tree->Draw("invMassPion>>invMassPionSignal",cuts);
 		TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
 		if(i != size -1)
         {
             hCutsFlow->GetXaxis()->SetBinLabel(i+2, cutsLabels[i]);
             hCutsFlow->SetBinContent(i+2,tmpHist->GetEntries());
+            cout<<"Number of entries: "<<tmpHist->GetEntries()<<endl;
         }
 
         cutsDir->mkdir(Form("trckQ_%i",i))->cd();
         trackQuality pokus(data, fout, output, showCutsLine, cuts);
         pokus.PlotHistogram();
 
-
-		if(i != size -1)
-			cuts += " && ";
+        if(i != size -1)
+            cuts += " && ";
 	}
     cutsDir->cd();
 	cout<<cuts<<endl;
@@ -244,60 +244,60 @@ int main(int argc, char** argv) {
     TDirectory* TomasDir = cutsDir->mkdir("PID_Tomas");
     TomasDir->cd();
     TomasDir->mkdir("Pions")->cd();
-    PID PIDPlotsWithCuts1(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (nSigPairKaon > 3 || mSquared < 0.2 || mSquared > 0.32) && (nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+    PID PIDPlotsWithCuts1(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (chiPairKaon > 3 || mSquared < 0.2 || mSquared > 0.32) && (chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
     PIDPlotsWithCuts1.PlotHistogram();
 
     TomasDir->mkdir("Kaons")->cd();
-    PID PIDPlotsWithCuts2(data, fout, output, showCutsLine, cuts + "&& nSigPairKaon < 3 && mSquared > 0.2 && mSquared < 0.32 && (nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+    PID PIDPlotsWithCuts2(data, fout, output, showCutsLine, cuts + "&& chiPairKaon < 3 && mSquared > 0.2 && mSquared < 0.32 && (chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
     PIDPlotsWithCuts2.PlotHistogram();
 
     TomasDir->mkdir("Protons")->cd();
-    PID PIDPlotsWithCuts3(data, fout, output, showCutsLine, cuts + "&& nSigPairProton < 3 && mSquared > 0.7 && mSquared < 1.1");
+    PID PIDPlotsWithCuts3(data, fout, output, showCutsLine, cuts + "&& chiPairProton < 3 && mSquared > 0.7 && mSquared < 1.1");
     PIDPlotsWithCuts3.PlotHistogram();
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
     TDirectory* TomasDir2 = cutsDir->mkdir("PID_Tomas2");
     TomasDir2->cd();
     TomasDir2->mkdir("Pions")->cd();
-    PID PIDPlotsWithCuts4(data, fout, output, showCutsLine, cuts + "&& nSigPairPion < 3.46 && (nSigPairPion < 3 || nSigPairKaon > 3 || mSquared < 0.15) && (nSigPairPion < 3 || nSigPairKaon < 3 || nSigPairProton > 3 || mSquared < 0.6)");
+    PID PIDPlotsWithCuts4(data, fout, output, showCutsLine, cuts + "&& chiPairPion < 3.46 && (chiPairPion < 3 || chiPairKaon > 3 || mSquared < 0.15) && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.6)");
     PIDPlotsWithCuts4.PlotHistogram();
 
     TomasDir2->mkdir("Kaons")->cd();
-    PID PIDPlotsWithCuts5(data, fout, output, showCutsLine, cuts + "&& nSigPairPion > 3 && nSigPairKaon < 3 && mSquared > 0.15 && (nSigPairPion < 3 || nSigPairKaon < 3 || nSigPairProton > 3 || mSquared < 0.6)");
+    PID PIDPlotsWithCuts5(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon < 3 && mSquared > 0.15 && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.6)");
     PIDPlotsWithCuts5.PlotHistogram();
 
     TomasDir2->mkdir("Protons")->cd();
-    PID PIDPlotsWithCuts6(data, fout, output, showCutsLine, cuts + "&& nSigPairPion > 3 && nSigPairKaon > 3 && nSigPairProton < 3 && mSquared > 0.6");
+    PID PIDPlotsWithCuts6(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon > 3 && chiPairProton < 3 && mSquared > 0.6");
     PIDPlotsWithCuts6.PlotHistogram();
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
     TDirectory* RafalDir = cutsDir->mkdir("PID_Rafal");
     RafalDir->cd();
     RafalDir->mkdir("Pions")->cd();
-    PID PIDPlotsWithCuts7(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (nSigPairPion < 3 || nSigPairKaon > 3 || nSigPairProton < 3 || mSquared < 0.2 || mSquared > 0.32) && (nSigPairPion < 3 || nSigPairKaon < 3 || nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+    PID PIDPlotsWithCuts7(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (chiPairPion < 3 || chiPairKaon > 3 || chiPairProton < 3 || mSquared < 0.2 || mSquared > 0.32) && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
     PIDPlotsWithCuts7.PlotHistogram();
 
     RafalDir->mkdir("Kaons")->cd();
-    PID PIDPlotsWithCuts8(data, fout, output, showCutsLine, cuts + "&& nSigPairPion > 3 && nSigPairKaon < 3 && nSigPairProton > 3 && mSquared > 0.2 && mSquared < 0.32 && (nSigPairPion < 3 || nSigPairKaon < 3 || nSigPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+    PID PIDPlotsWithCuts8(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon < 3 && chiPairProton > 3 && mSquared > 0.2 && mSquared < 0.32 && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
     PIDPlotsWithCuts8.PlotHistogram();
 
     RafalDir->mkdir("Protons")->cd();
-    PID PIDPlotsWithCuts9(data, fout, output, showCutsLine, cuts + "&& nSigPairPion > 3 && nSigPairKaon > 3 && nSigPairProton < 3 && mSquared > 0.6 && mSquared < 1.1");
+    PID PIDPlotsWithCuts9(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon > 3 && chiPairProton < 3 && mSquared > 0.6 && mSquared < 1.1");
     PIDPlotsWithCuts9.PlotHistogram();
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
     TDirectory* DanielDir = cutsDir->mkdir("PID_Daniel");
     DanielDir->cd();
     DanielDir->mkdir("Pions")->cd();
-    PID PIDPlotsWithCuts10(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (nSigPairKaon > 3 || deltaDeltaTOFKaon < -0.5 || deltaDeltaTOFKaon > 0.5) && (nSigPairProton > 3 || deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)");
+    PID PIDPlotsWithCuts10(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (chiPairKaon > 3 || deltaDeltaTOFKaon < -0.5 || deltaDeltaTOFKaon > 0.5) && (chiPairProton > 3 || deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)");
     PIDPlotsWithCuts10.PlotHistogram();
 
     DanielDir->mkdir("Kaons")->cd();
-    PID PIDPlotsWithCuts11(data, fout, output, showCutsLine, cuts + "&& nSigPairKaon < 3 && deltaDeltaTOFKaon > -0.5 && deltaDeltaTOFKaon < 0.5  && (nSigPairProton > 3 || deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)");
+    PID PIDPlotsWithCuts11(data, fout, output, showCutsLine, cuts + "&& chiPairKaon < 3 && deltaDeltaTOFKaon > -0.5 && deltaDeltaTOFKaon < 0.5  && (chiPairProton > 3 || deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)");
     PIDPlotsWithCuts11.PlotHistogram();
 
     DanielDir->mkdir("Protons")->cd();
-    PID PIDPlotsWithCuts12(data, fout, output, showCutsLine, cuts + "&& nSigPairProton < 3 && deltaDeltaTOFProton > -0.5 && deltaDeltaTOFProton < 0.5");
+    PID PIDPlotsWithCuts12(data, fout, output, showCutsLine, cuts + "&& chiPairProton < 3 && deltaDeltaTOFProton > -0.5 && deltaDeltaTOFProton < 0.5");
     PIDPlotsWithCuts12.PlotHistogram();
 ///////////////////////////////////////////////////////////////
 
@@ -587,7 +587,7 @@ void ConnectInput(TTree* tree)
     for (int iPart = 0; iPart < nParticles; ++iPart)
     {
         tree->SetBranchAddress("invMass" + particleLables[iPart], &invMass[iPart]);
-        tree->SetBranchAddress("nSigPair" + particleLables[iPart], &nSigPair[iPart]);
+        tree->SetBranchAddress("chiPair" + particleLables[iPart], &chiPair[iPart]);
     }
 
 
@@ -622,7 +622,7 @@ void Make(int signal)
     {
 
         effTotal = 1;
-        if(nSigPair[Pion] > 3 && nSigPair[Kaon] > 3 && nSigPair[Proton] < 3 && mSquared > 0.6) // it is... proton!
+        if(chiPair[Pion] > 3 && chiPair[Kaon] > 3 && chiPair[Proton] < 3 && mSquared > 0.6) // it is... proton!
         {
             for (int iTrack = 0; iTrack < 2; ++iTrack)
             {
@@ -639,7 +639,7 @@ void Make(int signal)
                 hInvMassUncorr[Proton][signal]->Fill(invMass[Proton]);
 
         }
-        else if(nSigPair[Pion] > 3 && nSigPair[Kaon] < 3 && nSigPair[Proton] > 3 && mSquared > 0.15) // it is... kaon!
+        else if(chiPair[Pion] > 3 && chiPair[Kaon] < 3 && chiPair[Proton] > 3 && mSquared > 0.15) // it is... kaon!
         {
             for (int iTrack = 0; iTrack < 2; ++iTrack)
             {
@@ -655,7 +655,7 @@ void Make(int signal)
             if(transMomentum[0] > 0.3 && transMomentum[1] > 0.3 && (transMomentum[0] < 0.7 || transMomentum[1] < 0.7) )
                 hInvMassUncorr[Kaon][signal]->Fill(invMass[Kaon]);
         }
-        else if( nSigPair[Pion] < sqrt(12)) // it is... pion!
+        else if( chiPair[Pion] < sqrt(12)) // it is... pion!
         {
             for (int iTrack = 0; iTrack < 2; ++iTrack)
             {

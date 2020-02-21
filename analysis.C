@@ -9,6 +9,7 @@
 #include <fstream> 
 #include <cmath> 
 #include <cstdlib>
+#include <unistd.h>
 
 // ROOT headers
 #include "TFile.h"
@@ -39,6 +40,7 @@
 #include "TPaveText.h"
 #include "TLegend.h"
 #include "TDirectory.h"
+
 
 using namespace std;
 
@@ -72,6 +74,15 @@ TH1D* hvertexRP;
 TH1D* hvertexRPGolden;
 TH1D* hDeltaVertex;
 
+TH1D* hEtaDif;
+TH1D* hLFactor;
+
+TH1D* pTGoldenPions;
+
+TH1D* hEtaDist;
+TH1D* hEta[20];
+TH1D* hEtaDistCalib;
+
 TH1D* hTime[2];
 TH1D* hTofLength[2];
 TH1D* hRunNumber[2];
@@ -79,9 +90,9 @@ TH1D* hRunNumber[2];
 TH2D* hSlewing[16];
 TH2D* hPosition[nSides];
 
-TH1D* hNSigPairPion[nParticles];
-TH1D* hNSigPairKaon[nParticles];
-TH1D* hNSigPairProton[nParticles];
+TH1D* hchiPairPion[nParticles];
+TH1D* hchiPairKaon[nParticles];
+TH1D* hchiPairProton[nParticles];
 TH1D* hMSquered[nParticles];
 TH1D* hPtCharged[2];
 TH1D* hRatio;
@@ -94,7 +105,7 @@ UInt_t runNumber;
 Double_t VPDSumEast, VPDSumWest, VPDTimeDiff;
 
 
-Double_t nSigPair[nParticles]; 
+Double_t chiPair[nParticles]; 
 Double_t invMass[nParticles];
 Double_t missingPt, deltaTOF, mSquared;
 Double_t deltaDeltaTOF[nParticles];
@@ -142,7 +153,7 @@ Double_t Phi[4];
 Double_t Chi2[4];
 
 ///////////////////
-UInt_t	nTOFBadTracks;
+UInt_t	nTOFBadTracks, etaTotal;
 UInt_t	nTOFGoodTracks;
 UInt_t	nWierdTOFInfo, triggerOn, triggerOff;
 
@@ -152,7 +163,7 @@ void Make();
 
 void analysis()
 {
-	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/allNewPico.root";
+	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/run17Calib.root";
     TString TPCeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/etaPhiEfficiency_16_01_19_delta015_twoRuns.root";
     TString TOFeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effWithBinningForSystematics.root";
 	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/anaOutput.root";
@@ -181,7 +192,7 @@ void analysis()
 
     for (int i = 0; i < 6; ++i)
     {    
-        hTPCeff[i] = (TH3D*)TPCeff -> Get(Form("hTPCEffiCD%i120",i));
+        hTPCeff[i] = (TH3D*)TPCeff -> Get(Form("hTPCEffiCD%i121",i));
         hTOFeff[i] = (TH3D*)TOFeff -> Get(Form("hTOFEffiCD%i12",i)); 
     }
 
@@ -190,6 +201,28 @@ void analysis()
 	Init(); // Preparing histograms 
 	ConnectInput(); // Connecting input
 
+    TCanvas *cCanvas = new TCanvas("cCanvas","cCanvas",800,700);
+    gPad->SetMargin(0.12,0.02,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top) 
+    gStyle->SetOptStat("");
+
+    TH1D* hEta0;
+/*    for(int i = 0; i < 21; ++i)
+    {
+        for(int j = 0; j < 21; ++j)
+        {
+            hEta0 = hTOFeff[0]->ProjectionZ("",i,i,j,j);
+            hEta0->SetTitle( Form(" TOF eff %d, %d, %d, %d ; #eta ; ",i,i,j,j));
+            hEta0->Draw("");  
+            cCanvas->Update();
+            cCanvas->SaveAs( Form("etaEffTOF/%d%d%d%d.png",i,i,j,j));
+        }
+    }
+    hEta0 = hTPCeff[0]->ProjectionZ("",11,11,10,10);
+    //TH1D* hEta = hTOFeff[3]->ProjectionZ();
+    hEta0->SetTitle(" TPC eff ; #eta ; ");
+    hEta0->Draw("HIST");  
+    return;
+*/
 	////////////// Making histograms
 	nTOFBadTracks = 0;
 	nTOFGoodTracks = 0;
@@ -198,11 +231,20 @@ void analysis()
 	cout<<"Proccesing "<<nev<<" events"<<endl;
 	//event loop
 	//nev = 1000;
+    etaTotal = 0;
 	for(Long64_t iev=0; iev<nev; ++iev) 
 	{ //get the event
 		recTree->GetEntry(iev); 
 		Make();
 	} 
+
+    for(int i = 0; i < 20; ++i)
+    {
+        hLFactor->SetBinContent(i+1, hEta[i]->GetEntries()/etaTotal);
+        hLFactor->GetXaxis()->SetBinLabel(i+1, Form("%.2f",0.6 + i*0.02));
+    }
+    gStyle->SetOptStat("");
+    hLFactor->SetTitle("; |#eta| cut; f_{Lost}");
 
 	Int_t totalTracks = nTOFGoodTracks+nTOFBadTracks+nWierdTOFInfo;
 	cout<<"Total number of tracks: "<< totalTracks <<endl;
@@ -212,10 +254,7 @@ void analysis()
     cout<<"Trigger on: "<<triggerOn<<" and off: "<<triggerOff<<endl;
     fout->cd();
 
-    TCanvas *cCanvas = new TCanvas("cCanvas","cCanvas",800,700);
-    gPad->SetMargin(0.12,0.02,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top) 
-    gStyle->SetOptStat("");
-
+/*
     hDEdxTomas[0]->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV/c] ;dE/dx [keV/cm]");
     hDEdxTomas[0]->SetStats(0);
     hDEdxTomas[0]->SetMarkerColor(2);
@@ -315,6 +354,58 @@ void analysis()
         else
             hRatio->SetBinContent(i,0);
     }
+*/
+    hEtaDistCalib->SetTitle(" ; #eta ; Number of tracks");
+
+    hEtaDistCalib->GetXaxis()->SetTitleFont(42);
+    hEtaDistCalib->GetYaxis()->SetTitleFont(42);
+    hEtaDistCalib->GetXaxis()->SetLabelFont(42);
+    hEtaDistCalib->GetYaxis()->SetLabelFont(42);
+    hEtaDistCalib->GetXaxis()->SetTitleSize(0.045);
+    hEtaDistCalib->GetYaxis()->SetTitleSize(0.045);
+    hEtaDistCalib->GetXaxis()->SetTitleOffset(0.9);
+    hEtaDistCalib->GetYaxis()->SetTitleOffset(1.3);
+    hEtaDistCalib->GetXaxis()->SetRangeUser(-1.0,3.5);
+    hEtaDistCalib->SetMarkerColor(4);
+    hEtaDistCalib->SetMarkerSize(1);
+    hEtaDistCalib->SetMarkerStyle(20);
+    hEtaDistCalib->SetLineColor(4);
+    hEtaDistCalib->SetLineStyle(1);
+    hEtaDistCalib->SetLineWidth(1);
+    hEtaDistCalib->Draw("E");
+
+    TPaveText *textPub = new TPaveText(0.7,0.75,0.92,0.88,"brNDC");
+    textPub -> SetTextSize(0.04);
+    textPub -> SetTextAlign(22);
+    textPub -> SetFillColor(0);
+    textPub -> SetTextFont(42);
+    textPub -> AddText("p + p #rightarrow p + X + p");
+    textPub -> AddText("#sqrt{s} = 510 GeV");
+    int NentriesEl = hEtaDistCalib->GetEntries();
+    TString tileIdStrEl; tileIdStrEl.Form("%i h_{cand}^{Exc}",NentriesEl);
+    textPub -> AddText(tileIdStrEl);
+    textPub -> Draw("same");
+
+    TPaveText *textSTAR;
+    textSTAR = new TPaveText(0.75,0.89,0.9,0.95,"brNDC");
+    textSTAR -> SetTextSize(0.04);
+    textSTAR -> SetFillColor(0);
+    textSTAR -> SetTextFont(62);
+    textSTAR->AddText("STAR Internal");
+    textSTAR -> Draw("same");
+/*
+    TLegend* leg1 = new TLegend(0.6, 0.65, 0.8, 0.74);
+    leg1->SetFillStyle(0);
+    leg1->SetBorderSize(0);
+    leg1->SetTextSize(0.04);
+    leg1->SetTextFont(42);
+    leg1->AddEntry(hEtaDistCalib,"In+El (unlike-sign pairs)","p");
+    leg1->Draw("same");
+*/
+
+
+    cCanvas->Update();
+    cCanvas->SaveAs("etaDistCalib.png");   
 
     cCanvas->Close();
 	fout->Write();
@@ -337,6 +428,10 @@ void Make()
             triggerOff++;
     }
 	
+/*
+    if(Eta[0] < -0.7 || Eta[0] > 0.7 || Eta[1] < -0.7 || Eta[1] > 0.7 )
+        hEtaDif->Fill(Eta[0] - Eta[1]); 
+
     hPosition[East]->Fill(rpX[East], rpY[East]);
     hPosition[West]->Fill(rpX[West], rpY[West]);
 
@@ -349,9 +444,47 @@ void Make()
 
     hvertexZ->Fill(vertexesZ[0]);
     hvertexRP->Fill(z0 - z01);
+*/
+  //  cout<<vertexesZ[0] <<" "<< NhitsFit[0]<<" "<< NhitsFit[1]<<" "<< NhitsDEdx[0]<<" "<< NhitsDEdx[1]<<" "<< DcaZ[0]<<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1]<<endl;
+	//cout<<fourPiState<<endl;
 
-    //cout<<vertexZ <<" "<< NhitFit[0]<<" "<< NhitFit[1]<<" "<< NhitsDEdx[0]<<" "<< NhitsDEdx[1]<<" "<< DcaZ[0]<<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1]<<endl;
-	if(vertexesZ[0]<80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.8 && Eta[0] < 0.8 && Eta[1] > -0.8 && Eta[1] < 0.8  && !fourPiState){
+    for (int iTrack = 0; iTrack < 2; ++iTrack)
+    {
+        if(elastic == true && NhitsFit[iTrack] >=25 && NhitsDEdx[iTrack] >= 15 && DcaZ[iTrack] < 1 && DcaZ[iTrack] > -1 && DcaXY[iTrack] < 1.5 && Eta[iTrack] > -0.7 && Eta[iTrack] < 0.7)
+            pTGoldenPions->Fill(transMomentum[iTrack]);
+    }
+
+
+    if(vertexesZ[0]<80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5  && !fourPiState){ // && Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7
+
+        ++etaTotal;
+        ++etaTotal;
+        for(int i = 0; i < 20; ++i)
+        {
+            if(Eta[0] > (-0.6 - i*0.02) && Eta[0] < (0.6 + i*0.02) && Eta[1] > (-0.6 - i*0.02) && Eta[1] < (0.6 + i*0.02))
+            {
+                hEta[i]->Fill(Eta[0]);
+                hEta[i]->Fill(Eta[1]);
+            }
+        }
+
+        if(!(Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7))
+            return;
+
+
+        for (int iTrack = 0; iTrack < 2; ++iTrack)
+        {
+            hEtaDist->Fill(Eta[iTrack]);
+            if( Eta[iTrack] < - 1.0 || Eta[iTrack] > 1.0)
+                continue;
+            effTPC = hTPCeff[0]->GetBinContent( hTPCeff[0]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[0]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[0]->GetZaxis()->FindBin(Eta[iTrack]));
+            effTOF = hTOFeff[0]->GetBinContent( hTOFeff[0]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[0]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[0]->GetZaxis()->FindBin(Eta[iTrack]));  
+            effTotal = effTPC*effTOF;
+            if(effTotal)
+                hEtaDistCalib->Fill(Eta[iTrack], 1/effTotal);
+        }
+
+/*
 		hDeltaVertex->Fill(vertexesZ[0] - z0);
 		hvertexRPGolden->Fill(z0);
 
@@ -412,27 +545,27 @@ void Make()
 
             if(deltaDeltaTOF[Proton] > -0.5 && deltaDeltaTOF[Proton] < 0.5 )
             {
-                hNSigPairPion[Proton]->Fill(nSigPair[Pion]);
-                hNSigPairKaon[Proton]->Fill(nSigPair[Kaon]);
-                hNSigPairProton[Proton]->Fill(nSigPair[Proton]);
+                hchiPairPion[Proton]->Fill(chiPair[Pion]);
+                hchiPairKaon[Proton]->Fill(chiPair[Kaon]);
+                hchiPairProton[Proton]->Fill(chiPair[Proton]);
                 hMSquered[Proton]->Fill(mSquared); 
             }else if(deltaDeltaTOF[Kaon] > -0.5 && deltaDeltaTOF[Kaon] < 0.5 )
             {
-                hNSigPairPion[Kaon]->Fill(nSigPair[Pion]);
-                hNSigPairKaon[Kaon]->Fill(nSigPair[Kaon]);
-                hNSigPairProton[Kaon]->Fill(nSigPair[Proton]);
+                hchiPairPion[Kaon]->Fill(chiPair[Pion]);
+                hchiPairKaon[Kaon]->Fill(chiPair[Kaon]);
+                hchiPairProton[Kaon]->Fill(chiPair[Proton]);
                 hMSquered[Kaon]->Fill(mSquared);   
             }else if(deltaDeltaTOF[Pion] > -0.5 && deltaDeltaTOF[Pion] < 0.5 )
             {
-                hNSigPairPion[Pion]->Fill(nSigPair[Pion]);
-                hNSigPairKaon[Pion]->Fill(nSigPair[Kaon]);
-                hNSigPairProton[Pion]->Fill(nSigPair[Proton]);
+                hchiPairPion[Pion]->Fill(chiPair[Pion]);
+                hchiPairKaon[Pion]->Fill(chiPair[Kaon]);
+                hchiPairProton[Pion]->Fill(chiPair[Proton]);
                 hMSquered[Pion]->Fill(mSquared);
             }
 
             effTotal = 1;
             PID = 0;
-            if(nSigPair[Pion] > 3 && nSigPair[Kaon] > 3 && nSigPair[Proton] < 3 && mSquared > 0.7 && mSquared < 1.1)
+            if(chiPair[Pion] > 3 && chiPair[Kaon] > 3 && chiPair[Proton] < 3 && mSquared > 0.7 && mSquared < 1.1)
             {
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
                 {
@@ -446,7 +579,7 @@ void Make()
                 if(effTotal)
                     hInvMass[Proton]->Fill(invMass[Proton], 1/effTotal);
             }
-            else if(nSigPair[Pion] > 3 && nSigPair[Kaon] < 3 && nSigPair[Proton] > 3 && mSquared > 0.2 && mSquared < 0.32)
+            else if(chiPair[Pion] > 3 && chiPair[Kaon] < 3 && chiPair[Proton] > 3 && mSquared > 0.2 && mSquared < 0.32)
             {
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
                 {
@@ -475,36 +608,37 @@ void Make()
                     hInvMass[Pion]->Fill(invMass[Pion], 1/effTotal);
             }
 
-            if(nSigPair[Proton] < 3 && mSquared > 0.7 && mSquared < 1.1)
+            if(chiPair[Proton] < 3 && mSquared > 0.7 && mSquared < 1.1)
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
                     hDEdxTomas[Proton]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
-            else if(nSigPair[Kaon] < 3 && mSquared > 0.2 && mSquared < 0.32)
+            else if(chiPair[Kaon] < 3 && mSquared > 0.2 && mSquared < 0.32)
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
                     hDEdxTomas[Kaon]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
             else if( nSigmaTPC[Pion][0] < 3 && nSigmaTPC[Pion][0] > -3 && nSigmaTPC[Pion][1] > -3 && nSigmaTPC[Pion][1] < 3)
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
                     hDEdxTomas[Pion]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
 
-            if(nSigPair[Proton] < 3 && ((mSquared > 0.7 && mSquared < 1.1) || (deltaDeltaTOF[Proton] > -0.5 && deltaDeltaTOF[Proton] < 0.5)))
+            if(chiPair[Proton] < 3 && ((mSquared > 0.7 && mSquared < 1.1) || (deltaDeltaTOF[Proton] > -0.5 && deltaDeltaTOF[Proton] < 0.5)))
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
                     hDEdxTomas2[Proton]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
-            else if(nSigPair[Kaon] < 3 && ((mSquared > 0.2 && mSquared < 0.32) || (deltaDeltaTOF[Kaon] > -0.5 && deltaDeltaTOF[Kaon] < 0.5)))
+            else if(chiPair[Kaon] < 3 && ((mSquared > 0.2 && mSquared < 0.32) || (deltaDeltaTOF[Kaon] > -0.5 && deltaDeltaTOF[Kaon] < 0.5)))
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
                     hDEdxTomas2[Kaon]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
             else if( nSigmaTPC[Pion][0] < 3 && nSigmaTPC[Pion][0] > -3 && nSigmaTPC[Pion][1] > -3 && nSigmaTPC[Pion][1] < 3)
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
                     hDEdxTomas2[Pion]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
 
-            if(nSigPair[Proton] < 3 && deltaDeltaTOF[Proton] > -0.5 && deltaDeltaTOF[Proton] < 0.5)
+            if(chiPair[Proton] < 3 && deltaDeltaTOF[Proton] > -0.5 && deltaDeltaTOF[Proton] < 0.5)
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
                     hDEdxDaniel[Proton]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
-            else if(nSigPair[Kaon] < 3 && deltaDeltaTOF[Kaon] > -0.5 && deltaDeltaTOF[Kaon] < 0.5)
+            else if(chiPair[Kaon] < 3 && deltaDeltaTOF[Kaon] > -0.5 && deltaDeltaTOF[Kaon] < 0.5)
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
                     hDEdxDaniel[Kaon]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
             else if( nSigmaTPC[Pion][0] < 3 && nSigmaTPC[Pion][0] > -3 && nSigmaTPC[Pion][1] > -3 && nSigmaTPC[Pion][1] < 3)
                 for (int iTrack = 0; iTrack < 2; ++iTrack)
                     hDEdxDaniel[Pion]->Fill(momentum[iTrack]*charge[iTrack],dEdx[iTrack]);
         }
+        */
 	}
 
 
@@ -513,6 +647,18 @@ void Make()
 
 void Init(){
 
+    hEtaDist = new TH1D("etaDist", "etaDist", 100, -2,2);
+    hEtaDist->SetTitle(" ; #eta ; ");
+    hEtaDistCalib = new TH1D("etaDistCalib", "etaDistCalib", 100, -2,2);
+    hEtaDistCalib->SetTitle(" ; #eta ; ");
+
+    pTGoldenPions = new TH1D("pTGoldenPi", "pTGoldenPi", 200, 0,4);
+
+    hLFactor =  new TH1D("LFactor", "Loosing factor",20,-0.5,19.5);
+    for(int i = 0; i < 20; ++i)
+        hEta[i] = new TH1D(Form("etaDist_%d",i), "etaDist", 100, -2,2);
+
+    hEtaDif = new TH1D("etaDif", "etaDif", 100, -2,2);
 	hvertexZ = new TH1D("vertexZ", "vertexZ", 200, -200, 200);
 	hvertexRP = new TH1D("vertexRP","vertexRP", 200, -200, 200);
 	hvertexRPGolden = new TH1D("vertexRPGolden", "vertexRP for golden events", 200, -200, 200);
@@ -535,9 +681,9 @@ void Init(){
         hDEdxTomas[i] = new TH2D("dEdxTomas" + particleLables[i], "dEdx" + particleLables[i], 120,-3,3,80,0,10);
         hDEdxDaniel[i] = new TH2D("dEdxDaniel" + particleLables[i], "dEdx" + particleLables[i], 120,-3,3,80,0,10);
         hDEdxTomas2[i] = new TH2D("dEdxTomas2" + particleLables[i], "dEdx" + particleLables[i], 120,-3,3,80,0,10);
-        hNSigPairPion[i]  = new TH1D("nSigPairPionFor"  + particleLables[i], "nSigPairPion For" + particleLables[i], 100, 0, 35);
-        hNSigPairKaon[i]  = new TH1D("nSigPairKaonFor" + particleLables[i], "nSigPairKaon For" + particleLables[i], 100, 0, 35);
-        hNSigPairProton[i]  = new TH1D("nSigPairProtonFor" + particleLables[i], "nSigPairProton For" + particleLables[i], 100, 0, 35);
+        hchiPairPion[i]  = new TH1D("chiPairPionFor"  + particleLables[i], "chiPairPion For" + particleLables[i], 100, 0, 35);
+        hchiPairKaon[i]  = new TH1D("chiPairKaonFor" + particleLables[i], "chiPairKaon For" + particleLables[i], 100, 0, 35);
+        hchiPairProton[i]  = new TH1D("chiPairProtonFor" + particleLables[i], "chiPairProton For" + particleLables[i], 100, 0, 35);
         hMSquered[i]  = new TH1D("mSquaredFor" + particleLables[i], "mSquared for " + particleLables[i] , 200, -0.5, 2.5);
         hInvMass[i]  = new TH1D("invMass" + particleLables[i], "inv. mass " + particleLables[i] , 100, 0, 3.5);
     }
@@ -574,7 +720,7 @@ void ConnectInput(){
     for (int iPart = 0; iPart < nParticles; ++iPart)
     {
         recTree->SetBranchAddress("invMass" + particleLables[iPart], &invMass[iPart]);
-        recTree->SetBranchAddress("nSigPair" + particleLables[iPart], &nSigPair[iPart]);
+        recTree->SetBranchAddress("chiPair" + particleLables[iPart], &chiPair[iPart]);
         recTree->SetBranchAddress("deltaTOFExpected" + particleLables[iPart], &deltaTOFExpected[iPart]);
         recTree->SetBranchAddress("deltaDeltaTOF" + particleLables[iPart], &deltaDeltaTOF[iPart]);  
     }

@@ -256,7 +256,7 @@ void trackQuality::PlotHistogram(){
 	//cCanvas->SaveAs( output + "trackQuality/" + variable + ".png");
 	cCanvas->Write(variable);
 //////////////////////////////////////////
-// Plot Eta vertex
+// Plot Eta 
 	treeBack->Draw("Eta1>>Eta1Bcg(100,-2,3.5)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("Eta1Bcg");
 	treeBack->Draw("Eta0>>Eta2Bcg(100,-2,3.5)",cuts);
@@ -273,7 +273,7 @@ void trackQuality::PlotHistogram(){
 	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.3);
 	tool.SetMarkerStyle(tmpHist);
 	tmpHist->Draw("E");
-	tool.DrawText(tmpHist,0,true,0.68, 0.75, 0.9, 0.88);
+	tool.DrawText(tmpHist,0,false,0.68, 0.75, 0.9, 0.88);
 	tool.DrawTextStar(tmpHist,2);
 	tmpHist2->Draw("ESAME");
 
