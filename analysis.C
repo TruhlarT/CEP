@@ -89,6 +89,7 @@ TH1D* hRunNumber[2];
 
 TH2D* hSlewing[16];
 TH2D* hPosition[nSides];
+TH2D* hdEdx;
 
 TH1D* hchiPairPion[nParticles];
 TH1D* hchiPairKaon[nParticles];
@@ -163,7 +164,7 @@ void Make();
 
 void analysis()
 {
-	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/run17Calib.root";
+	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/withoutBadDays.root";
     TString TPCeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/etaPhiEfficiency_16_01_19_delta015_twoRuns.root";
     TString TOFeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effWithBinningForSystematics.root";
 	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/anaOutput.root";
@@ -355,7 +356,7 @@ void analysis()
             hRatio->SetBinContent(i,0);
     }
 */
-    hEtaDistCalib->SetTitle(" ; #eta ; Number of tracks");
+    hEtaDistCalib->SetTitle(" ; #eta ; Efficiency corrected number of tracks");
 
     hEtaDistCalib->GetXaxis()->SetTitleFont(42);
     hEtaDistCalib->GetYaxis()->SetTitleFont(42);
@@ -428,6 +429,9 @@ void Make()
             triggerOff++;
     }
 	
+    hdEdx->Fill(log10(momentum[0]),log10(dEdx[0]));
+    hdEdx->Fill(log10(momentum[1]),log10(dEdx[1]));
+
 /*
     if(Eta[0] < -0.7 || Eta[0] > 0.7 || Eta[1] < -0.7 || Eta[1] > 0.7 )
         hEtaDif->Fill(Eta[0] - Eta[1]); 
@@ -447,12 +451,6 @@ void Make()
 */
   //  cout<<vertexesZ[0] <<" "<< NhitsFit[0]<<" "<< NhitsFit[1]<<" "<< NhitsDEdx[0]<<" "<< NhitsDEdx[1]<<" "<< DcaZ[0]<<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1]<<endl;
 	//cout<<fourPiState<<endl;
-
-    for (int iTrack = 0; iTrack < 2; ++iTrack)
-    {
-        if(elastic == true && NhitsFit[iTrack] >=25 && NhitsDEdx[iTrack] >= 15 && DcaZ[iTrack] < 1 && DcaZ[iTrack] > -1 && DcaXY[iTrack] < 1.5 && Eta[iTrack] > -0.7 && Eta[iTrack] < 0.7)
-            pTGoldenPions->Fill(transMomentum[iTrack]);
-    }
 
 
     if(vertexesZ[0]<80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5  && !fourPiState){ // && Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7
@@ -481,7 +479,11 @@ void Make()
             effTOF = hTOFeff[0]->GetBinContent( hTOFeff[0]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[0]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[0]->GetZaxis()->FindBin(Eta[iTrack]));  
             effTotal = effTPC*effTOF;
             if(effTotal)
+            {
                 hEtaDistCalib->Fill(Eta[iTrack], 1/effTotal);
+                if(elastic && nSigmaTPC[Pion][0] < 3 && nSigmaTPC[Pion][0] > -3 && nSigmaTPC[Pion][1] > -3 && nSigmaTPC[Pion][1] < 3 && (chiPair[0] < 3 || chiPair[1] > 3 || chiPair[2] < 3 || mSquared < 0.2 || mSquared > 0.32) && (chiPair[0] < 3 || chiPair[1] < 3 || chiPair[2] > 3 || mSquared < 0.7 || mSquared > 1.1))
+                    pTGoldenPions->Fill(transMomentum[iTrack], 1/effTotal);
+            }
         }
 
 /*
@@ -647,6 +649,7 @@ void Make()
 
 void Init(){
 
+    hdEdx = new TH2D("dEdx", "dEdx", 100,-1.5,2,100,0,2.5);
     hEtaDist = new TH1D("etaDist", "etaDist", 100, -2,2);
     hEtaDist->SetTitle(" ; #eta ; ");
     hEtaDistCalib = new TH1D("etaDistCalib", "etaDistCalib", 100, -2,2);

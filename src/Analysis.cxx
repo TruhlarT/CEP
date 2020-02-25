@@ -388,7 +388,7 @@ int main(int argc, char** argv) {
     tool.SetMarkerStyle(hInvMassCorr[Pion][0]);
     hInvMassCorr[Pion][0]->Draw("E");
     tool.DrawText(hInvMassCorr[Pion][0], 1, true);
-    tool.DrawTextStar(hInvMassCorr[Pion][0]);
+    tool.DrawTextStar(hInvMassCorr[Pion][0], 3, true);
     tool.SetMarkerStyle(hInvMassCorr[Pion][1],2,20,1,2,1,1);
     hInvMassCorr[Pion][1]->Draw("ESAME");
 
@@ -406,7 +406,7 @@ int main(int argc, char** argv) {
     tool.SetMarkerStyle(hInvMassCorr[Kaon][0]);
     hInvMassCorr[Kaon][0]->Draw("E");
     tool.DrawText(hInvMassCorr[Kaon][0], 2, true);
-    tool.DrawTextStar(hInvMassCorr[Kaon][0]);
+    tool.DrawTextStar(hInvMassCorr[Kaon][0], 3, true);
     tool.SetMarkerStyle(hInvMassCorr[Kaon][1],2,20,1,2,1,1);
     hInvMassCorr[Kaon][1]->Draw("ESAME");
 
@@ -424,7 +424,7 @@ int main(int argc, char** argv) {
     tool.SetMarkerStyle(hInvMassCorr[Proton][0]);
     hInvMassCorr[Proton][0]->Draw("E");
     tool.DrawText(hInvMassCorr[Proton][0],3, true);
-    tool.DrawTextStar(hInvMassCorr[Proton][0]);
+    tool.DrawTextStar(hInvMassCorr[Proton][0], 3, true);
     tool.SetMarkerStyle(hInvMassCorr[Proton][1],2,20,1,2,1,1);
     hInvMassCorr[Proton][1]->Draw("ESAME");   
 

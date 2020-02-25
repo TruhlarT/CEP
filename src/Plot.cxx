@@ -102,6 +102,9 @@ void Plot::DrawTextStar(TH1* hist, Int_t position, Bool_t star)
 		case 2:
 			textSTAR = new TPaveText(0.75,0.89,0.9,0.95,"brNDC");
 			break;
+		case 3:
+			textSTAR = new TPaveText(0.3,0.89,0.45,0.95,"brNDC");
+			break;
 	}
 	
 	textSTAR -> SetTextSize(siz-0.005);
