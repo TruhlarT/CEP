@@ -174,7 +174,7 @@ void trackQuality::PlotHistogram(){
 	//cCanvas->SaveAs( output + "trackQuality/DcaZ.png");
 	cCanvas->Write("DcaZ");
 //////////////////////////////////////////
-	// Plot NhitsDEdx 
+	// Plot NhitsFit 
 	TString variable = "NhitsFit";
 
 	treeBack->Draw(variable +"1>>" + variable +"Bcg1(61,0,60)",cuts);
@@ -192,6 +192,7 @@ void trackQuality::PlotHistogram(){
 	tmpHist->SetTitle(" ; N^{fit}_{hits} ; Number of tracks");
 	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.4);
 	tool.SetMarkerStyle(tmpHist);
+	tmpHist->GetXaxis()->SetRangeUser(10,60);
 	tmpHist->Draw("E");
 	tool.DrawText(tmpHist,0,false,0.68, 0.75, 0.9, 0.88);
 	tool.DrawTextStar(tmpHist,2);
@@ -234,6 +235,7 @@ void trackQuality::PlotHistogram(){
 	tmpHist->SetTitle(" ; N^{dE/dx}_{hits} ; Number of tracks");
 	tool.SetGraphStyle(tmpHist,4,20,1,4,1,1,0.9,1.4);
 	tool.SetMarkerStyle(tmpHist);
+	tmpHist->GetXaxis()->SetRangeUser(5,60);
 	tmpHist->Draw("E");
 	tool.DrawText(tmpHist,0,false,0.68, 0.75, 0.9, 0.88);
 	tool.DrawTextStar(tmpHist,2);
@@ -302,137 +304,6 @@ void trackQuality::PlotHistogram(){
 	gPad->SetTickx();
 	gPad->SetTicky(); 
 
-// Plot XYEastCor vertex
-	tree->Draw("yCorrelationsRpEast:xCorrelationsRpEast>>XYEastCorSig(100,-1,1.4,100,-1,1.4)",cuts,"colz");
-	tmp2DHist = (TH2F*)gPad->GetPrimitive("XYEastCorSig");
-	tmp2DHist->SetTitle(" ; p_{x} [GeV/c]; p_{y} [GeV/c]");
-	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.7);
-	tmp2DHist->Draw("colz");
-	tool.DrawText(tmp2DHist,0,true,0.62,0.81,0.76,0.94);
-	tool.DrawTextStar(tmp2DHist);
-	if(TEXT){
-		const Int_t n = 200;
-		Double_t x[n], y[n];
-		Double_t tmp;
-		for(int i = 0; i < n; ++i){
-			x[i] = -0.036 + (0.152*i)/n;
-			tmp = (x[i] + 0.3)*(x[i]+0.3) - 0.46*0.46;
-			y[i] = sqrt(abs(tmp));
-			if(tmp<0)
-				y[i] = - y[i];
-		}
-		TGraph* gr = new TGraph(n,x,y);
-		gr->SetLineWidth(4);
-		gr->Draw("same");
-
-		for(int i = 0; i < n; ++i){
-			x[i] = -0.22 + (0.185*i)/n;
-			tmp = (x[i] + -0.15)*(x[i]-0.15) - 0.42*0.42;
-			y[i] = sqrt(abs(tmp));
-			if(tmp<0)
-				y[i] = - y[i];
-		}
-		TGraph* gr1 = new TGraph(n,x,y);
-		gr1->SetLineWidth(4);
-		gr1->Draw("same");
-
-		TLine *left02 = new TLine(-0.219,-0.2,0.116,-0.2);
-		tool.SetLineStyle(left02);
-	   left02->Draw("same");
-
-
-	   TLine *left01 = new TLine(-0.219,0.2,0.116,0.2);
-		tool.SetLineStyle(left01);
-	   left01->Draw("same");
-
-	   for(int i = 0; i < n; ++i){
-			x[i] = -0.036 + (0.152*i)/n;
-			tmp = (x[i] + 0.3)*(x[i]+0.3) - 0.46*0.46;
-			y[i] = sqrt(abs(tmp));
-		}
-		TGraph* gr2 = new TGraph(n,x,y);
-		gr2->SetLineWidth(4);
-		gr2->Draw("same");
-
-		for(int i = 0; i < n; ++i){
-			x[i] = -0.22 + (0.185*i)/n;
-			tmp = (x[i] + -0.15)*(x[i]-0.15) - 0.42*0.42;
-			y[i] = sqrt(abs(tmp));
-		}
-		TGraph* gr3 = new TGraph(n,x,y);
-		gr3->SetLineWidth(4);
-		gr3->Draw("same");
-	}
-	cCanvas2D->Update();
-	//cCanvas2D->SaveAs( output + "trackQuality/XYEastCor.png");
-	cCanvas2D->Write("XYEastCor");
-//////////////////////////////////////////
-
-// Plot XYWestCor vertex
-	tree->Draw("yCorrelationsRpWest:xCorrelationsRpWest>>XYWestCorSig(100,-1,1.4,100,-1,1.4)",cuts,"colz");
-	tmp2DHist = (TH2F*)gPad->GetPrimitive("XYWestCorSig");
-	tmp2DHist->SetTitle(" ; p_{x} [GeV/c]; p_{y} [GeV/c]");
-	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.7);
-	tmp2DHist->Draw("colz");
-	tool.DrawText(tmp2DHist,0,true,0.62,0.81,0.76,0.94);
-	tool.DrawTextStar(tmp2DHist);
-
-	if(TEXT){
-		const Int_t n = 200;
-		Double_t x[n], y[n];
-		Double_t tmp;
-		for(int i = 0; i < n; ++i){
-			x[i] = -0.036 + (0.152*i)/n;
-			tmp = (x[i] + 0.3)*(x[i]+0.3) - 0.46*0.46;
-			y[i] = sqrt(abs(tmp));
-			if(tmp<0)
-				y[i] = - y[i];
-		}
-		TGraph* gr = new TGraph(n,x,y);
-		gr->SetLineWidth(4);
-		gr->Draw("same");
-
-		for(int i = 0; i < n; ++i){
-			x[i] = -0.22 + (0.185*i)/n;
-			tmp = (x[i] + -0.15)*(x[i]-0.15) - 0.42*0.42;
-			y[i] = sqrt(abs(tmp));
-			if(tmp<0)
-				y[i] = - y[i];
-		}
-		TGraph* gr1 = new TGraph(n,x,y);
-		gr1->SetLineWidth(4);
-		gr1->Draw("same");
-
-		TLine *left02 = new TLine(-0.219,-0.2,0.116,-0.2);
-		tool.SetLineStyle(left02);
-	   left02->Draw("same");
-
-
-	   TLine *left01 = new TLine(-0.219,0.2,0.116,0.2);
-		tool.SetLineStyle(left01);
-	   left01->Draw("same");
-
-	   for(int i = 0; i < n; ++i){
-			x[i] = -0.036 + (0.152*i)/n;
-			tmp = (x[i] + 0.3)*(x[i]+0.3) - 0.46*0.46;
-			y[i] = sqrt(abs(tmp));
-		}
-		TGraph* gr2 = new TGraph(n,x,y);
-		gr2->SetLineWidth(4);
-		gr2->Draw("same");
-
-		for(int i = 0; i < n; ++i){
-			x[i] = -0.22 + (0.185*i)/n;
-			tmp = (x[i] + -0.15)*(x[i]-0.15) - 0.42*0.42;
-			y[i] = sqrt(abs(tmp));
-		}
-		TGraph* gr3 = new TGraph(n,x,y);
-		gr3->SetLineWidth(4);
-		gr3->Draw("same");
-	}
-	cCanvas2D->Update();
-	//cCanvas2D->SaveAs( output + "trackQuality/hXYWestCor.png");
-	cCanvas2D->Write("hXYWestCor");
 //////////////////////////////////////////
 // Plot ZvrtxVsEta vertex
 	tree->Draw("Eta0:vertexZ>>ZvrtxVsEta2Sig(100,-200,200,100,-1,1.5)",cuts,"colz");

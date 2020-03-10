@@ -94,10 +94,10 @@ void Plot::DrawTextStar(TH1* hist, Int_t position, Bool_t star)
 
 	switch(position){
 		case 0:
-			textSTAR = new TPaveText(0.15,0.91,0.22,0.97,"brNDC");
+			textSTAR = new TPaveText(0.18,0.91,0.28,0.97,"brNDC");
 			break;
 		case 1:
-			textSTAR = new TPaveText(0.65,0.89,0.75,0.95,"brNDC");
+			textSTAR = new TPaveText(0.65,0.89,0.85,0.95,"brNDC");
 			break;
 		case 2:
 			textSTAR = new TPaveText(0.75,0.89,0.9,0.95,"brNDC");

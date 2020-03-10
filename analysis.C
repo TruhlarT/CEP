@@ -90,6 +90,8 @@ TH1D* hRunNumber[2];
 TH2D* hSlewing[16];
 TH2D* hPosition[nSides];
 TH2D* hdEdx;
+TH2D* hMomentum[nParticles];
+TH2D* hTransMomentum[nParticles];
 
 TH1D* hchiPairPion[nParticles];
 TH1D* hchiPairKaon[nParticles];
@@ -689,6 +691,8 @@ void Init(){
         hchiPairProton[i]  = new TH1D("chiPairProtonFor" + particleLables[i], "chiPairProton For" + particleLables[i], 100, 0, 35);
         hMSquered[i]  = new TH1D("mSquaredFor" + particleLables[i], "mSquared for " + particleLables[i] , 200, -0.5, 2.5);
         hInvMass[i]  = new TH1D("invMass" + particleLables[i], "inv. mass " + particleLables[i] , 100, 0, 3.5);
+        hMomentum[i] = new TH2D("momentumCorr" + particleLables[i], "momentumCorr" + particleLables[i], 100,-3,3,100,-3,3);
+        hTransMomentum[i] = new TH2D("transMomentumCorr" + particleLables[i], "transMomentumCorr" + particleLables[i], 100,-3,3,100,-3,3);
     }
 
 	fout->mkdir("GoodTOFinfo")->cd();

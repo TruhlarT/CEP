@@ -48,26 +48,36 @@
 #include "trackQuality.h"
 #include "Plot.h"
 #include "FourPi.h"
+#include "RPplots.h"
 
 using namespace std;
 
 enum PARTICLES {Pion = 0, Kaon = 1, Proton = 2, nParticles};
+enum COMBINATIONS {ElInEl = 0, El = 1, InEl = 2, nCombination};
+
 TString particleLables[nParticles] = { TString("Pion"), TString("Kaon"), TString("Proton")};
+TString combinationLabel[nCombination] = { TString("El+InEl"), TString("El"), TString("InEl")};
 
 TFile* TPCeff;
 TFile* TOFeff;
+TFile* fout;
 
 TTree* tree;
 TTree* treeBack;
 
 TH3D* hTOFeff[6]; // 0 = pi- 1 = K- 2 = pbar
 TH3D* hTPCeff[6]; // 3 = pi+ 4 = K+ 5 = p
-TH1D* hInvMassCorr[nParticles][2]; // 0 - signal, 1 - Background
-TH1D* hInvMassUncorr[nParticles][2]; // 0 - signal, 1 - Background
+TH1D* hInvMassCorr[nParticles][2][3]; // 0 - signal, 1 - Background
+                                    //  - El + InEl, 1 - El, 2 - InEl 
+TH1D* hInvMassUncorr[nParticles][2][3]; // 0 - signal, 1 - Background
+
+TH2D* hMomentum[nParticles];
+TH2D* hTransMomentum[nParticles];
 
 Double_t chiPair[nParticles]; 
 Double_t invMass[nParticles];
 Double_t mSquared;
+Double_t momentum[4];
 Double_t transMomentum[4];
 Double_t charge[4];
 Double_t nSigmaTPC[nParticles][4];
@@ -80,10 +90,12 @@ Double_t Eta[4];
 Double_t Phi[4];
 
 Bool_t fourPiState;
+Bool_t elastic;
 
 void Init();
 void ConnectInput(TTree* tree);
 void Make(int signal);
+void PlotMoneyPlot();
 
 //_____________________________________________________________________________
 int main(int argc, char** argv) {
@@ -144,7 +156,7 @@ int main(int argc, char** argv) {
         hTOFeff[i] = (TH3D*)TOFeff -> Get(Form("hTOFEffiCD%i12",i)); 
     }
 
-	TFile* fout = new TFile(output +"StRP.root","RECREATE");
+	fout = new TFile(output +"StRP.root","RECREATE");
 
 	Plot tool;
 
@@ -162,6 +174,10 @@ int main(int argc, char** argv) {
 	fout->mkdir("trackQuality")->cd();
 	trackQuality TrackPlots(data, fout, output, showCutsLine);
 	TrackPlots.PlotHistogram();
+
+    fout->mkdir("RPplots")->cd();
+    RPplots RPplots(data, fout, output, showCutsLine);
+    RPplots.PlotHistogram();
 
 //////////////////////////////////////////////////////////////////////
 //				All cuts applied
@@ -321,223 +337,22 @@ int main(int argc, char** argv) {
         Make(1);
     }
 
-    gPad->SetLogy(0);
-    TDirectory* uncorrDir = fout->mkdir("FinalPlots-uncorrected");
-    uncorrDir->cd();
+    PlotMoneyPlot();
 
-	hInvMassUncorr[Pion][0]->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Number of events");
-	tool.SetGraphStyle(hInvMassUncorr[Pion][0],4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(hInvMassUncorr[Pion][0]);
-	hInvMassUncorr[Pion][0]->Draw("E");
-	tool.DrawText(hInvMassUncorr[Pion][0], 1, true);
-	tool.DrawTextStar(hInvMassUncorr[Pion][0]);
-    tool.SetMarkerStyle(hInvMassUncorr[Pion][1],2,20,1,2,1,1);
-    hInvMassUncorr[Pion][1]->Draw("ESAME");
-
-    TLegend* leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-    tool.SetLegendStyle(leg1);
-    leg1->AddEntry(hInvMassUncorr[Pion][0],"In+El (unlike-sign pairs)","p");
-    leg1->AddEntry(hInvMassUncorr[Pion][1],"In+El (like-sign pairs)","p");
-    leg1->Draw("same");
-
-	newCanvas->Update();
-	newCanvas->Write("uncorrInvMassPion");
-
-	hInvMassUncorr[Kaon][0]->SetTitle(" ; m(K^{+}K^{-}) [GeV/c^{2}]; Number of events");
-	tool.SetGraphStyle(hInvMassUncorr[Kaon][0],4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(hInvMassUncorr[Kaon][0]);
-	hInvMassUncorr[Kaon][0]->Draw("E");
-	tool.DrawText(hInvMassUncorr[Kaon][0], 2, true);
-	tool.DrawTextStar(hInvMassUncorr[Kaon][0]);
-    tool.SetMarkerStyle(hInvMassUncorr[Kaon][1],2,20,1,2,1,1);
-    hInvMassUncorr[Kaon][1]->Draw("ESAME");
-
-    leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-    tool.SetLegendStyle(leg1);
-    leg1->AddEntry(hInvMassUncorr[Kaon][0],"In+El (unlike-sign pairs)","p");
-    leg1->AddEntry(hInvMassUncorr[Kaon][1],"In+El (like-sign pairs)","p");
-    leg1->Draw("same");
-
-	newCanvas->Update();
-	newCanvas->Write("uncorrInvMassKaon");
-
-	hInvMassUncorr[Proton][0]->SetTitle(" ; m(p#bar{p}) [GeV/c^{2}]; Number of events");
-	tool.SetGraphStyle(hInvMassUncorr[Proton][0],4,20,1,4,1,1,0.9,1.3);
-	tool.SetMarkerStyle(hInvMassUncorr[Proton][0]);
-	hInvMassUncorr[Proton][0]->Draw("E");
-	tool.DrawText(hInvMassUncorr[Proton][0],3, true);
-	tool.DrawTextStar(hInvMassUncorr[Proton][0]);
-    tool.SetMarkerStyle(hInvMassUncorr[Proton][1],2,20,1,2,1,1);
-    hInvMassUncorr[Proton][1]->Draw("ESAME");   
-
-    leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-    tool.SetLegendStyle(leg1);
-    leg1->AddEntry(hInvMassUncorr[Proton][0],"In+El (unlike-sign pairs)","p");
-    leg1->AddEntry(hInvMassUncorr[Proton][1],"In+El (like-sign pairs)","p");
-    leg1->Draw("same");
-
-	newCanvas->Update();
-	newCanvas->Write("uncorrInvMassProton");
-
-    gPad->SetLogy(0);
-    TDirectory* corrDir = fout->mkdir("FinalPlots-corrected");
-    corrDir->cd();
- 
-    hInvMassCorr[Pion][0]->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Corrected counts");
-    tool.SetGraphStyle(hInvMassCorr[Pion][0],4,20,1,4,1,1,0.9,1.3);
-    tool.SetMarkerStyle(hInvMassCorr[Pion][0]);
-    hInvMassCorr[Pion][0]->Draw("E");
-    tool.DrawText(hInvMassCorr[Pion][0], 1, true);
-    tool.DrawTextStar(hInvMassCorr[Pion][0], 3, true);
-    tool.SetMarkerStyle(hInvMassCorr[Pion][1],2,20,1,2,1,1);
-    hInvMassCorr[Pion][1]->Draw("ESAME");
-
-    leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-    tool.SetLegendStyle(leg1);
-    leg1->AddEntry(hInvMassCorr[Pion][0],"In+El (unlike-sign pairs)","p");
-    leg1->AddEntry(hInvMassCorr[Pion][1],"In+El (like-sign pairs)","p");
-    leg1->Draw("same");
-
-    newCanvas->Update();
-    newCanvas->Write("corrInvMassPion");
-
-    hInvMassCorr[Kaon][0]->SetTitle(" ; m(K^{+}K^{-}) [GeV/c^{2}]; Corrected counts");
-    tool.SetGraphStyle(hInvMassCorr[Kaon][0],4,20,1,4,1,1,0.9,1.3);
-    tool.SetMarkerStyle(hInvMassCorr[Kaon][0]);
-    hInvMassCorr[Kaon][0]->Draw("E");
-    tool.DrawText(hInvMassCorr[Kaon][0], 2, true);
-    tool.DrawTextStar(hInvMassCorr[Kaon][0], 3, true);
-    tool.SetMarkerStyle(hInvMassCorr[Kaon][1],2,20,1,2,1,1);
-    hInvMassCorr[Kaon][1]->Draw("ESAME");
-
-    leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-    tool.SetLegendStyle(leg1);
-    leg1->AddEntry(hInvMassCorr[Kaon][0],"In+El (unlike-sign pairs)","p");
-    leg1->AddEntry(hInvMassCorr[Kaon][1],"In+El (like-sign pairs)","p");
-    leg1->Draw("same");
-
-    newCanvas->Update();
-    newCanvas->Write("corrInvMassKaon");
-
-    hInvMassCorr[Proton][0]->SetTitle(" ; m(p#bar{p}) [GeV/c^{2}]; Corrected counts");
-    tool.SetGraphStyle(hInvMassCorr[Proton][0],4,20,1,4,1,1,0.9,1.3);
-    tool.SetMarkerStyle(hInvMassCorr[Proton][0]);
-    hInvMassCorr[Proton][0]->Draw("E");
-    tool.DrawText(hInvMassCorr[Proton][0],3, true);
-    tool.DrawTextStar(hInvMassCorr[Proton][0], 3, true);
-    tool.SetMarkerStyle(hInvMassCorr[Proton][1],2,20,1,2,1,1);
-    hInvMassCorr[Proton][1]->Draw("ESAME");   
-
-    leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
-    tool.SetLegendStyle(leg1);
-    leg1->AddEntry(hInvMassCorr[Proton][0],"In+El (unlike-sign pairs)","p");
-    leg1->AddEntry(hInvMassCorr[Proton][1],"In+El (like-sign pairs)","p");
-    leg1->Draw("same");
-
-    newCanvas->Update();
-    newCanvas->Write("corrInvMassProton");
-	//hCutsSum->Draw();
-//	textCut->Draw("same");
-//	newCanvas->Update();
-//	newCanvas->Write("CutsSummary");
-//////////////////////////////////////////////////////////////////////
-////        Ratio Plot                                          //////
-//////////////////////////////////////////////////////////////////////
-    fout->cd();
-
-
-    //configure layout of the plot
-    gStyle->SetPadTickY(1);
-    gStyle->SetPadTickX(1);
-    gStyle->SetTickLength(0.02,"Y");
-
-    Double_t pdiv = 0.4;
-    TPad *pad1 = new TPad("p1", "p1", 0., pdiv, 1., 1.); // upper
-    TPad *pad2 = new TPad("p2", "p2", 0., 0., 1., pdiv); // lower
-    pad1->Draw();
-    pad2->Draw();
-
-    pad1->cd();  
-    Float_t siz = 0.065; 
-    gPad->SetLeftMargin(0.11);
-    gPad->SetRightMargin(0.02);
-    gPad->SetTopMargin(0.025);//0.11
-    gPad->SetBottomMargin(0.02);
-
-    tool.SetGraphStyle(hInvMassCorr[Pion][0]);
-    tool.SetMarkerStyle(hInvMassCorr[Pion][0],2,20,1,2,1,1);
-    hInvMassCorr[Pion][0]->GetYaxis()->SetTitleSize(siz);
-    hInvMassCorr[Pion][0]->GetYaxis()->SetTitleOffset(0.9);
-    hInvMassCorr[Pion][0]->GetYaxis()->SetLabelSize(siz-0.01);
-    hInvMassCorr[Pion][0]->GetXaxis()->SetLabelSize(0.0);
-    hInvMassCorr[Pion][0]->SetTitle(";; Counts");
-    hInvMassCorr[Pion][0]->Draw();
-    Double_t norm = hInvMassCorr[Pion][0]->Integral()/hInvMassUncorr[Pion][0]->GetEntries();
-    hInvMassUncorr[Pion][0]->Scale(norm);
-    hInvMassUncorr[Pion][0]->Draw("same");
-
-    TPaveText *textSTAR = new TPaveText(0.65,0.89,0.85,0.9,"brNDC");
-    textSTAR -> SetTextSize(siz-0.005);
-    textSTAR -> SetFillColor(0);
-    textSTAR -> SetTextFont(62);
-    textSTAR -> AddText("STAR Internal");
-    textSTAR -> Draw("same");
-
-    textPub = new TPaveText(0.65,0.7,0.85,0.85,"brNDC");
-    tool.SetTextStyle(textPub);
-    textPub -> SetTextSize(siz);
-    textPub -> AddText("p + p #rightarrow p + #pi^{+} #pi^{-} + p");
-    textPub -> AddText("#sqrt{s} = 510 GeV");
-    textPub -> Draw("same");
-
-    leg1 = new TLegend(0.6, 0.5, 0.75, 0.7);
-    tool.SetLegendStyle(leg1);
-    leg1->SetTextSize(siz);
-    leg1->AddEntry(hInvMassCorr[Pion][0],"Corrected","p");
-    leg1->AddEntry(hInvMassUncorr[Pion][0],"Uncorrected (scaled)","p");
-    leg1->Draw("same");
-
-    pad2->cd();
-
-    gPad->SetLeftMargin(0.11);
-    gPad->SetRightMargin(0.02);
-    gPad->SetTopMargin(0.);//0.025
-    gPad->SetBottomMargin(0.25);
- /*   TH1F* frame2 = gPad->DrawFrame(0.3,0.6,3.5,1.4-1.e-5); // 0.1, 2
-    frame2->Draw();
-    frame2->GetXaxis()->SetMoreLogLabels();
-    frame2->GetYaxis()->SetTitleOffset(0.9);
-    frame2->GetYaxis()->SetTitleSize(siz);
-    frame2->GetYaxis()->SetLabelSize(siz-0.01);
-    frame2->GetXaxis()->SetTitleSize(siz);
-    frame2->GetXaxis()->SetLabelSize(siz-0.01);
-    frame2->SetTitle(";m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Corrected / Uncorrected");
-*/
-    siz = 0.1;
-    TH1D *h3 = (TH1D*)hInvMassCorr[Pion][0]->Clone("h3");
-    h3->SetMarkerColor(kBlack);
-    h3->SetLineColor(kBlack);
-    h3->GetYaxis()->SetTitleOffset(0.5);
-    h3->GetXaxis()->SetTitleOffset(1.1);
-    h3->GetYaxis()->SetTitleSize(siz);
-    h3->GetYaxis()->SetLabelSize(siz-0.01);
-    h3->GetXaxis()->SetTitleSize(siz);
-    h3->GetXaxis()->SetLabelSize(siz-0.01);
-    h3->Divide(hInvMassUncorr[Pion][0]);
-    h3->SetTitle(";m(#pi^{+}#pi^{-}) [GeV/c^{2}]; Corrected / Uncorrected");
-    h3->Draw("PE");
-
-    TLine *unity = new TLine(0.3, 1., 3.5, 1.);
-    unity->SetLineColor(kBlack);
-    unity->SetLineWidth(2);
-    unity->Draw("same");
-
-
-
-    newCanvas->Update();
-    newCanvas->Write("ratioPlots");
 
 /*
+    TCanvas *cCanvas2D = new TCanvas("cCanvas2D","cCanvas2D",800,700);
+    gPad->SetMargin(0.09,0.13,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+    gStyle->SetPalette(1);
+    for (int i = 0; i < nParticles; ++i)
+    {
+        hMomentum[i]->Draw("colz");
+        cCanvas2D->Write("momentum" + particleLables[i]);  
+        hTransMomentum[i]->Draw("colz");
+        cCanvas2D->Write("transMomentum" + particleLables[i]);
+    }
+*/
+
 //////////////////////////////////////////////////////////////////////
 //              4 pions state
 //////////////////////////////////////////////////////////////////////
@@ -549,7 +364,7 @@ int main(int argc, char** argv) {
     fourPiPlots.PlotHistogram();
 
 //////////////////////////////////////////////////////////////////////
-*/
+
 	fout->Close();
 	data->Close();
 
@@ -560,20 +375,29 @@ int main(int argc, char** argv) {
 
 void Init()
 {
-    
-    hInvMassCorr[0][0]  = new TH1D("corrInvMass" + particleLables[0] + "Sig", "Corrected inv. mass " + particleLables[0] , 64, 0.3, 3.5);
-    hInvMassCorr[1][0]  = new TH1D("corrInvMass" + particleLables[1] + "Sig", "Corrected inv. mass " + particleLables[1] , 44, 0.8, 3);
-    hInvMassCorr[2][0]  = new TH1D("corrInvMass" + particleLables[2] + "Sig", "Corrected inv. mass " + particleLables[2] , 24, 1.6, 4);
-    hInvMassCorr[0][1]  = new TH1D("corrInvMass" + particleLables[0] + "Bcg", "Corrected inv. mass " + particleLables[0] , 64, 0.3, 3.5);
-    hInvMassCorr[1][1]  = new TH1D("corrInvMass" + particleLables[1] + "Bcg", "Corrected inv. mass " + particleLables[1] , 44, 0.8, 3);
-    hInvMassCorr[2][1]  = new TH1D("corrInvMass" + particleLables[2] + "Bcg", "Corrected inv. mass " + particleLables[2] , 24, 1.6, 4);
+    for (int i = 0; i < nParticles; ++i)
+    {
+        hMomentum[i] = new TH2D("momentumCorr" + particleLables[i], "momentumCorr" + particleLables[i], 100,0,3,100,0,3);
+        hTransMomentum[i] = new TH2D("transMomentumCorr" + particleLables[i], "transMomentumCorr" + particleLables[i], 100,0,3,100,0,3);
+    }
+    for (int i = 0; i < 3; ++i)
+    {     
+        hInvMassCorr[0][0][i]  = new TH1D("corrInvMass" + particleLables[0] + combinationLabel[i] + "Sig", "Corrected inv. mass " + particleLables[0] + combinationLabel[i], 64, 0.3, 3.5);
+        hInvMassCorr[1][0][i]  = new TH1D("corrInvMass" + particleLables[1] + combinationLabel[i] + "Sig", "Corrected inv. mass " + particleLables[1] + combinationLabel[i], 44, 0.8, 3);
+        hInvMassCorr[2][0][i]  = new TH1D("corrInvMass" + particleLables[2] + combinationLabel[i] + "Sig", "Corrected inv. mass " + particleLables[2] + combinationLabel[i], 24, 1.6, 4);
+        hInvMassCorr[0][1][i]  = new TH1D("corrInvMass" + particleLables[0] + combinationLabel[i] + "Bcg", "Corrected inv. mass " + particleLables[0] + combinationLabel[i], 64, 0.3, 3.5);
+        hInvMassCorr[1][1][i]  = new TH1D("corrInvMass" + particleLables[1] + combinationLabel[i] + "Bcg", "Corrected inv. mass " + particleLables[1] + combinationLabel[i], 44, 0.8, 3);
+        hInvMassCorr[2][1][i]  = new TH1D("corrInvMass" + particleLables[2] + combinationLabel[i] + "Bcg", "Corrected inv. mass " + particleLables[2] + combinationLabel[i], 24, 1.6, 4);
 
-    hInvMassUncorr[0][0]  = new TH1D("uncorrInvMass" + particleLables[0] + "Sig", "Uncorrected inv. mass " + particleLables[0] , 64, 0.3, 3.5);
-    hInvMassUncorr[1][0]  = new TH1D("uncorrInvMass" + particleLables[1] + "Sig", "Uncorrected inv. mass " + particleLables[1] , 44, 0.8, 3);
-    hInvMassUncorr[2][0]  = new TH1D("uncorrInvMass" + particleLables[2] + "Sig", "Uncorrected inv. mass " + particleLables[2] , 24, 1.6, 4);
-    hInvMassUncorr[0][1]  = new TH1D("uncorrInvMass" + particleLables[0] + "Bcg", "Uncorrected inv. mass " + particleLables[0] , 64, 0.3, 3.5);
-    hInvMassUncorr[1][1]  = new TH1D("uncorrInvMass" + particleLables[1] + "Bcg", "Uncorrected inv. mass " + particleLables[1] , 44, 0.8, 3);
-    hInvMassUncorr[2][1]  = new TH1D("uncorrInvMass" + particleLables[2] + "Bcg", "Uncorrected inv. mass " + particleLables[2] , 24, 1.6, 4);
+        hInvMassUncorr[0][0][i]  = new TH1D("uncorrInvMass" + particleLables[0] + combinationLabel[i] + "Sig", "Uncorrected inv. mass " + particleLables[0] + combinationLabel[i], 64, 0.3, 3.5);
+        hInvMassUncorr[1][0][i]  = new TH1D("uncorrInvMass" + particleLables[1] + combinationLabel[i] + "Sig", "Uncorrected inv. mass " + particleLables[1] + combinationLabel[i], 44, 0.8, 3);
+        hInvMassUncorr[2][0][i]  = new TH1D("uncorrInvMass" + particleLables[2] + combinationLabel[i] + "Sig", "Uncorrected inv. mass " + particleLables[2] + combinationLabel[i], 24, 1.6, 4);
+        hInvMassUncorr[0][1][i]  = new TH1D("uncorrInvMass" + particleLables[0] + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + particleLables[0] + combinationLabel[i], 64, 0.3, 3.5);
+        hInvMassUncorr[1][1][i]  = new TH1D("uncorrInvMass" + particleLables[1] + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + particleLables[1] + combinationLabel[i], 44, 0.8, 3);
+        hInvMassUncorr[2][1][i]  = new TH1D("uncorrInvMass" + particleLables[2] + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + particleLables[2] + combinationLabel[i], 24, 1.6, 4);
+    }
+
+
 }
 
 
@@ -581,9 +405,11 @@ void ConnectInput(TTree* tree)
 {
 
 // PID and some quality event info
-    tree->SetBranchAddress("mSquared", &mSquared); 
+    tree->SetBranchAddress("mSquared", &mSquared);
+    tree->SetBranchAddress("elastic", &elastic);
     tree->SetBranchAddress("nSigTrk1Pion", &nSigmaTPC[Pion][0]);
     tree->SetBranchAddress("nSigTrk2Pion", &nSigmaTPC[Pion][1]);
+    tree->SetBranchAddress("mSquared", &mSquared);
     for (int iPart = 0; iPart < nParticles; ++iPart)
     {
         tree->SetBranchAddress("invMass" + particleLables[iPart], &invMass[iPart]);
@@ -597,6 +423,7 @@ void ConnectInput(TTree* tree)
 // Central track info
     for (int i = 0; i < 4; ++i)
     {
+        tree->SetBranchAddress(Form("momentum%i",i), &momentum[i]);
         tree->SetBranchAddress(Form("transMomentum%i",i), &transMomentum[i]);
         tree->SetBranchAddress(Form("charge%i",i), &charge[i]);
         tree->SetBranchAddress(Form("DcaXY%i",i), &DcaXY[i]);
@@ -620,9 +447,11 @@ void Make(int signal)
    // cout<< vertexesZ[0] <<" "<< NhitsFit[0]<<" "<<NhitsFit[1] <<" "<< NhitsDEdx[0]<<" "<<NhitsDEdx[1] <<" "<<DcaZ[0] <<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1] <<" "<< !fourPiState<<endl; 
     if(vertexesZ[0] < 80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7  && !fourPiState)
     {
-
+        int combination = 2;
+        if(elastic)
+            combination = 1;
         effTotal = 1;
-        if(chiPair[Pion] > 3 && chiPair[Kaon] > 3 && chiPair[Proton] < 3 && mSquared > 0.6) // it is... proton!
+        if(chiPair[Pion] > 9 && chiPair[Kaon] > 9 && chiPair[Proton] < 9 && mSquared > 0.6) // it is... proton!
         {
             for (int iTrack = 0; iTrack < 2; ++iTrack)
             {
@@ -634,12 +463,18 @@ void Make(int signal)
                 effTotal = effTotal*effTPC*effTOF;
             }
             if(effTotal != 0 && transMomentum[0] > 0.4 && transMomentum[1] > 0.4 && (transMomentum[0] < 1.1 || transMomentum[1] < 1.1) )
-                hInvMassCorr[Proton][signal]->Fill(invMass[Proton], 1/effTotal);
+            {
+                hInvMassCorr[Proton][signal][0]->Fill(invMass[Proton], 1/effTotal);
+                hInvMassCorr[Proton][signal][combination]->Fill(invMass[Proton], 1/effTotal);
+            }
             if(transMomentum[0] > 0.4 && transMomentum[1] > 0.4 && (transMomentum[0] < 1.1 || transMomentum[1] < 1.1) )
-                hInvMassUncorr[Proton][signal]->Fill(invMass[Proton]);
+            {
+                hInvMassUncorr[Proton][signal][0]->Fill(invMass[Proton]);
+                hInvMassUncorr[Proton][signal][combination]->Fill(invMass[Proton]);
+            }
 
         }
-        else if(chiPair[Pion] > 3 && chiPair[Kaon] < 3 && chiPair[Proton] > 3 && mSquared > 0.15) // it is... kaon!
+        else if(chiPair[Pion] > 9 && chiPair[Kaon] < 9 && chiPair[Proton] > 9 && mSquared > 0.15) // it is... kaon!
         {
             for (int iTrack = 0; iTrack < 2; ++iTrack)
             {
@@ -651,11 +486,17 @@ void Make(int signal)
                 effTotal = effTotal*effTPC*effTOF;
             }
             if(effTotal != 0 && transMomentum[0] > 0.3 && transMomentum[1] > 0.3 && (transMomentum[0] < 0.7 || transMomentum[1] < 0.7) )
-                hInvMassCorr[Kaon][signal]->Fill(invMass[Kaon], 1/effTotal);
+            {
+                hInvMassCorr[Kaon][signal][0]->Fill(invMass[Kaon], 1/effTotal);
+                hInvMassCorr[Kaon][signal][combination]->Fill(invMass[Kaon], 1/effTotal);
+            }
             if(transMomentum[0] > 0.3 && transMomentum[1] > 0.3 && (transMomentum[0] < 0.7 || transMomentum[1] < 0.7) )
-                hInvMassUncorr[Kaon][signal]->Fill(invMass[Kaon]);
+            {
+                hInvMassUncorr[Kaon][signal][0]->Fill(invMass[Kaon]);
+                hInvMassUncorr[Kaon][signal][combination]->Fill(invMass[Kaon]);
+            }
         }
-        else if( chiPair[Pion] < sqrt(12)) // it is... pion!
+        else if( chiPair[Pion] < 12) // it is... pion!
         {
             for (int iTrack = 0; iTrack < 2; ++iTrack)
             {
@@ -670,9 +511,15 @@ void Make(int signal)
                 effTotal = effTotal*effTPC*effTOF;
             }
             if(effTotal != 0 && transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
-                hInvMassCorr[Pion][signal]->Fill(invMass[Pion], 1/effTotal);
+            {
+                hInvMassCorr[Pion][signal][0]->Fill(invMass[Pion], 1/effTotal);
+                hInvMassCorr[Pion][signal][combination]->Fill(invMass[Pion], 1/effTotal);
+            }
             if(transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
-                hInvMassUncorr[Pion][signal]->Fill(invMass[Pion]);
+            {
+                hInvMassUncorr[Pion][signal][0]->Fill(invMass[Pion]);
+                hInvMassUncorr[Pion][signal][combination]->Fill(invMass[Pion]);
+            }
 
         }
 
@@ -681,3 +528,188 @@ void Make(int signal)
 }
 
 
+void PlotMoneyPlot()
+{
+    TCanvas* newCanvas = new TCanvas("newCanvas","newCanvas",800,700);
+    gPad->SetMargin(0.11,0.02,0.105,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+    gPad->SetTickx();
+    gPad->SetTicky(); 
+    gPad->SetLogy(0);
+    gStyle->SetOptStat("");
+    gStyle->SetPalette(1);
+    gStyle->SetLineWidth(2);      //axis line
+    gStyle->SetFrameLineWidth(2); //frame line
+
+    TString stateLabel[] = {"#pi^{+}#pi^{-}","K^{+}K^{-}","p#bar{p}"}; 
+    Plot tool;
+
+    TH1D *hist, *histCompare;
+    TString yLabel, name;
+    yLabel = "Number of events";
+    name = "uncorrInvMass";
+
+
+    TDirectory* moneyDir = fout->mkdir("MoneyPlots");
+    moneyDir->cd();
+    moneyDir->mkdir("Uncorrected")->cd();
+
+    for (int corrIndex = 0; corrIndex < 2; ++corrIndex) // 0 - uncorrected, 1 - corrected
+    {
+        if(corrIndex == 1)
+        {
+            yLabel = "Corrected counts";
+            name = "corrInvMass";
+            moneyDir->mkdir("Corrected")->cd();
+        }
+
+        for (int i = 0; i < nParticles; ++i)
+        { 
+            for (int comb = 0; comb < nCombination; ++comb)
+            { 
+                hist = hInvMassUncorr[i][0][comb];
+                histCompare = hInvMassUncorr[i][1][comb];
+                hist->SetTitle(" ; m(" + stateLabel[i] + ") [GeV/c^{2}]; " + yLabel);
+                tool.SetGraphStyle(hist,4,20,1,4,1,1,0.9,1.3);
+                tool.SetMarkerStyle(hist);
+                hist->Draw("E");
+                tool.DrawText(hist, i+1, true);
+                tool.DrawTextStar(hist, 1);
+                tool.SetMarkerStyle(histCompare,2,20,1,2,1,1);
+                histCompare->Draw("ESAME");
+
+                TLegend* leg1 = new TLegend(0.58, 0.64, 0.78, 0.74);
+                tool.SetLegendStyle(leg1);
+                leg1->AddEntry(hist, combinationLabel[comb] + " (unlike-sign pairs)","p");
+                leg1->AddEntry(histCompare, combinationLabel[comb] + " (like-sign pairs)","p");
+                leg1->Draw("same");
+
+                newCanvas->Update();
+                newCanvas->Write(name + particleLables[i] + combinationLabel[comb]);
+            }
+        }
+    }
+
+    moneyDir->mkdir("RatioPlots")->cd();
+
+    gPad->SetMargin(0.9,0.02,0.3,0.02);
+    gStyle->SetPadTickY(1);
+    gStyle->SetTickLength(0.02,"Y");
+    gStyle->SetTickLength(0.03,"X");
+    // Upper plot will be in pad1
+    TPad *pad1 = new TPad("pad1", "pad1", 0, 0.295, 1, 1.0);
+    pad1->SetTopMargin(0.04);
+    pad1->SetRightMargin(0.02);
+    pad1->SetBottomMargin(0); // Upper and lower plot are joined
+    pad1->Draw();             // Draw the upper pad: pad1
+             
+    newCanvas->cd();          // Go back to the main canvas before defining pad2
+    TPad *pad2 = new TPad("pad2", "pad2", 0, 0.00, 1, 0.2985);
+    pad2->SetTopMargin(0);
+    pad2->SetRightMargin(0.02);
+    pad2->SetBottomMargin(0.3);
+    pad2->Draw();
+
+    name = "ratioPlot";
+    yLabel = "Normalized counts";
+    for (int i = 0; i < nParticles; ++i)
+    { 
+        for (int comb = 0; comb < nCombination; ++comb)
+        { 
+            pad1->cd();
+            hist = hInvMassCorr[i][0][comb];
+            histCompare = hInvMassUncorr[i][0][comb];
+            
+            tool.SetMarkerStyle(hist);
+            tool.SetMarkerStyle(histCompare,2,20,1,2,1,1);
+
+            hist->GetXaxis()->SetTitleFont(43);
+            hist->GetYaxis()->SetTitleFont(43);
+            hist->GetXaxis()->SetTitleSize(25);
+            hist->GetYaxis()->SetTitleSize(25);
+            hist->GetXaxis()->SetTitleOffset(0.9);
+            hist->GetYaxis()->SetTitleOffset(1.5);
+            hist->GetYaxis()->SetLabelFont(43);
+            hist->GetYaxis()->SetLabelSize(20);
+
+            Double_t scaleFactor =   1 /hist->Integral();
+            hist->Scale(scaleFactor);
+            scaleFactor =   1 /histCompare->Integral();
+            histCompare->Scale(scaleFactor);
+
+            hist->GetYaxis()->SetRangeUser(0.001, hist->GetMaximum()*1.2);
+
+            hist->SetTitle(" ; m(" + stateLabel[i] + ") [GeV/c^{2}] ; " + yLabel);
+            hist->Draw();              
+            histCompare->Draw("same");         
+
+            TPaveText *textSTAR = new TPaveText(0.75,0.89,0.85,0.95,"brNDC"); 
+            textSTAR -> SetTextSize(0.05);
+            textSTAR -> SetFillColor(0);
+            textSTAR -> SetTextFont(62);
+            textSTAR -> AddText("STAR Internal");
+            textSTAR -> Draw("same");
+
+            textSTAR = new TPaveText(0.75,0.74,0.85,0.88,"brNDC"); 
+            textSTAR -> SetTextSize(25);
+            textSTAR -> SetFillColor(0);
+            textSTAR -> SetTextFont(43);
+            textSTAR -> AddText("p + p #rightarrow p + " + stateLabel[i] +" + p");
+            textSTAR -> AddText("#sqrt{s} = 510 GeV");
+            textSTAR -> Draw("same");
+
+            TLegend *legendPID = new TLegend(0.68,0.58,0.92,0.73,"","brNDC");
+            tool.SetLegendStyle(legendPID);
+            legendPID -> SetTextSize(25);
+            legendPID -> SetTextFont(43);
+            legendPID -> AddEntry(hist, "Corrected", "p");
+            legendPID -> AddEntry(histCompare, "Uncorrected", "p");
+            legendPID -> Draw("same");
+
+            pad2->cd();       
+
+            // Define the ratio plot
+            TH1D *h3 = (TH1D*)hist->Clone("h3");
+            h3->GetYaxis()->SetLabelSize(0.);
+            h3->SetMarkerColor(kBlack);
+            h3->SetMinimum(0.2);  // Define Y ..
+            h3->SetMaximum(2.2); // .. range
+            h3->Divide(histCompare);
+            h3->SetMarkerStyle(20);
+            h3->Draw("ep");       // Draw the ratio plot
+
+            // Ratio plot (h3) settings
+            h3->SetTitle(""); // Remove the ratio title
+
+            // Y axis ratio plot settings
+            h3->GetYaxis()->SetTitle("Ratio");
+            h3->GetYaxis()->SetNdivisions(505);
+            h3->GetYaxis()->SetTitleSize(25);
+            h3->GetYaxis()->SetTitleFont(43);
+            h3->GetYaxis()->SetTitleOffset(1.5);
+            h3->GetYaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+            h3->GetYaxis()->SetLabelSize(0.0);
+
+            // X axis ratio plot settings
+            h3->GetXaxis()->SetTitleSize(25);
+            h3->GetXaxis()->SetTitleFont(43);
+            h3->GetXaxis()->SetTitleOffset(3.2);
+            h3->GetXaxis()->SetLabelOffset(0.025);
+            h3->GetXaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+            h3->GetXaxis()->SetLabelSize(20);
+
+            TGaxis *axis = new TGaxis(h3->GetXaxis()->GetXmin(), 0.2, h3->GetXaxis()->GetXmin(), 2.2, 0.2, 2.2, 5, "");
+            axis->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+            axis->SetLabelSize(20);
+            axis->Draw("same");
+
+            TLine *unity = new TLine(h3->GetXaxis()->GetXmin(), 1., h3->GetXaxis()->GetXmax() , 1.);
+            unity->SetLineColor(kBlack);
+            unity->SetLineWidth(2);
+            unity->Draw();
+
+            newCanvas->Update();
+            newCanvas->Write(name + particleLables[i] + combinationLabel[comb]);
+        }
+    }
+
+}

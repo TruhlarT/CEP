@@ -9,6 +9,7 @@ set (SRCS
   src/Plot.cxx  
   src/trackQuality.cxx
   src/FourPi.cxx
+  src/RPplots.cxx
   )
 
 #name of shared libarary LIB
@@ -24,6 +25,7 @@ set (SRCS_DICT
   src/Plot.cxx    
   src/trackQuality.cxx
   src/FourPi.cxx
+  src/RPplots.cxx
   )
 
 

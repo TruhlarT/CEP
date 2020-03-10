@@ -134,13 +134,13 @@ void PID::PlotHistogram(){
 // Plot mSquared 
 	variable = "mSquared";
 
-	tree->Draw(variable +">>" + variable + "Pion( 200, -0.5, 1.5)", "chiPairPion < 3.4641 " + cutsWithPrefix);
+	tree->Draw(variable +">>" + variable + "Pion( 200, -0.5, 1.5)", "chiPairPion < 12 " + cutsWithPrefix);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable + "Pion");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,3,1,1);
-	tree->Draw(variable +">>" + variable + "Kaon( 200, -0.5, 1.5)", "chiPairKaon < 3 && chiPairPion > 3 && chiPairProton > 3 " + cutsWithPrefix);
+	tree->Draw(variable +">>" + variable + "Kaon( 200, -0.5, 1.5)", "chiPairKaon < 9 && chiPairPion > 9 && chiPairProton > 9 " + cutsWithPrefix);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive(variable + "Kaon");
 	tool.SetMarkerStyle(tmpHist3,2,20,1,2,1,1);
-	tree->Draw(variable +">>" + variable + "Proton( 200, -0.5, 1.5)", "chiPairProton < 3 && chiPairKaon > 3 && chiPairPion > 3" + cutsWithPrefix);
+	tree->Draw(variable +">>" + variable + "Proton( 200, -0.5, 1.5)", "chiPairProton < 9 && chiPairKaon > 9 && chiPairPion > 9" + cutsWithPrefix);
 	tmpHist4 = (TH1F*)gPad->GetPrimitive(variable + "Proton");
 	tool.SetMarkerStyle(tmpHist4,2,20,1,1,1,1);
 
@@ -165,20 +165,18 @@ void PID::PlotHistogram(){
 	tool.SetLineStyle(mLine,10,1,4);
     mLine->Draw("same");
 
-
-	TPaveText *textPub = new TPaveText(0.72,0.8,0.84,0.95,"brNDC");
-	textPub -> SetTextSize(0.04);
-	textPub -> SetFillColor(0);
-	textPub -> SetTextFont(42);
-	textPub -> AddText("Pair PID based on dE/dx");
-	textPub -> Draw("same");
-
-	leg1 = new TLegend(0.72, 0.65, 0.9, 0.8);
+    tool.DrawTextStar(tmpHist,2);
+    TPaveText *textPub = new TPaveText(0.75,0.81,0.9,0.9,"brNDC");
+    tool.SetTextStyle(textPub);
+    textPub -> AddText("p + p #rightarrow p + X + p");
+    textPub -> AddText("#sqrt{s} = 510 GeV");
+    textPub -> Draw("same");
+	leg1 = new TLegend(0.72, 0.6, 0.9, 0.79);
 	tool.SetLegendStyle(leg1);
 	leg1 -> AddEntry(tmpHist, "All pairs", "l");
-    leg1 -> AddEntry(tmpHist2, "#pi^{+} #pi^{-}", "fl");
-	leg1 -> AddEntry(tmpHist3, "K^{+}K^{-}", "fl");
-    leg1 -> AddEntry(tmpHist4, "p#bar{p}", "fl");
+    leg1 -> AddEntry(tmpHist2, "#pi^{+} #pi^{-} (dE/dx)", "fl");
+	leg1 -> AddEntry(tmpHist3, "K^{+}K^{-} (dE/dx)", "fl");
+    leg1 -> AddEntry(tmpHist4, "p#bar{p} (dE/dx)", "fl");
 	leg1->Draw("same");
 
 	gPad->SetLogy();
@@ -217,7 +215,7 @@ void PID::PlotHistogram(){
     tmpHist2->Draw("SAME");
     tmpHist4->Draw("SAME");
 
-	leg1 = new TLegend(0.72, 0.58, 0.9, 0.78);
+	leg1 = new TLegend(0.18, 0.77, 0.36, 0.97);
 	tool.SetLegendStyle(leg1);
 	leg1 -> AddEntry(tmpHist, "Data", "l");
     leg1 -> AddEntry(tmpHist2, "#pi assumption", "fl");
@@ -288,27 +286,32 @@ void PID::PlotHistogram(){
 	cCanvas->Write(variable);
 	gPad->SetLogy(0);
 //////////////////////////////////////////
-// Plot chiPairPion 
-	variable = "chiPairPion";
+	TString particleID[] = {"Pion","Kaon","Proton"};
+	TString particleSign[] = {"#pi#pi","KK","p#bar{p}"};
+// Plot chiPair
+	for( int i = 0; i < 3; ++i)
+	{	
+		variable = "chiPair" + particleID[i];
 
-	tree->Draw(variable +">>" + variable +"Sig(50, 0, 7)",cuts);
-	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
-	tmpHist->SetTitle(" ; n#sigma^{pair}_{#pi} ; Number of events");
-	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
-	tool.SetGraphStyle(tmpHist);
-	tool.SetMarkerStyle(tmpHist);
-	tmpHist->GetYaxis()->SetTitleOffset(1.4);
-	tmpHist->Draw();
-	tool.DrawText(tmpHist,0,true,0.72,0.74,0.85,0.9);
-	tool.DrawTextStar(tmpHist,2);
+		tree->Draw(variable +">>" + variable +Form("Sig(100, 0, %d)",20+20*i),cuts);
+		tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
+		tmpHist->SetTitle(" ; #chi^{2}_{dE/dx}(" + particleSign[i] +"); Number of events");
+		//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
+		tool.SetGraphStyle(tmpHist);
+		tool.SetMarkerStyle(tmpHist);
+		tmpHist->GetYaxis()->SetTitleOffset(1.4);
+		tmpHist->Draw();
+		tool.DrawText(tmpHist,0,true,0.72,0.74,0.85,0.9);
+		tool.DrawTextStar(tmpHist,2);
 
-	TLine *left4 = new TLine(3,0,3,8000);
-	tool.SetLineStyle(left4,10,1,4);
-    left4->Draw("same");
+		TLine *left4 = new TLine(9,0,9,8000);
+		tool.SetLineStyle(left4,10,1,4);
+	    left4->Draw("same");
 
-	cCanvas->Update();
-	//cCanvas->SaveAs( output + "PID/" + variable + ".png");
-	cCanvas->Write(variable);
+		cCanvas->Update();
+		//cCanvas->SaveAs( output + "PID/" + variable + ".png");
+		cCanvas->Write(variable);
+	}
 //////////////////////////////////////////
 //////////////////////////////////////////
 	// Plot dEdx
@@ -351,7 +354,7 @@ void PID::PlotHistogram(){
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.8);
 	tmp2DHist->Draw("colz");
 	tool.DrawText(tmp2DHist,0,true,0.08,0.78,0.25,0.9,12);
-	tool.DrawTextStar(tmp2DHist);
+	tool.DrawTextStar(tmp2DHist, 0);
 
 	cCanvas2D->Update();
 	//cCanvas2D->SaveAs( output + "PID/" + variable + "Vs" + variable2 + ".png");
@@ -362,14 +365,13 @@ void PID::PlotHistogram(){
 	TDirectory* currentDir = TDirectory::CurrentDirectory();
 	DrawBichsel();
 	tool.DrawText(tmp2DHist,0,true,0.08,0.78,0.25,0.9,12);
-	tool.DrawTextStar(tmp2DHist);
+	//tool.DrawTextStar(tmp2DHist);
 	currentDir->cd();
 
 	cCanvas2D->Update();
 	//cCanvas2D->SaveAs( output + "PID/" + variable + "wBichsel" + ".png");
 	cCanvas2D->Write(variable + "wBichsel");
 /////////////////////////////////////////////////////
-	TString particleID[] = {"Pion","Kaon","Proton"};
 
 ////////// Plot 2D histograms: ////////////
 for(int i = 0; i < 3; ++i){
@@ -385,7 +387,7 @@ for(int i = 0; i < 3; ++i){
 	//tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,50,100,0,50)","deltaDeltaTOF < 1 && deltaDeltaTOF > -1 ","colz");
 	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,35,100,0,35)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "Sig");
-	tmp2DHist->SetTitle(" ; n#sigma^{pair}_{" + particleID[j2] + "}; n#sigma^{pair}_{" + particleID[j1] + "}");
+	tmp2DHist->SetTitle(" ; #chi^{2}_{dE/dx}(" + particleSign[j2] +"); #chi^{2}_{dE/dx}(" + particleSign[j1] +")");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.9);
 	tmp2DHist->Draw("colz");
 	if(i!=0){
@@ -393,7 +395,7 @@ for(int i = 0; i < 3; ++i){
 		tool.DrawTextStar(tmp2DHist,1);
 	}else{
 		tool.DrawText(tmp2DHist,0,true,0.08,0.78,0.25,0.9,12);
-		tool.DrawTextStar(tmp2DHist);	
+		tool.DrawTextStar(tmp2DHist, 0);	
 	}
 
 	cCanvas2D->Update();
@@ -404,7 +406,7 @@ for(int i = 0; i < 3; ++i){
 	variable2 = "mSquared";
 	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,16,100,-0.5,1.5)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "Sig");
-	tmp2DHist->SetTitle(" ; n#sigma^{pair}_{" + particleID[i] + "}; m^{2}_{TOF} [GeV^{2}/c^{4}]");
+	tmp2DHist->SetTitle(" ; #chi^{2}_{dE/dx}(" + particleSign[i] +"); m^{2}_{TOF} [GeV^{2}/c^{4}]");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,1.0);
 
 	tmp2DHist->Draw("colz");
@@ -422,11 +424,11 @@ for(int i = 0; i < 3; ++i){
 	tree->Draw(variable2 + ":" + "charge0*transMomentum0" + ">>" + variable + "Vs" + variable2 + "2Sig(80,-4,4,100,0,50)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2Sig");
 	tmp2DHist->Add(tmp2DHist2);
-	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV/c] ; n#sigma^{pair}_{" + particleID[i] + "}");
+	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV/c] ; #chi^{2}_{dE/dx}(" + particleSign[i] +")");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.9);
 	tmp2DHist->Draw("colz");
 	tool.DrawText(tmp2DHist,0,true,0.08,0.78,0.25,0.9,12);
-	tool.DrawTextStar(tmp2DHist);
+	tool.DrawTextStar(tmp2DHist, 0);
 
 	cCanvas2D->Update();
 	//cCanvas2D->SaveAs( output + "PID/" + variable + "Vs" + variable2 + ".png");
@@ -465,7 +467,7 @@ for(int i = 0; i < 3; ++i){
 	tmp2DHist3->Draw("SAME");
 	tmp2DHist5->Draw("SAME");
 
-	TLegend *legendPID = new TLegend(0.72,0.55,0.85,0.80,"","brNDC");
+	TLegend *legendPID = new TLegend(0.72,0.55,0.85,0.75,"","brNDC");
 	tool.SetLegendStyle(legendPID);
 	legendPID -> AddEntry(tmp2DHist, "#pi^{+} + #pi^{-}", "p");
 	legendPID -> AddEntry(tmp2DHist5, "K^{+} + K^{-}", "p");
