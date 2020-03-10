@@ -163,25 +163,45 @@ int main(int argc, char** argv) {
 //////////////////////////////////////////////////////////////////////
 //					No cuts applied 
 //////////////////////////////////////////////////////////////////////
-	fout->mkdir("BasicPlots")->cd();
+	
+    fout->mkdir("BasicPlots")->cd();
 	BasicPlots Plots(data, fout, output, showText);
 	Plots.PlotHistogram();
 
-	fout->mkdir("PID")->cd();
-	PID PIDPlots(data, fout, output, showCutsLine);
-	PIDPlots.PlotHistogram();
+    TDirectory* curDir = fout->mkdir("El+InEl");
+    curDir->cd();
+    TString usedCuts = "";
+    for (int i = 0; i < nCombination; ++i)
+    {
+        if(i == El)
+        {
+            curDir = fout->mkdir("El");
+            curDir->cd();
+            usedCuts = "elastic";
+        }else if( i == InEl)
+        {
+            curDir = fout->mkdir("InEl");
+            curDir->cd();
+            usedCuts = "!elastic";
+        }
 
-	fout->mkdir("trackQuality")->cd();
-	trackQuality TrackPlots(data, fout, output, showCutsLine);
-	TrackPlots.PlotHistogram();
+        curDir->mkdir("PID")->cd();
+        PID PIDPlotsWithCuts(data, fout, output, showCutsLine, usedCuts);
+        PIDPlotsWithCuts.PlotHistogram();
 
-    fout->mkdir("RPplots")->cd();
-    RPplots RPplots(data, fout, output, showCutsLine);
-    RPplots.PlotHistogram();
+        curDir->mkdir("trackQuality")->cd();
+        trackQuality TrackPlotsWithCuts(data, fout, output, showCutsLine, usedCuts);
+        TrackPlotsWithCuts.PlotHistogram();
+
+        curDir->mkdir("RPplots")->cd();
+        RPplots RPplotsWithCuts(data, fout, output, showCutsLine, usedCuts);
+        RPplotsWithCuts.PlotHistogram();
+    }
 
 //////////////////////////////////////////////////////////////////////
 //				All cuts applied
 //////////////////////////////////////////////////////////////////////
+
 	TDirectory* cutsDir = fout->mkdir("Cuts");
 	cutsDir->cd();
 
@@ -247,77 +267,102 @@ int main(int argc, char** argv) {
 	//newCanvas->SaveAs(output + "BasicPlots/Cuts.png");
 	newCanvas->Write("CutsFlow");
 
-	cutsDir->mkdir("PID")->cd();
-	PID PIDPlotsWithCuts(data, fout, output, showCutsLine, cuts);
-	PIDPlotsWithCuts.PlotHistogram();
+    TDirectory* goldenDir = fout->mkdir("GoldenEvents");
+    goldenDir->cd();
+    TDirectory* currentDir = goldenDir->mkdir("El+InEl");
+    currentDir->cd();
 
-    cutsDir->mkdir("trackQuality")->cd();
-    trackQuality TrackPlotsWithCuts(data, fout, output, showCutsLine, cuts);
-    TrackPlotsWithCuts.PlotHistogram();
+    usedCuts = cuts;
+    for (int i = 0; i < nCombination; ++i)
+    {
+        if(i == El)
+        {
+            currentDir = goldenDir->mkdir("El");
+            currentDir->cd();
+            usedCuts = cuts + "&& elastic";
+        }else if( i == InEl)
+        {
+            currentDir = goldenDir->mkdir("InEl");
+            currentDir->cd();
+            usedCuts = cuts + "&& !elastic";
+        }
 
-/*
+    	currentDir->mkdir("PID")->cd();
+    	PID PIDPlotsWithCuts(data, fout, output, showCutsLine, usedCuts);
+    	PIDPlotsWithCuts.PlotHistogram();
+
+        currentDir->mkdir("trackQuality")->cd();
+        trackQuality TrackPlotsWithCuts(data, fout, output, showCutsLine, usedCuts);
+        TrackPlotsWithCuts.PlotHistogram();
+
+        currentDir->mkdir("RPplots")->cd();
+        RPplots RPplotsWithCuts(data, fout, output, showCutsLine, usedCuts);
+        RPplotsWithCuts.PlotHistogram();
+    }
+
+
 ///////////////////////////////////////////////////////////////
-    TDirectory* TomasDir = cutsDir->mkdir("PID_Tomas");
-    TomasDir->cd();
-    TomasDir->mkdir("Pions")->cd();
-    PID PIDPlotsWithCuts1(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (chiPairKaon > 3 || mSquared < 0.2 || mSquared > 0.32) && (chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
-    PIDPlotsWithCuts1.PlotHistogram();
-
-    TomasDir->mkdir("Kaons")->cd();
-    PID PIDPlotsWithCuts2(data, fout, output, showCutsLine, cuts + "&& chiPairKaon < 3 && mSquared > 0.2 && mSquared < 0.32 && (chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
-    PIDPlotsWithCuts2.PlotHistogram();
-
-    TomasDir->mkdir("Protons")->cd();
-    PID PIDPlotsWithCuts3(data, fout, output, showCutsLine, cuts + "&& chiPairProton < 3 && mSquared > 0.7 && mSquared < 1.1");
-    PIDPlotsWithCuts3.PlotHistogram();
-///////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////
-    TDirectory* TomasDir2 = cutsDir->mkdir("PID_Tomas2");
-    TomasDir2->cd();
-    TomasDir2->mkdir("Pions")->cd();
-    PID PIDPlotsWithCuts4(data, fout, output, showCutsLine, cuts + "&& chiPairPion < 3.46 && (chiPairPion < 3 || chiPairKaon > 3 || mSquared < 0.15) && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.6)");
-    PIDPlotsWithCuts4.PlotHistogram();
-
-    TomasDir2->mkdir("Kaons")->cd();
-    PID PIDPlotsWithCuts5(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon < 3 && mSquared > 0.15 && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.6)");
-    PIDPlotsWithCuts5.PlotHistogram();
-
-    TomasDir2->mkdir("Protons")->cd();
-    PID PIDPlotsWithCuts6(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon > 3 && chiPairProton < 3 && mSquared > 0.6");
-    PIDPlotsWithCuts6.PlotHistogram();
-///////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////
-    TDirectory* RafalDir = cutsDir->mkdir("PID_Rafal");
-    RafalDir->cd();
-    RafalDir->mkdir("Pions")->cd();
-    PID PIDPlotsWithCuts7(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (chiPairPion < 3 || chiPairKaon > 3 || chiPairProton < 3 || mSquared < 0.2 || mSquared > 0.32) && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
-    PIDPlotsWithCuts7.PlotHistogram();
-
-    RafalDir->mkdir("Kaons")->cd();
-    PID PIDPlotsWithCuts8(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon < 3 && chiPairProton > 3 && mSquared > 0.2 && mSquared < 0.32 && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
-    PIDPlotsWithCuts8.PlotHistogram();
-
-    RafalDir->mkdir("Protons")->cd();
-    PID PIDPlotsWithCuts9(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon > 3 && chiPairProton < 3 && mSquared > 0.6 && mSquared < 1.1");
-    PIDPlotsWithCuts9.PlotHistogram();
+//    TDirectory* TomasDir = cutsDir->mkdir("PID_Tomas");
+//    TomasDir->cd();
+//    TomasDir->mkdir("Pions")->cd();
+//    PID PIDPlotsWithCuts1(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (chiPairKaon > 3 || mSquared < 0.2 || mSquared > 0.32) && (chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+//    PIDPlotsWithCuts1.PlotHistogram();
+//  
+//    TomasDir->mkdir("Kaons")->cd();
+//    PID PIDPlotsWithCuts2(data, fout, output, showCutsLine, cuts + "&& chiPairKaon < 3 && mSquared > 0.2 && mSquared < 0.32 && (chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+//    PIDPlotsWithCuts2.PlotHistogram();
+//  
+//    TomasDir->mkdir("Protons")->cd();
+//    PID PIDPlotsWithCuts3(data, fout, output, showCutsLine, cuts + "&& chiPairProton < 3 && mSquared > 0.7 && mSquared < 1.1");
+//    PIDPlotsWithCuts3.PlotHistogram();
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
-    TDirectory* DanielDir = cutsDir->mkdir("PID_Daniel");
-    DanielDir->cd();
-    DanielDir->mkdir("Pions")->cd();
-    PID PIDPlotsWithCuts10(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (chiPairKaon > 3 || deltaDeltaTOFKaon < -0.5 || deltaDeltaTOFKaon > 0.5) && (chiPairProton > 3 || deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)");
-    PIDPlotsWithCuts10.PlotHistogram();
-
-    DanielDir->mkdir("Kaons")->cd();
-    PID PIDPlotsWithCuts11(data, fout, output, showCutsLine, cuts + "&& chiPairKaon < 3 && deltaDeltaTOFKaon > -0.5 && deltaDeltaTOFKaon < 0.5  && (chiPairProton > 3 || deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)");
-    PIDPlotsWithCuts11.PlotHistogram();
-
-    DanielDir->mkdir("Protons")->cd();
-    PID PIDPlotsWithCuts12(data, fout, output, showCutsLine, cuts + "&& chiPairProton < 3 && deltaDeltaTOFProton > -0.5 && deltaDeltaTOFProton < 0.5");
-    PIDPlotsWithCuts12.PlotHistogram();
+//    TDirectory* TomasDir2 = cutsDir->mkdir("PID_Tomas2");
+//    TomasDir2->cd();
+//    TomasDir2->mkdir("Pions")->cd();
+//    PID PIDPlotsWithCuts4(data, fout, output, showCutsLine, cuts + "&& chiPairPion < 3.46 && (chiPairPion < 3 || chiPairKaon > 3 || mSquared < 0.15) && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.6)");
+//    PIDPlotsWithCuts4.PlotHistogram();
+//
+//    TomasDir2->mkdir("Kaons")->cd();
+//    PID PIDPlotsWithCuts5(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon < 3 && mSquared > 0.15 && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.6)");
+//    PIDPlotsWithCuts5.PlotHistogram();
+//
+//    TomasDir2->mkdir("Protons")->cd();
+//    PID PIDPlotsWithCuts6(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon > 3 && chiPairProton < 3 && mSquared > 0.6");
+//    PIDPlotsWithCuts6.PlotHistogram();
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+//    TDirectory* RafalDir = cutsDir->mkdir("PID_Rafal");
+//    RafalDir->cd();
+//    RafalDir->mkdir("Pions")->cd();
+//    PID PIDPlotsWithCuts7(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (chiPairPion < 3 || chiPairKaon > 3 || chiPairProton < 3 || mSquared < 0.2 || mSquared > 0.32) && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+//    PIDPlotsWithCuts7.PlotHistogram();
+//
+//    RafalDir->mkdir("Kaons")->cd();
+//    PID PIDPlotsWithCuts8(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon < 3 && chiPairProton > 3 && mSquared > 0.2 && mSquared < 0.32 && (chiPairPion < 3 || chiPairKaon < 3 || chiPairProton > 3 || mSquared < 0.7 || mSquared > 1.1)");
+//    PIDPlotsWithCuts8.PlotHistogram();
+//
+//    RafalDir->mkdir("Protons")->cd();
+//    PID PIDPlotsWithCuts9(data, fout, output, showCutsLine, cuts + "&& chiPairPion > 3 && chiPairKaon > 3 && chiPairProton < 3 && mSquared > 0.6 && mSquared < 1.1");
+//    PIDPlotsWithCuts9.PlotHistogram();
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+//    TDirectory* DanielDir = cutsDir->mkdir("PID_Daniel");
+//    DanielDir->cd();
+//    DanielDir->mkdir("Pions")->cd();
+//    PID PIDPlotsWithCuts10(data, fout, output, showCutsLine, cuts + "&& nSigTrk1Pion < 3 && nSigTrk1Pion > -3 && nSigTrk2Pion > -3 && nSigTrk2Pion < 3 && (chiPairKaon > 3 || deltaDeltaTOFKaon < -0.5 || deltaDeltaTOFKaon > 0.5) && (chiPairProton > 3 || deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)");
+//    PIDPlotsWithCuts10.PlotHistogram();
+//
+//    DanielDir->mkdir("Kaons")->cd();
+//    PID PIDPlotsWithCuts11(data, fout, output, showCutsLine, cuts + "&& chiPairKaon < 3 && deltaDeltaTOFKaon > -0.5 && deltaDeltaTOFKaon < 0.5  && (chiPairProton > 3 || deltaDeltaTOFProton < -0.5 || deltaDeltaTOFProton > 0.5)");
+//    PIDPlotsWithCuts11.PlotHistogram();
+//
+//    DanielDir->mkdir("Protons")->cd();
+//    PID PIDPlotsWithCuts12(data, fout, output, showCutsLine, cuts + "&& chiPairProton < 3 && deltaDeltaTOFProton > -0.5 && deltaDeltaTOFProton < 0.5");
+//    PIDPlotsWithCuts12.PlotHistogram();
 ///////////////////////////////////////////////////////////////
 
-*/
+
 //////////////////////////////////////////////////////////////////////
 //				PID cuts applied
 //////////////////////////////////////////////////////////////////////
@@ -340,7 +385,7 @@ int main(int argc, char** argv) {
     PlotMoneyPlot();
 
 
-/*
+
     TCanvas *cCanvas2D = new TCanvas("cCanvas2D","cCanvas2D",800,700);
     gPad->SetMargin(0.09,0.13,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
     gStyle->SetPalette(1);
@@ -351,7 +396,7 @@ int main(int argc, char** argv) {
         hTransMomentum[i]->Draw("colz");
         cCanvas2D->Write("transMomentum" + particleLables[i]);
     }
-*/
+
 
 //////////////////////////////////////////////////////////////////////
 //              4 pions state
@@ -362,7 +407,7 @@ int main(int argc, char** argv) {
 
     FourPi fourPiPlots(data, fout, output, showText);
     fourPiPlots.PlotHistogram();
-
+    
 //////////////////////////////////////////////////////////////////////
 
 	fout->Close();

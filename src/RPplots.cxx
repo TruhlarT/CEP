@@ -14,7 +14,7 @@ RPplots::RPplots(TFile* dataInput, TFile* fileOut, TString outnam, bool text, TS
 
 	TEXT = text;
 
-	cout << "trackQuality::trackQuality() called" << endl;
+	cout << "RPplots::RPplots() called" << endl;
 }//RPplots
 
 //_____________________________________________________________________________
@@ -65,30 +65,51 @@ void RPplots::PlotHistogram() {
 	Int_t nBins, nBins2, nInputs;
 	Float_t min, max, min2, max2;
 
-
-
-    TCanvas *cCanvas2D = new TCanvas("cCanvas2D","cCanvas2D",800,700);
-    gPad->SetMargin(0.09,0.13,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
-    gStyle->SetPalette(1);
-    gPad->SetTickx();
-    gPad->SetTicky(); 
-
 //////////////////////////////////////////////////
 // Plot t 
     variable = "t";
     nBins = 100;
-    min = 4.0;
-    max = 0.0;
-    treeBack->Draw("abs( " + variable +"East+" + variable +"West)>>" + variable +"Bcg1(" + nBins + "," + min + "," + max + ")",cuts);
+    min = 0.0;
+    max = 4.0;
+    treeBack->Draw("TMath::Abs( " + variable +"East + " + variable +"West)>>" + variable +"Bcg1(" + nBins + "," + min + "," + max + ")",cuts);
     histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg1");
     tool.SetMarkerStyle(histBackground,2,20,1,2,1,1);
 
-    tree->Draw("abs( " + variable +"East+" + variable +"West)>>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",cuts);
+    tree->Draw("TMath::Abs( " + variable +"East + " + variable +"West)>>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",cuts);
     histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");   
     histSignal->SetTitle(" ; | t_{1} + t_{2} | ; Number of tracks");
     tool.SetGraphStyle(histSignal,4,20,1,4,1,1,0.9,1.4);
     tool.SetMarkerStyle(histSignal);
-    histSignal->GetXaxis()->SetRangeUser(10,60);
+    histSignal->Draw("E");
+    tool.DrawText(histSignal,0,false,0.68, 0.75, 0.9, 0.88);
+    tool.DrawTextStar(histSignal,2);
+    histBackground->Draw("ESAME");
+
+
+    TLegend* leg1 = new TLegend(0.6, 0.65, 0.78, 0.74);
+    tool.SetLegendStyle(leg1);
+    leg1->AddEntry(histSignal,"In+El (unlike-sign pairs)","p");
+    leg1->AddEntry(histBackground,"In+El (like-sign pairs)","p");
+    leg1->Draw("same");
+
+
+    cCanvas->Update();
+    cCanvas->Write(variable);    
+//////////////////////////////////////////////////
+// Plot phi 
+    variable = "phiRp";
+    nBins = 100;
+    min = 0.0;
+    max = 350.0;
+    treeBack->Draw("TMath::Abs( " + variable +"East*57.2957795 - " + variable +"West*57.2957795)>>" + variable +"Bcg1(" + nBins + "," + min + "," + max + ")",cuts);
+    histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg1");
+    tool.SetMarkerStyle(histBackground,2,20,1,2,1,1);
+
+    tree->Draw("TMath::Abs( " + variable +"East*57.2957795 - " + variable +"West*57.2957795)>>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",cuts);
+    histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");   
+    histSignal->SetTitle(" ; | #phi_{1} - #phi_{2} | ; Number of tracks");
+    tool.SetGraphStyle(histSignal,4,20,1,4,1,1,0.9,1.4);
+    tool.SetMarkerStyle(histSignal);
     histSignal->Draw("E");
     tool.DrawText(histSignal,0,false,0.68, 0.75, 0.9, 0.88);
     tool.DrawTextStar(histSignal,2);
@@ -103,9 +124,14 @@ void RPplots::PlotHistogram() {
 
 
     cCanvas->Update();
-    cCanvas->Write(variable);    
-
+    cCanvas->Write(variable); 
 //////////////////////////////////////////////////
+    TCanvas *cCanvas2D = new TCanvas("cCanvas2D","cCanvas2D",800,700);
+    gPad->SetMargin(0.09,0.13,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+    gStyle->SetPalette(1);
+    gPad->SetTickx();
+    gPad->SetTicky(); 
+
 // Plot XYEastCor vertex
     gPad->SetLogz();
     variable = "yCorrelationsRpEast";
@@ -123,7 +149,7 @@ void RPplots::PlotHistogram() {
     hist2DSignal->SetTitle(" ; p_{x} [GeV/c]; p_{y} [GeV/c]");
     tool.SetGraphStyle(hist2DSignal,4,20,1,4,1,1,0.9,0.7);
     hist2DSignal->Draw("colz");
-    tool.DrawText(hist2DSignal,0,true,0.62,0.81,0.76,0.94);
+    tool.DrawText(hist2DSignal,0,true,0.61,0.75,0.76,0.9);
     tool.DrawTextStar(hist2DSignal, 1);
     if(TEXT){
         const Int_t n = 200;
@@ -199,7 +225,7 @@ void RPplots::PlotHistogram() {
     hist2DSignal->SetTitle(" ; p_{x} [GeV/c]; p_{y} [GeV/c]");
     tool.SetGraphStyle(hist2DSignal,4,20,1,4,1,1,0.9,0.7);
     hist2DSignal->Draw("colz");
-    tool.DrawText(hist2DSignal,0,true,0.62,0.81,0.76,0.94);
+    tool.DrawText(hist2DSignal,0,true,0.61,0.75,0.76,0.9);
     tool.DrawTextStar(hist2DSignal, 1);
     if(TEXT){
         const Int_t n = 200;

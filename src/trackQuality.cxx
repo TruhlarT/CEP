@@ -256,7 +256,7 @@ void trackQuality::PlotHistogram(){
 
 	cCanvas->Update();
 	//cCanvas->SaveAs( output + "trackQuality/" + variable + ".png");
-	cCanvas->Write(variable);
+	cCanvas->Write(variable);	
 //////////////////////////////////////////
 // Plot Eta 
 	treeBack->Draw("Eta1>>Eta1Bcg(100,-2,3.5)",cuts);
