@@ -53,12 +53,16 @@ public:
 	TH1F* tmpHist2;
 	TH1F* tmpHist3;
 
+	TH1F* histSignal;
+	TH1F* histBackground;
+
 	TH2F* tmp2DHist;
 	TH2F* tmp2DHist2;
 	TH2F* tmp2DHist3;
 
 	TString output;
 	TString cuts, cutsWithPrefix;
+	TString dataLabel;
 
 	TFile* data;
 	TFile* fout;

@@ -18,6 +18,19 @@ trackQuality::trackQuality(TFile* dataInput, TFile* fileOut, TString outnam, boo
 
 	TEXT = text;
 
+	if(inputCuts.Contains("!elastic"))
+	{
+        dataLabel = "Inel";
+	}
+    else if(inputCuts.Contains("elastic"))
+    {
+        dataLabel = "El";
+    }
+    else
+    {
+        dataLabel = "El+Inel";
+    }
+
 	cout << "trackQuality::trackQuality() called" << endl;
 
 }//trackQuality
@@ -62,8 +75,8 @@ void trackQuality::PlotHistogram(){
 	gStyle->SetLineWidth(2);      //axis line
 	gStyle->SetFrameLineWidth(2); //frame line
 
-	tree->UseCurrentStyle();
-	treeBack->UseCurrentStyle();
+	Int_t nBins, nBins2, nInputs;
+	Float_t min, max, min2, max2;
 
 	Plot tool;
 // Plot z vertex
@@ -84,8 +97,8 @@ void trackQuality::PlotHistogram(){
 
 	TLegend* leg1 = new TLegend(0.15,0.83,0.28,0.93); 
 	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"In+El (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
+	leg1->AddEntry(tmpHist,dataLabel + " (unlike-sign pairs)","p");
+	leg1->AddEntry(tmpHist2,dataLabel + " (like-sign pairs)","p");
 	leg1->Draw("same");
 	if(TEXT){
 		TLine *left4 = new TLine(-80,0,-80,tmpHist->GetMaximum()/2);
@@ -123,8 +136,8 @@ void trackQuality::PlotHistogram(){
 
 	leg1 = new TLegend(0.6, 0.65, 0.78, 0.74);
 	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"In+El (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
+	leg1->AddEntry(tmpHist,dataLabel + " (unlike-sign pairs)","p");
+	leg1->AddEntry(tmpHist2,dataLabel + " (like-sign pairs)","p");
 	leg1->Draw("same");
 	if(TEXT){
 		TLine *left6 = new TLine(1.5,0,1.5,tmpHist->GetMaximum()/2);
@@ -158,8 +171,8 @@ void trackQuality::PlotHistogram(){
 
 	leg1 = new TLegend(0.6, 0.65, 0.78, 0.74);
 	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"In+El (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
+	leg1->AddEntry(tmpHist,dataLabel + " (unlike-sign pairs)","p");
+	leg1->AddEntry(tmpHist2,dataLabel + " (like-sign pairs)","p");
 	leg1->Draw("same");
 	if(TEXT){
 		TLine *left7 = new TLine(1,0,1,tmpHist->GetMaximum()/2);
@@ -201,8 +214,8 @@ void trackQuality::PlotHistogram(){
 
 	leg1 = new TLegend(0.6, 0.65, 0.78, 0.74);
 	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"In+El (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
+	leg1->AddEntry(tmpHist,dataLabel + " (unlike-sign pairs)","p");
+	leg1->AddEntry(tmpHist2,dataLabel + " (like-sign pairs)","p");
 	leg1->Draw("same");
 
 	if(TEXT){
@@ -244,8 +257,8 @@ void trackQuality::PlotHistogram(){
 
 	leg1 = new TLegend(0.6, 0.65, 0.78, 0.74);
 	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"In+El (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
+	leg1->AddEntry(tmpHist,dataLabel + " (unlike-sign pairs)","p");
+	leg1->AddEntry(tmpHist2,dataLabel + " (like-sign pairs)","p");
 	leg1->Draw("same");
 
 	if(TEXT){
@@ -281,8 +294,8 @@ void trackQuality::PlotHistogram(){
 
 	leg1 = new TLegend(0.6, 0.65, 0.8, 0.74);
 	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(tmpHist,"In+El (unlike-sign pairs)","p");
-	leg1->AddEntry(tmpHist2,"In+El (like-sign pairs)","p");
+	leg1->AddEntry(tmpHist,dataLabel + " (unlike-sign pairs)","p");
+	leg1->AddEntry(tmpHist2,dataLabel + " (like-sign pairs)","p");
 	leg1->Draw("same");
 	if(TEXT){
 		TLine *left2 = new TLine(-0.7,0,-0.7,tmpHist->GetMaximum()/2);
@@ -297,6 +310,52 @@ void trackQuality::PlotHistogram(){
 	//cCanvas->SaveAs( output + "trackQuality/Eta.png");
 	cCanvas->Write("Eta");
 //////////////////////////////////////////
+// Plot t 
+    variable = "t";
+    nBins = 100;
+    min = -2.0;
+    max = 0.0;
+    treeBack->Draw(variable +"East>>" + variable +"Bcg1(" + nBins + "," + min + "," + max + ")",cuts);
+    histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg1");
+    treeBack->Draw(variable +"West>>" + variable +"Bcg2(" + nBins + "," + min + "," + max + ")",cuts);
+    tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Bcg2");
+    histBackground->Add(tmpHist);
+    tool.SetMarkerStyle(histBackground,2,20,1,2,1,1);
+
+
+    tree->Draw(variable +"East>>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",cuts);
+    histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");
+    tree->Draw(variable +"West>>" + variable +"Sig2(" + nBins + "," + min + "," + max + ")",cuts);
+    tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig2");
+    histSignal->Add(tmpHist);   
+    histSignal->SetTitle(" ; t; Number of tracks");
+    tool.SetGraphStyle(histSignal,4,20,1,4,1,1,0.9,1.4);
+    tool.SetMarkerStyle(histSignal);
+    histSignal->Draw("E");
+    tool.DrawText(histSignal,0,false,0.15,0.74,0.28,0.9,12);
+    tool.DrawTextStar(histSignal,3);
+    histBackground->Draw("ESAME");
+
+    if(TEXT){
+        TLine *left4 = new TLine(-1.0,0,-1.0,tmpHist->GetMaximum()/2);
+        tool.SetLineStyle(left4,10,1,4);
+        left4->Draw("same");
+
+        TLine *left5 = new TLine(-0.12,0,-0.12  ,tmpHist->GetMaximum()/2);
+        tool.SetLineStyle(left5,10,1,4);
+        left5->Draw("same");     
+    }
+                                
+    leg1 = new TLegend(0.15, 0.65, 0.28, 0.74);
+    tool.SetLegendStyle(leg1);
+    leg1->AddEntry(histSignal,dataLabel + " (unlike-sign pairs)","p");
+    leg1->AddEntry(histBackground,dataLabel + " (like-sign pairs)","p");
+    leg1->Draw("same");
+
+
+    cCanvas->Update();
+    cCanvas->Write(variable);
+///////////////////////////////////////////////////////////////////////
 
 	TCanvas *cCanvas2D = new TCanvas("cCanvas2D","cCanvas2D",800,700);
 	gPad->SetMargin(0.09,0.13,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)

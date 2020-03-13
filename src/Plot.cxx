@@ -50,7 +50,7 @@ void Plot::SetMarkerStyle(TH1* hist, Int_t markColor, Int_t markStyle, Int_t mar
 }//SetMarkerStyle
 
 
-void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t yMin, Float_t xMax, Float_t yMax, Int_t align)
+void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t yMin, Float_t xMax, Float_t yMax, Int_t align, Bool_t data)
 {
 	TString centralState;
 	switch(state){
@@ -78,8 +78,8 @@ void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t y
 	textPub -> SetFillColor(0);
 	textPub -> SetTextFont(font);
 	textPub -> AddText("p + p #rightarrow p + " + centralState +" + p");
-	textPub -> AddText("#sqrt{s} = 510 GeV");
-	int NentriesEl = hist->GetEntries();
+	if(data) textPub -> AddText("#sqrt{s} = 510 GeV");
+	int NentriesEl = hist->Integral();
 	TString tileIdStrEl; tileIdStrEl.Form("%i h_{cand}^{Exc}",NentriesEl);
 	if(pair)
 		tileIdStrEl.Form("%i Excl. events",NentriesEl);
@@ -103,7 +103,7 @@ void Plot::DrawTextStar(TH1* hist, Int_t position, Bool_t star)
 			textSTAR = new TPaveText(0.75,0.89,0.9,0.95,"brNDC");
 			break;
 		case 3:
-			textSTAR = new TPaveText(0.3,0.89,0.45,0.95,"brNDC");
+			textSTAR = new TPaveText(0.22,0.89,0.33,0.95,"brNDC");
 			break;
 	}
 	

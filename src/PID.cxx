@@ -16,6 +16,19 @@ PID::PID(TFile* dataInput, TFile* fileOut, TString outnam, bool text, TString in
 	else
 		cutsWithPrefix="";
 
+	if(inputCuts.Contains("!elastic"))
+	{
+        dataLabel = "Inel";
+	}
+    else if(inputCuts.Contains("elastic"))
+    {
+        dataLabel = "El";
+    }
+    else
+    {
+        dataLabel = "El+Inel";
+    }
+
 	TEXT = text;
 	cout << "PID::PID() called" << endl;
 
@@ -126,18 +139,16 @@ void PID::PlotHistogram(){
 	gStyle->SetLineWidth(2);      //axis line
 	gStyle->SetFrameLineWidth(2); //frame line
 
-	tree->UseCurrentStyle();
-	treeBack->UseCurrentStyle();
 
 	Plot tool;
 	TString variable;
 // Plot mSquared 
 	variable = "mSquared";
 
-	tree->Draw(variable +">>" + variable + "Pion( 200, -0.5, 1.5)", "chiPairPion < 12 " + cutsWithPrefix);
+	tree->Draw(variable +">>" + variable + "Pion( 200, -0.5, 1.5)", "!(chiPairProton < 9 && chiPairKaon > 9 && chiPairPion > 9) && !(!(chiPairProton < 9 && chiPairKaon > 9 && chiPairPion > 9) && chiPairKaon < 9 && chiPairPion > 9 && chiPairProton > 9) && chiPairPion < 12 " + cutsWithPrefix);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable + "Pion");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,3,1,1);
-	tree->Draw(variable +">>" + variable + "Kaon( 200, -0.5, 1.5)", "chiPairKaon < 9 && chiPairPion > 9 && chiPairProton > 9 " + cutsWithPrefix);
+	tree->Draw(variable +">>" + variable + "Kaon( 200, -0.5, 1.5)", "!(chiPairProton < 9 && chiPairKaon > 9 && chiPairPion > 9) && chiPairKaon < 9 && chiPairPion > 9 && chiPairProton > 9 " + cutsWithPrefix);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive(variable + "Kaon");
 	tool.SetMarkerStyle(tmpHist3,2,20,1,2,1,1);
 	tree->Draw(variable +">>" + variable + "Proton( 200, -0.5, 1.5)", "chiPairProton < 9 && chiPairKaon > 9 && chiPairPion > 9" + cutsWithPrefix);

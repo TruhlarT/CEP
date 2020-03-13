@@ -24,27 +24,15 @@ fi
 if [ -d $dir ]; then
 	echo "Target file exists"
 	echo "Results will be updated"
-	if [ ! -d $dir/BasicPlots ]; then
-		mkdir $dir/BasicPlots
-		echo "Creating folder: " $dir/BasicPlots
-	fi
-	if [ ! -d $dir/PID ]; then
-		mkdir $dir/PID
-		echo "Creating folder: " $dir/PID
-	fi
-	if [ ! -d $dir/trackQuality ]; then
+	if [ ! -d $dir/Figs ]; then
 		mkdir $dir/trackQuality
 		echo "Creating folder: " $dir/trackQuality
 	fi
 else
 	mkdir $dir
 	echo "Creating folder: " $dir
-	mkdir $dir/BasicPlots
-	echo "Creating folder: " $dir/BasicPlots
-	mkdir $dir/PID
-	echo "Creating folder: " $dir/PID
-	mkdir $dir/trackQuality
-	echo "Creating folder: " $dir/trackQuality
+	mkdir $dir/Figs
+	echo "Creating folder: " $dir/Figs
 fi
 
 build/Analysis $1

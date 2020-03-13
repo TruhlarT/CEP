@@ -51,7 +51,8 @@ public:
 
 	TString output;
 	TString cuts, cutsWithPrefix;
-
+	TString dataLabel;
+	
 	TFile* data;
 	TFile *fout;
 

@@ -67,9 +67,6 @@ void FourPi::PlotHistogram() {
 	gStyle->SetLineWidth(2);      //axis line
 	gStyle->SetFrameLineWidth(2); //frame line
 
-	tree->UseCurrentStyle();
-	treeBack->UseCurrentStyle();
-
 	Plot tool;
 	TString variable, cutsOption;
 	Int_t nBins, nInputs;
@@ -77,7 +74,7 @@ void FourPi::PlotHistogram() {
 //////////////////////////////////////////
 	// Plot Cuts Flow for 4 pion
 	tmpHist = (TH1F*)data -> Get("AnalysisFlow2");
-	TString Labels2[] = { TString("All"), TString("CPT trigger"), TString("El+InEl"), TString("4 TPC-TOF tracks"), 
+	TString Labels2[] = { TString("All"), TString("CPT trigger"), TString("El+Inel"), TString("4 TPC-TOF tracks"), 
 	                  TString("Same vertex"), TString("TotCharge 0"), TString("p_{T}^{miss} < 0.1 GeV/c"), TString(""),};
 	gPad->SetLogy();
 

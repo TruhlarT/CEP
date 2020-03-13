@@ -39,7 +39,7 @@ public:
 							Int_t lineColor = 4, Int_t lineStyle = 1, Float_t lineWidth = 1);
 
 
-	void DrawText(TH1* hist, Int_t state = 0, Bool_t pair = false, Float_t xMin = 0.68, Float_t yMin = 0.75, Float_t xMax = 0.9, Float_t yMax = 0.88, Int_t align = 22);
+	void DrawText(TH1* hist, Int_t state = 0, Bool_t pair = false, Float_t xMin = 0.68, Float_t yMin = 0.75, Float_t xMax = 0.9, Float_t yMax = 0.88, Int_t align = 22, Bool_t data = true);
 	// Int_t state = 0 unknown				
 	// Int_t state = 1 pions
 	// Int_t state = 2 kaons

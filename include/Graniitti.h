@@ -1,6 +1,5 @@
-#ifndef RPplots_h
-#define RPplots_h
-
+#ifndef Graniitti_h
+#define Graniitti_h
 
 #include "TFile.h"
 #include "TTree.h"
@@ -29,43 +28,39 @@
 #include "TCanvas.h"
 #include "TPaveText.h"
 #include "TLegend.h"
-#include "TEllipse.h"
+#include "TDirectory.h"
 
 using namespace std;
 
 class Plot;
 
-class RPplots{
+class Graniitti{
+
 
 public:
 
-	RPplots(TFile* dataInput, TFile* fileOut, TString outnam="/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/", bool text = false, TString inputCuts="");
-	~RPplots();
+	Graniitti(TFile* dataInput, TFile* graniittiInput, TFile* fileOut, TString outnam="/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/", bool text = false, TString inputCuts="");
+	~Graniitti();
 
 	void PlotHistogram();
-
+	void PlotComparison();
 
 	bool TEXT;
-
-	TH1F* histSignal;
-	TH1F* histBackground;
-	TH1F* tmpHist;
-
-	TH2F* tmp2DHist;
-	TH2F* hist2DSignal;
-	TH2F* hist2DBackground;
-
-
-	TLegend* leg1;
+	enum PARTICLES {Pion = 0, Kaon = 1, Proton = 2, nParticles};
 
 	TString output;
 	TString cuts, cutsWithPrefix;
 	TString dataLabel;
-
+	
 	TFile* data;
-	TFile* fout;
+	TFile* graniitti;
+	TFile *fout;
+
+	TH1F* tmpHist;
+	TH1F* tmpHist2;
 
 };
+
 
 
 #endif

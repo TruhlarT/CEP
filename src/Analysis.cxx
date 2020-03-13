@@ -49,14 +49,17 @@
 #include "Plot.h"
 #include "FourPi.h"
 #include "RPplots.h"
+#include "Graniitti.h"
 
 using namespace std;
 
 enum PARTICLES {Pion = 0, Kaon = 1, Proton = 2, nParticles};
-enum COMBINATIONS {ElInEl = 0, El = 1, InEl = 2, nCombination};
+enum COMBINATIONS {ElInel = 0, El = 1, Inel = 2, nCombination};
+enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
 
 TString particleLables[nParticles] = { TString("Pion"), TString("Kaon"), TString("Proton")};
-TString combinationLabel[nCombination] = { TString("El+InEl"), TString("El"), TString("InEl")};
+TString combinationLabel[nCombination] = { TString("El+Inel"), TString("El"), TString("Inel")};
+TString sideLabel[nSides] = { TString("East"), TString("West")};
 
 TFile* TPCeff;
 TFile* TOFeff;
@@ -68,15 +71,20 @@ TTree* treeBack;
 TH3D* hTOFeff[6]; // 0 = pi- 1 = K- 2 = pbar
 TH3D* hTPCeff[6]; // 3 = pi+ 4 = K+ 5 = p
 TH1D* hInvMassCorr[nParticles][2][3]; // 0 - signal, 1 - Background
-                                    //  - El + InEl, 1 - El, 2 - InEl 
+                                    //  - El + Inel, 1 - El, 2 - Inel 
 TH1D* hInvMassUncorr[nParticles][2][3]; // 0 - signal, 1 - Background
+TH1D* hPairRap[nParticles][2][3];
+TH1D* htSum[nParticles][2][3];
+TH1D* hphiRP[nParticles][2][3];
 
 TH2D* hMomentum[nParticles];
 TH2D* hTransMomentum[nParticles];
 
+Double_t t[nSides];
+Double_t phiRP[nSides];
 Double_t chiPair[nParticles]; 
 Double_t invMass[nParticles];
-Double_t mSquared;
+Double_t mSquared, pairRapidity;
 Double_t momentum[4];
 Double_t transMomentum[4];
 Double_t charge[4];
@@ -91,6 +99,8 @@ Double_t Phi[4];
 
 Bool_t fourPiState;
 Bool_t elastic;
+
+Double_t radian = 57.2957795;
 
 void Init();
 void ConnectInput(TTree* tree);
@@ -114,10 +124,10 @@ int main(int argc, char** argv) {
 	const string& DataSet = argv[1];
 	TString dataName = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/" + DataSet + ".root";
 	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/" + DataSet + "/";
-	
+	TString granInput = "/home/truhlar/Downloads/graniitti/output/Graniitti.root";
 
-	TString cutsOption[] = { TString("vertexZ<80 && vertexZ > -80"), TString("NhitsFit1 >=25 && NhitsFit0 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx0 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ0 < 1 && DcaZ0 > -1"), TString("DcaXY1 < 1.5 && DcaXY0 < 1.5"), TString("Eta1 > -0.7 && Eta1 < 0.7 && Eta0 > -0.7 && Eta0 < 0.7"), TString("!fourPiState")};
-	TString cutsLabels[] = { TString("|z_{vtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"), TString("|DCA(z)| < 1 cm"), TString("DCA(XY) < 1.5 cm"), TString("|#eta| < 0.7"), TString("!fourPiState")  };
+	TString cutsOption[] = { TString("vertexZ<80 && vertexZ > -80"), TString("NhitsFit1 >=25 && NhitsFit0 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx0 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ0 < 1 && DcaZ0 > -1"), TString("DcaXY1 < 1.5 && DcaXY0 < 1.5"), TString("Eta1 > -0.7 && Eta1 < 0.7 && Eta0 > -0.7 && Eta0 < 0.7"), TString(" tEast < -0.12 && tWest < -0.12 && tEast > -1.0  && tWest > -1.0"), TString("!fourPiState")};
+	TString cutsLabels[] = { TString("|z_{vtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"), TString("|DCA(z)| < 1 cm"), TString("DCA(XY) < 1.5 cm"), TString("|#eta| < 0.7"), TString("-1.0 < t < - 0.23"), TString("!fourPiState")  };
 
 	TFile* data = TFile::Open(dataName, "read");
 	if (!data){
@@ -156,19 +166,33 @@ int main(int argc, char** argv) {
         hTOFeff[i] = (TH3D*)TOFeff -> Get(Form("hTOFEffiCD%i12",i)); 
     }
 
+    TFile* graniitti = TFile::Open(granInput, "read");
+    if (!graniitti){
+        cout<<"Error: cannot open: "<<granInput<<endl;
+        return 6;
+    }
+
+
 	fout = new TFile(output +"StRP.root","RECREATE");
 
 	Plot tool;
 
+    gStyle->SetLineWidth(2);      //axis line
+    gStyle->SetFrameLineWidth(2); //frame line
+    gStyle->SetOptStat(0);
 //////////////////////////////////////////////////////////////////////
 //					No cuts applied 
 //////////////////////////////////////////////////////////////////////
+
+    fout->mkdir("Graniitti")->cd();
+    Graniitti granPlots(data, graniitti, fout, output, showText);
+    granPlots.PlotHistogram();
 	
     fout->mkdir("BasicPlots")->cd();
 	BasicPlots Plots(data, fout, output, showText);
 	Plots.PlotHistogram();
 
-    TDirectory* curDir = fout->mkdir("El+InEl");
+    TDirectory* curDir = fout->mkdir("El+Inel");
     curDir->cd();
     TString usedCuts = "";
     for (int i = 0; i < nCombination; ++i)
@@ -178,9 +202,9 @@ int main(int argc, char** argv) {
             curDir = fout->mkdir("El");
             curDir->cd();
             usedCuts = "elastic";
-        }else if( i == InEl)
+        }else if( i == Inel)
         {
-            curDir = fout->mkdir("InEl");
+            curDir = fout->mkdir("Inel");
             curDir->cd();
             usedCuts = "!elastic";
         }
@@ -218,7 +242,7 @@ int main(int argc, char** argv) {
 	gStyle->SetLineWidth(2);      //axis line
 	gStyle->SetFrameLineWidth(2); //frame line
 
-	TH1F* hCutsFlow = new TH1F("cuts", "cuts", size, 0, size-1);
+	TH1F* hCutsFlow = new TH1F("cuts", "cuts", size+1, 0, size);
 	
 	tree->Draw("invMassPion>>invMassPionSignal");
 	TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
@@ -269,7 +293,7 @@ int main(int argc, char** argv) {
 
     TDirectory* goldenDir = fout->mkdir("GoldenEvents");
     goldenDir->cd();
-    TDirectory* currentDir = goldenDir->mkdir("El+InEl");
+    TDirectory* currentDir = goldenDir->mkdir("El+Inel");
     currentDir->cd();
 
     usedCuts = cuts;
@@ -280,9 +304,9 @@ int main(int argc, char** argv) {
             currentDir = goldenDir->mkdir("El");
             currentDir->cd();
             usedCuts = cuts + "&& elastic";
-        }else if( i == InEl)
+        }else if( i == Inel)
         {
-            currentDir = goldenDir->mkdir("InEl");
+            currentDir = goldenDir->mkdir("Inel");
             currentDir->cd();
             usedCuts = cuts + "&& !elastic";
         }
@@ -386,16 +410,16 @@ int main(int argc, char** argv) {
 
 
 
-    TCanvas *cCanvas2D = new TCanvas("cCanvas2D","cCanvas2D",800,700);
-    gPad->SetMargin(0.09,0.13,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
-    gStyle->SetPalette(1);
-    for (int i = 0; i < nParticles; ++i)
-    {
-        hMomentum[i]->Draw("colz");
-        cCanvas2D->Write("momentum" + particleLables[i]);  
-        hTransMomentum[i]->Draw("colz");
-        cCanvas2D->Write("transMomentum" + particleLables[i]);
-    }
+//    TCanvas *cCanvas2D = new TCanvas("cCanvas2D","cCanvas2D",800,700);
+//    gPad->SetMargin(0.09,0.13,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+//    gStyle->SetPalette(1);
+//    for (int i = 0; i < nParticles; ++i)
+//    {
+//        hMomentum[i]->Draw("colz");
+//        cCanvas2D->Write("momentum" + particleLables[i]);  
+//        hTransMomentum[i]->Draw("colz");
+//        cCanvas2D->Write("transMomentum" + particleLables[i]);
+//    }
 
 
 //////////////////////////////////////////////////////////////////////
@@ -440,6 +464,18 @@ void Init()
         hInvMassUncorr[0][1][i]  = new TH1D("uncorrInvMass" + particleLables[0] + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + particleLables[0] + combinationLabel[i], 64, 0.3, 3.5);
         hInvMassUncorr[1][1][i]  = new TH1D("uncorrInvMass" + particleLables[1] + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + particleLables[1] + combinationLabel[i], 44, 0.8, 3);
         hInvMassUncorr[2][1][i]  = new TH1D("uncorrInvMass" + particleLables[2] + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + particleLables[2] + combinationLabel[i], 24, 1.6, 4);
+    
+        for (int iPart = 0; iPart < nParticles; ++iPart)
+        {    
+            hPairRap[iPart][0][i] = new TH1D("pairRap" + particleLables[iPart] + combinationLabel[i] + "Sig", "pairRapidity" + particleLables[iPart] + combinationLabel[i], 35,-0.7,1.1);
+            hPairRap[iPart][1][i] = new TH1D("pairRap" + particleLables[iPart] + combinationLabel[i] + "Bcg", "pairRapidity" + particleLables[iPart] + combinationLabel[i], 35,-0.7,1.1);
+
+            htSum[iPart][0][i] = new TH1D("tSum" + particleLables[iPart] + combinationLabel[i] + "Sig", "tSum" + particleLables[iPart] + combinationLabel[i], 100,0.0,4.0);
+            htSum[iPart][1][i] = new TH1D("tSum" + particleLables[iPart] + combinationLabel[i] + "Bcg", "tSum" + particleLables[iPart] + combinationLabel[i], 100,0.0,4.0);
+
+            hphiRP[iPart][0][i] = new TH1D("phiRP" + particleLables[iPart] + combinationLabel[i] + "Sig", "phiRP" + particleLables[iPart] + combinationLabel[i], 100,0.0,350);
+            hphiRP[iPart][1][i] = new TH1D("phiRP" + particleLables[iPart] + combinationLabel[i] + "Bcg", "phiRP" + particleLables[iPart] + combinationLabel[i], 100,0.0,350);
+        }
     }
 
 
@@ -455,13 +491,19 @@ void ConnectInput(TTree* tree)
     tree->SetBranchAddress("nSigTrk1Pion", &nSigmaTPC[Pion][0]);
     tree->SetBranchAddress("nSigTrk2Pion", &nSigmaTPC[Pion][1]);
     tree->SetBranchAddress("mSquared", &mSquared);
+    tree->SetBranchAddress("pairRapidity", &pairRapidity);
     for (int iPart = 0; iPart < nParticles; ++iPart)
     {
         tree->SetBranchAddress("invMass" + particleLables[iPart], &invMass[iPart]);
         tree->SetBranchAddress("chiPair" + particleLables[iPart], &chiPair[iPart]);
     }
 
-
+// RP track info  
+    for (int i = 0; i < nSides; ++i)
+    {
+        tree->SetBranchAddress("t" + sideLabel[i], &t[i]);
+        tree->SetBranchAddress("phiRp" + sideLabel[i], &phiRP[i]);
+    }
 // Vertex info
     tree->SetBranchAddress("vertexZ", &vertexesZ[0]);
 
@@ -490,7 +532,7 @@ void Make(int signal)
     double effTotal, effTPC, effTOF;
     unsigned int PID;
    // cout<< vertexesZ[0] <<" "<< NhitsFit[0]<<" "<<NhitsFit[1] <<" "<< NhitsDEdx[0]<<" "<<NhitsDEdx[1] <<" "<<DcaZ[0] <<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1] <<" "<< !fourPiState<<endl; 
-    if(vertexesZ[0] < 80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7  && !fourPiState)
+    if(vertexesZ[0] < 80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7 &&  t[0] < -0.12 && t[1] < -0.12 && t[0] > -1.0  && t[1] > -1.0 && !fourPiState)
     {
         int combination = 2;
         if(elastic)
@@ -516,6 +558,12 @@ void Make(int signal)
             {
                 hInvMassUncorr[Proton][signal][0]->Fill(invMass[Proton]);
                 hInvMassUncorr[Proton][signal][combination]->Fill(invMass[Proton]);
+                hPairRap[Proton][signal][0]->Fill(pairRapidity);
+                hPairRap[Proton][signal][combination]->Fill(pairRapidity);
+                htSum[Proton][signal][0]->Fill(TMath::Abs(t[0] + t[1]));
+                htSum[Proton][signal][combination]->Fill(TMath::Abs(t[0] + t[1]));
+                hphiRP[Proton][signal][0]->Fill(TMath::Abs(phiRP[0]*radian - phiRP[1]*radian));
+                hphiRP[Proton][signal][combination]->Fill(TMath::Abs(phiRP[0]*radian - phiRP[1]*radian));
             }
 
         }
@@ -539,6 +587,12 @@ void Make(int signal)
             {
                 hInvMassUncorr[Kaon][signal][0]->Fill(invMass[Kaon]);
                 hInvMassUncorr[Kaon][signal][combination]->Fill(invMass[Kaon]);
+                hPairRap[Kaon][signal][0]->Fill(pairRapidity);
+                hPairRap[Kaon][signal][combination]->Fill(pairRapidity);
+                htSum[Kaon][signal][0]->Fill(TMath::Abs(t[0] + t[1]));
+                htSum[Kaon][signal][combination]->Fill(TMath::Abs(t[0] + t[1]));
+                hphiRP[Kaon][signal][0]->Fill(TMath::Abs(phiRP[0]*radian - phiRP[1]*radian));
+                hphiRP[Kaon][signal][combination]->Fill(TMath::Abs(phiRP[0]*radian - phiRP[1]*radian));
             }
         }
         else if( chiPair[Pion] < 12) // it is... pion!
@@ -564,6 +618,12 @@ void Make(int signal)
             {
                 hInvMassUncorr[Pion][signal][0]->Fill(invMass[Pion]);
                 hInvMassUncorr[Pion][signal][combination]->Fill(invMass[Pion]);
+                hPairRap[Pion][signal][0]->Fill(pairRapidity);
+                hPairRap[Pion][signal][combination]->Fill(pairRapidity);
+                htSum[Pion][signal][0]->Fill(TMath::Abs(t[0] + t[1]));
+                htSum[Pion][signal][combination]->Fill(TMath::Abs(t[0] + t[1]));
+                hphiRP[Pion][signal][0]->Fill(TMath::Abs(phiRP[0]*radian - phiRP[1]*radian));
+                hphiRP[Pion][signal][combination]->Fill(TMath::Abs(phiRP[0]*radian - phiRP[1]*radian));
             }
 
         }
@@ -611,8 +671,15 @@ void PlotMoneyPlot()
         { 
             for (int comb = 0; comb < nCombination; ++comb)
             { 
-                hist = hInvMassUncorr[i][0][comb];
-                histCompare = hInvMassUncorr[i][1][comb];
+                if(corrIndex == 0)
+                {
+                    hist = hInvMassUncorr[i][0][comb];
+                    histCompare = hInvMassUncorr[i][1][comb];
+                }else
+                {
+                    hist = hInvMassCorr[i][0][comb];
+                    histCompare = hInvMassCorr[i][1][comb];
+                }
                 hist->SetTitle(" ; m(" + stateLabel[i] + ") [GeV/c^{2}]; " + yLabel);
                 tool.SetGraphStyle(hist,4,20,1,4,1,1,0.9,1.3);
                 tool.SetMarkerStyle(hist);
@@ -630,6 +697,72 @@ void PlotMoneyPlot()
 
                 newCanvas->Update();
                 newCanvas->Write(name + particleLables[i] + combinationLabel[comb]);
+
+                if(corrIndex == 0)
+                {
+                    hist = hPairRap[i][0][comb];
+                    histCompare = hPairRap[i][1][comb];
+
+                    hist->SetTitle(" ; y(" + stateLabel[i] + "); " + yLabel);
+                    tool.SetGraphStyle(hist,4,20,1,4,1,1,0.9,1.3);
+                    tool.SetMarkerStyle(hist);
+                    hist->Draw("E");
+                    tool.DrawText(hist, i+1, true);
+                    tool.DrawTextStar(hist, 1);
+                    tool.SetMarkerStyle(histCompare,2,20,1,2,1,1);
+                    histCompare->Draw("ESAME");
+
+                    leg1 = new TLegend(0.58, 0.64, 0.78, 0.74);
+                    tool.SetLegendStyle(leg1);
+                    leg1->AddEntry(hist, combinationLabel[comb] + " (unlike-sign pairs)","p");
+                    leg1->AddEntry(histCompare, combinationLabel[comb] + " (like-sign pairs)","p");
+                    leg1->Draw("same");
+
+                    newCanvas->Update();
+                    newCanvas->Write("pairRap" + particleLables[i] + combinationLabel[comb]);                    
+                    /////////////////////////////////////////////////////////////////////////
+                    hist = hphiRP[i][0][comb];
+                    histCompare = hphiRP[i][1][comb];
+
+                    hist->SetTitle(" ; |#phi_{1} - #phi_{2}| [deg]; " + yLabel);
+                    tool.SetGraphStyle(hist,4,20,1,4,1,1,0.9,1.3);
+                    tool.SetMarkerStyle(hist);
+                    hist->Draw("E");
+                    tool.DrawText(hist, i+1, true);
+                    tool.DrawTextStar(hist, 1);
+                    tool.SetMarkerStyle(histCompare,2,20,1,2,1,1);
+                    histCompare->Draw("ESAME");
+
+                    leg1 = new TLegend(0.58, 0.64, 0.78, 0.74);
+                    tool.SetLegendStyle(leg1);
+                    leg1->AddEntry(hist, combinationLabel[comb] + " (unlike-sign pairs)","p");
+                    leg1->AddEntry(histCompare, combinationLabel[comb] + " (like-sign pairs)","p");
+                    leg1->Draw("same");
+
+                    newCanvas->Update();
+                    newCanvas->Write("phiRP" + particleLables[i] + combinationLabel[comb]); 
+                    /////////////////////////////////////////////////////////////////////////
+                    hist = htSum[i][0][comb];
+                    histCompare = htSum[i][1][comb];
+
+                    hist->SetTitle(" ; |t_{1} + t_{2}| [GeV^{2}]; " + yLabel);
+                    tool.SetGraphStyle(hist,4,20,1,4,1,1,0.9,1.3);
+                    tool.SetMarkerStyle(hist);
+                    hist->Draw("E");
+                    tool.DrawText(hist, i+1, true);
+                    tool.DrawTextStar(hist, 1);
+                    tool.SetMarkerStyle(histCompare,2,20,1,2,1,1);
+                    histCompare->Draw("ESAME");
+
+                    leg1 = new TLegend(0.58, 0.64, 0.78, 0.74);
+                    tool.SetLegendStyle(leg1);
+                    leg1->AddEntry(hist, combinationLabel[comb] + " (unlike-sign pairs)","p");
+                    leg1->AddEntry(histCompare, combinationLabel[comb] + " (like-sign pairs)","p");
+                    leg1->Draw("same");
+
+                    newCanvas->Update();
+                    newCanvas->Write("tSum" + particleLables[i] + combinationLabel[comb]); 
+                }
             }
         }
     }

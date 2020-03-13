@@ -8,11 +8,32 @@ RPplots::RPplots(TFile* dataInput, TFile* fileOut, TString outnam, bool text, TS
 	//constructor
 	output = outnam;
 	cuts = inputCuts;
+    if(inputCuts != "")
+    {
+        cutsWithPrefix = " && " + inputCuts;
+    }
+    else
+    {
+        cutsWithPrefix="";
+    }
 
 	data = dataInput;
 	fout = fileOut;
 
 	TEXT = text;
+
+    if(inputCuts.Contains("!elastic"))
+    {
+        dataLabel = "Inel";
+    }
+    else if(inputCuts.Contains("elastic"))
+    {
+        dataLabel = "El";
+    }
+    else
+    {
+        dataLabel = "El+Inel";
+    }
 
 	cout << "RPplots::RPplots() called" << endl;
 }//RPplots
@@ -57,15 +78,58 @@ void RPplots::PlotHistogram() {
     gStyle->SetLineWidth(2);      //axis line
     gStyle->SetFrameLineWidth(2); //frame line
 
-	tree->UseCurrentStyle();
-	treeBack->UseCurrentStyle();
-
 	Plot tool;
 	TString variable, variable2, cutsOption;
 	Int_t nBins, nBins2, nInputs;
 	Float_t min, max, min2, max2;
 
 //////////////////////////////////////////////////
+// Plot t 
+    variable = "t";
+    nBins = 100;
+    min = -2.0;
+    max = 0.0;
+    treeBack->Draw(variable +"East>>" + variable +"Bcg1(" + nBins + "," + min + "," + max + ")",cuts);
+    histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg1");
+    treeBack->Draw(variable +"West>>" + variable +"Bcg2(" + nBins + "," + min + "," + max + ")",cuts);
+    tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Bcg2");
+    histBackground->Add(tmpHist);
+    tool.SetMarkerStyle(histBackground,2,20,1,2,1,1);
+
+
+    tree->Draw(variable +"East>>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",cuts);
+    histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");
+    tree->Draw(variable +"West>>" + variable +"Sig2(" + nBins + "," + min + "," + max + ")",cuts);
+    tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig2");
+    histSignal->Add(tmpHist);   
+    histSignal->SetTitle(" ; t [GeV^{2}]; Number of tracks");
+    tool.SetGraphStyle(histSignal,4,20,1,4,1,1,0.9,1.4);
+    tool.SetMarkerStyle(histSignal);
+    histSignal->Draw("E");
+    tool.DrawText(histSignal,0,false,0.15,0.74,0.28,0.9,12);
+    tool.DrawTextStar(histSignal,3);
+    histBackground->Draw("ESAME");
+
+    if(TEXT){
+        TLine *left4 = new TLine(-1.0,0,-1.0,tmpHist->GetMaximum()/2);
+        tool.SetLineStyle(left4,10,1,4);
+        left4->Draw("same");
+
+        TLine *left5 = new TLine(-0.12,0,-0.12  ,tmpHist->GetMaximum()/2);
+        tool.SetLineStyle(left5,10,1,4);
+        left5->Draw("same");     
+    }
+                                
+    TLegend* leg1 = new TLegend(0.15, 0.65, 0.28, 0.74);
+    tool.SetLegendStyle(leg1);
+    leg1->AddEntry(histSignal,dataLabel + " (unlike-sign pairs)","p");
+    leg1->AddEntry(histBackground,dataLabel + " (like-sign pairs)","p");
+    leg1->Draw("same");
+
+
+    cCanvas->Update();
+    cCanvas->Write(variable);
+//////////////////////////////////////
 // Plot t 
     variable = "t";
     nBins = 100;
@@ -77,7 +141,7 @@ void RPplots::PlotHistogram() {
 
     tree->Draw("TMath::Abs( " + variable +"East + " + variable +"West)>>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",cuts);
     histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");   
-    histSignal->SetTitle(" ; | t_{1} + t_{2} | ; Number of tracks");
+    histSignal->SetTitle(" ; |t_{1} + t_{2}| [GeV^{2}]; Number of tracks");
     tool.SetGraphStyle(histSignal,4,20,1,4,1,1,0.9,1.4);
     tool.SetMarkerStyle(histSignal);
     histSignal->Draw("E");
@@ -86,16 +150,53 @@ void RPplots::PlotHistogram() {
     histBackground->Draw("ESAME");
 
 
-    TLegend* leg1 = new TLegend(0.6, 0.65, 0.78, 0.74);
+    leg1 = new TLegend(0.6, 0.65, 0.78, 0.74);
     tool.SetLegendStyle(leg1);
-    leg1->AddEntry(histSignal,"In+El (unlike-sign pairs)","p");
-    leg1->AddEntry(histBackground,"In+El (like-sign pairs)","p");
+    leg1->AddEntry(histSignal,dataLabel + " (unlike-sign pairs)","p");
+    leg1->AddEntry(histBackground,dataLabel + " (like-sign pairs)","p");
     leg1->Draw("same");
 
 
     cCanvas->Update();
-    cCanvas->Write(variable);    
+    cCanvas->Write(variable + "Sum");    
 //////////////////////////////////////////////////
+// Plot t 
+    variable = "phiRp";
+    nBins = 100;
+    min = -3.0;
+    max = 4.5;
+    treeBack->Draw(variable +"East>>" + variable +"Bcg1(" + nBins + "," + min + "," + max + ")",cuts);
+    histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg1");
+    treeBack->Draw(variable +"West>>" + variable +"Bcg2(" + nBins + "," + min + "," + max + ")",cuts);
+    tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Bcg2");
+    histBackground->Add(tmpHist);
+    tool.SetMarkerStyle(histBackground,2,20,1,2,1,1);
+
+
+    tree->Draw(variable +"East>>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",cuts);
+    histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");
+    tree->Draw(variable +"West>>" + variable +"Sig2(" + nBins + "," + min + "," + max + ")",cuts);
+    tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig2");
+    histSignal->Add(tmpHist);   
+    histSignal->SetTitle(" ; #phi [rad]; Number of tracks");
+    tool.SetGraphStyle(histSignal,4,20,1,4,1,1,0.9,1.4);
+    tool.SetMarkerStyle(histSignal);
+    histSignal->Draw("E");
+    tool.DrawText(histSignal,0,false,0.68, 0.75, 0.9, 0.88);
+    tool.DrawTextStar(histSignal,2);
+    histBackground->Draw("ESAME");
+
+                                
+    leg1 = new TLegend(0.15, 0.88, 0.28, 0.97);
+    tool.SetLegendStyle(leg1);
+    leg1->AddEntry(histSignal,dataLabel + " (unlike-sign pairs)","p");
+    leg1->AddEntry(histBackground,dataLabel + " (like-sign pairs)","p");
+    leg1->Draw("same");
+
+
+    cCanvas->Update();
+    cCanvas->Write(variable);
+/////////////////////////////////////////////
 // Plot phi 
     variable = "phiRp";
     nBins = 100;
@@ -107,7 +208,7 @@ void RPplots::PlotHistogram() {
 
     tree->Draw("TMath::Abs( " + variable +"East*57.2957795 - " + variable +"West*57.2957795)>>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",cuts);
     histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");   
-    histSignal->SetTitle(" ; | #phi_{1} - #phi_{2} | ; Number of tracks");
+    histSignal->SetTitle(" ; |#phi_{1} - #phi_{2}| [deg]; Number of tracks");
     tool.SetGraphStyle(histSignal,4,20,1,4,1,1,0.9,1.4);
     tool.SetMarkerStyle(histSignal);
     histSignal->Draw("E");
@@ -118,13 +219,13 @@ void RPplots::PlotHistogram() {
 
     leg1 = new TLegend(0.6, 0.65, 0.78, 0.74);
     tool.SetLegendStyle(leg1);
-    leg1->AddEntry(histSignal,"In+El (unlike-sign pairs)","p");
-    leg1->AddEntry(histBackground,"In+El (like-sign pairs)","p");
+    leg1->AddEntry(histSignal,dataLabel + " (unlike-sign pairs)","p");
+    leg1->AddEntry(histBackground,dataLabel + " (like-sign pairs)","p");
     leg1->Draw("same");
 
 
     cCanvas->Update();
-    cCanvas->Write(variable); 
+    cCanvas->Write("Delta" + variable); 
 //////////////////////////////////////////////////
     TCanvas *cCanvas2D = new TCanvas("cCanvas2D","cCanvas2D",800,700);
     gPad->SetMargin(0.09,0.13,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
