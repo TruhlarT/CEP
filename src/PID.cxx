@@ -415,7 +415,7 @@ for(int i = 0; i < 3; ++i){
 
 	variable = "chiPair" + particleID[i];
 	variable2 = "mSquared";
-	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,16,100,-0.5,1.5)",cuts,"colz");
+	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,16,100,-0.5,2.5)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "Sig");
 	tmp2DHist->SetTitle(" ; #chi^{2}_{dE/dx}(" + particleSign[i] +"); m^{2}_{TOF} [GeV^{2}/c^{4}]");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,1.0);

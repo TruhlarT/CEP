@@ -126,8 +126,8 @@ int main(int argc, char** argv) {
 	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/" + DataSet + "/";
 	TString granInput = "/home/truhlar/Downloads/graniitti/output/Graniitti.root";
 
-	TString cutsOption[] = { TString("vertexZ<80 && vertexZ > -80"), TString("NhitsFit1 >=25 && NhitsFit0 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx0 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ0 < 1 && DcaZ0 > -1"), TString("DcaXY1 < 1.5 && DcaXY0 < 1.5"), TString("Eta1 > -0.7 && Eta1 < 0.7 && Eta0 > -0.7 && Eta0 < 0.7"), TString(" tEast < -0.12 && tWest < -0.12 && tEast > -1.0  && tWest > -1.0"), TString("!fourPiState")};
-	TString cutsLabels[] = { TString("|z_{vtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"), TString("|DCA(z)| < 1 cm"), TString("DCA(XY) < 1.5 cm"), TString("|#eta| < 0.7"), TString("-1.0 < t < - 0.23"), TString("!fourPiState")  };
+	TString cutsOption[] = {TString("!fourPiState"), TString("vertexZ<80 && vertexZ > -80"), TString("NhitsFit1 >=25 && NhitsFit0 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx0 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ0 < 1 && DcaZ0 > -1"), TString("DcaXY1 < 1.5 && DcaXY0 < 1.5"), TString("Eta1 > -0.7 && Eta1 < 0.7 && Eta0 > -0.7 && Eta0 < 0.7"), TString(" tEast < -0.12 && tWest < -0.12 && tEast > -1.0  && tWest > -1.0")};
+	TString cutsLabels[] = {TString("!fourPiState"), TString("|z_{vtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"), TString("|DCA(z)| < 1 cm"), TString("DCA(XY) < 1.5 cm"), TString("|#eta| < 0.7"), TString("-1.0 < t < - 0.23")  };
 
 	TFile* data = TFile::Open(dataName, "read");
 	if (!data){
@@ -255,10 +255,10 @@ int main(int argc, char** argv) {
         cout<<"Applying cuts: "<<cuts<<endl;
 		tree->Draw("invMassPion>>invMassPionSignal",cuts);
 		TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
-		if(i != size -1)
+		if(i != 0)
         {
-            hCutsFlow->GetXaxis()->SetBinLabel(i+2, cutsLabels[i]);
-            hCutsFlow->SetBinContent(i+2,tmpHist->GetEntries());
+            hCutsFlow->GetXaxis()->SetBinLabel(i+1, cutsLabels[i]);
+            hCutsFlow->SetBinContent(i+1,tmpHist->GetEntries());
             cout<<"Number of entries: "<<tmpHist->GetEntries()<<endl;
         }
 
