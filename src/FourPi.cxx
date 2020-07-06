@@ -24,7 +24,7 @@ FourPi::FourPi(TFile* dataInput, TFile* fileOut, TString outnam, bool text, TStr
 
 	TEXT = text;
 
-	cout << "trackQuality::trackQuality() called" << endl;
+	cout << "FourPi::FourPi() called" << endl;
 }//FourPi
 
 //_____________________________________________________________________________
@@ -73,9 +73,8 @@ void FourPi::PlotHistogram() {
 	Float_t min, max;
 //////////////////////////////////////////
 	// Plot Cuts Flow for 4 pion
-	tmpHist = (TH1F*)data -> Get("AnalysisFlow2");
-	TString Labels2[] = { TString("All"), TString("CPT trigger"), TString("El+Inel"), TString("4 TPC-TOF tracks"), 
-	                  TString("Same vertex"), TString("TotCharge 0"), TString("p_{T}^{miss} < 0.1 GeV/c"), TString(""),};
+/*	tmpHist = (TH1F*)data -> Get("AnalysisFlow2");
+	TString Labels2[] = { TString("All"), TString("4 TPC-TOF tracks"), TString(""),};
 	gPad->SetLogy();
 
 	TH1F* hCutsFlow2 = new TH1F("cuts2", "cuts", 8, 1, 9);
@@ -108,17 +107,21 @@ void FourPi::PlotHistogram() {
 	
 	cCanvas->Update();
 	cCanvas->Write("CutsFlow");
-	gPad->SetLogy(0);
+	gPad->SetLogy(0); */
 //////////////////////////////////////////////////////////////
-	TH1F* hMissingPtTPC = (TH1F*)data -> Get("All/MissingPt_TPC2t_Combi4part");
-	TH1F* hMissingPtQ0 = (TH1F*)data -> Get("All/MissingPt_Q0_Combi4part");
-	TH1F* hMissingPtExc = (TH1F*)data -> Get("All/MissingPt_Excl_Combi4part");
+/*	cout<<"kuk:   "<<"1"<<endl;
+	TH1F* hMissingPtTPC = (TH1F*)data -> Get("MissingPt_TPC2t_Combi4part");
+	TH1F* hMissingPtQ0 = (TH1F*)data -> Get("MissingPt_Q0_Combi4part");
+	TH1F* hMissingPtExc = (TH1F*)data -> Get("MissingPt_Excl_Combi4part");
+	cout<<"kuk:   "<<"1a"<<endl;
 	gPad->SetLogy();
+	cout<<"kuk:   "<<"1b  "<<hMissingPtTPC <<endl;
 	hMissingPtTPC->SetStats(0);
+	cout<<"kuk:   "<<"1c"<<endl;
 	hMissingPtTPC->SetTitle(" ; p_{T}^{miss} [GeV/c];Number of events");
 	tool.SetGraphStyle(hMissingPtTPC);
 	hMissingPtTPC->SetMinimum(10);
-
+cout<<"kuk:   "<<"2"<<endl;
 	hMissingPtTPC->Draw();	
 	hMissingPtQ0->SetFillColor(4);
 	hMissingPtQ0->SetLineColor(4);
@@ -130,7 +133,7 @@ void FourPi::PlotHistogram() {
 	hMissingPtExc->Draw("same");
 	cCanvas->cd();
 
-
+cout<<"kuk:   "<<"3"<<endl;
 	leg1 = new TLegend(0.3,0.8,0.5,0.95);
 	tool.SetLegendStyle(leg1);
 	leg1 -> AddEntry(hMissingPtTPC, "4 TPC-TOF tracks", "l");
@@ -158,6 +161,7 @@ void FourPi::PlotHistogram() {
 	cCanvas->Update();
 	cCanvas-> Write("hMissingPt");
 	gPad->SetLogy(0);
+*/
 ///////////////////////////////////////////////////////////////
 ///////////// Plot Inv Mass Inelastic + Elastic
 	variable = "invMassPion";
@@ -180,7 +184,7 @@ void FourPi::PlotHistogram() {
 	tool.DrawTextStar(histSignal);
 	histBackground->Draw("ESAME");
 
-	leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
+	leg1 = new TLegend(0.58, 0.63, 0.78, 0.73);
 	tool.SetLegendStyle(leg1);
 	leg1->AddEntry(histSignal,"In+El (unlike-sign pairs)","p");
 	leg1->AddEntry(histBackground,"In+El (like-sign pairs)","p");
@@ -224,7 +228,7 @@ void FourPi::PlotHistogram() {
 	tool.DrawTextStar(histSignal);
 	histBackground->Draw("ESAME");
 
-	leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
+	leg1 = new TLegend(0.58, 0.63, 0.78, 0.73);
 	tool.SetLegendStyle(leg1);
 	leg1->AddEntry(histSignal,"In (unlike-sign pairs)","p");
 	leg1->AddEntry(histBackground,"In (like-sign pairs)","p");
@@ -254,7 +258,7 @@ void FourPi::PlotHistogram() {
 	tool.DrawTextStar(histSignal);
 	histBackground->Draw("ESAME");
 
-	leg1 = new TLegend(0.58, 0.7, 0.78, 0.8);
+	leg1 = new TLegend(0.58, 0.63, 0.78, 0.73);
 	tool.SetLegendStyle(leg1);
 	leg1->AddEntry(histSignal,"El (unlike-sign pairs)","p");
 	leg1->AddEntry(histBackground,"El (like-sign pairs)","p");
@@ -310,23 +314,22 @@ void FourPi::PlotHistogram() {
 	nBins = 100;
 	min = 0;
 	max = 3.5;
-
-	treeBack->Draw(variable + "0>>" + variable + "Bcg1(" + nBins + "," + min + "," + max + ")",cutsOption);
-	histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg1");
+	treeBack->Draw(variable + "0>>" + variable + "Bcg0(" + nBins + "," + min + "," + max + ")",cutsOption);
+	histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg0");
 	for(int i = 1; i < nInputs; ++i)
 	{	
-		treeBack->Draw(variable + i + ">>" + variable + "Bcg" + i + "(" + nBins + "," + min + "," + max + ")",cutsOption);
-		tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Bcg" + i);
+		treeBack->Draw(variable + Form("%i",i) + ">>" + variable + "Bcg" + Form("%i",i) + "(" + nBins + "," + min + "," + max + ")",cutsOption);
+		tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Bcg" + Form("%i",i));
 		histBackground->Add(tmpHist);
 	}
 	tool.SetMarkerStyle(histBackground,2,20,1,2,1,1);
 
-	tree->Draw(variable + "0>>" + variable + "Sig1(" + nBins + "," + min + "," + max + ")",cutsOption);
-	histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");
+	tree->Draw(variable + "0>>" + variable + "Sig0(" + nBins + "," + min + "," + max + ")",cutsOption);
+	histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig0");
 	for(int i = 1; i < nInputs; ++i)
 	{	
-		tree->Draw(variable + i + ">>" + variable + "Sig" + i + "(" + nBins + "," + min + "," + max + ")",cutsOption);
-		tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig" + i);
+		tree->Draw(variable + Form("%i",i) + ">>" + variable + "Sig" + Form("%i",i) + "(" + nBins + "," + min + "," + max + ")",cutsOption);
+		tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig" + Form("%i",i));
 		histSignal->Add(tmpHist);
 	}
 	histSignal->SetTitle(" ; DCA_{xy} [cm]; Number of tracks");
@@ -358,8 +361,8 @@ void FourPi::PlotHistogram() {
 	min = -1.5;
 	max = 1.5;
 
-	treeBack->Draw(variable + "0>>" + variable + "Bcg1(" + nBins + "," + min + "," + max + ")",cutsOption);
-	histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg1");
+	treeBack->Draw(variable + "0>>" + variable + "Bcg0(" + nBins + "," + min + "," + max + ")",cutsOption);
+	histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg0");
 	for(int i = 1; i < nInputs; ++i)
 	{	
 		treeBack->Draw(variable + i + ">>" + variable + "Bcg" + i + "(" + nBins + "," + min + "," + max + ")",cutsOption);
@@ -368,8 +371,8 @@ void FourPi::PlotHistogram() {
 	}
 	tool.SetMarkerStyle(histBackground,2,20,1,2,1,1);
 
-	tree->Draw(variable + "0>>" + variable + "Sig1(" + nBins + "," + min + "," + max + ")",cutsOption);
-	histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");
+	tree->Draw(variable + "0>>" + variable + "Sig0(" + nBins + "," + min + "," + max + ")",cutsOption);
+	histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig0");
 	for(int i = 1; i < nInputs; ++i)
 	{	
 		tree->Draw(variable + i + ">>" + variable + "Sig" + i + "(" + nBins + "," + min + "," + max + ")",cutsOption);
@@ -409,8 +412,8 @@ void FourPi::PlotHistogram() {
 	min = 0;
 	max = 60;
 
-	treeBack->Draw(variable + "0>>" + variable + "Bcg1(" + nBins + "," + min + "," + max + ")",cutsOption);
-	histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg1");
+	treeBack->Draw(variable + "0>>" + variable + "Bcg0(" + nBins + "," + min + "," + max + ")",cutsOption);
+	histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg0");
 	for(int i = 1; i < nInputs; ++i)
 	{	
 		treeBack->Draw(variable + i + ">>" + variable + "Bcg" + i + "(" + nBins + "," + min + "," + max + ")",cutsOption);
@@ -419,8 +422,8 @@ void FourPi::PlotHistogram() {
 	}
 	tool.SetMarkerStyle(histBackground,2,20,1,2,1,1);
 
-	tree->Draw(variable + "0>>" + variable + "Sig1(" + nBins + "," + min + "," + max + ")",cutsOption);
-	histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");
+	tree->Draw(variable + "0>>" + variable + "Sig0(" + nBins + "," + min + "," + max + ")",cutsOption);
+	histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig0");
 	for(int i = 1; i < nInputs; ++i)
 	{	
 		tree->Draw(variable + i + ">>" + variable + "Sig" + i + "(" + nBins + "," + min + "," + max + ")",cutsOption);
@@ -458,8 +461,8 @@ void FourPi::PlotHistogram() {
 	min = -2;
 	max = 3.5;
 
-	treeBack->Draw(variable + "0>>" + variable + "Bcg1(" + nBins + "," + min + "," + max + ")",cutsOption);
-	histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg1");
+	treeBack->Draw(variable + "0>>" + variable + "Bcg0(" + nBins + "," + min + "," + max + ")",cutsOption);
+	histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg0");
 	for(int i = 1; i < nInputs; ++i)
 	{	
 		treeBack->Draw(variable + i + ">>" + variable + "Bcg" + i + "(" + nBins + "," + min + "," + max + ")",cutsOption);
@@ -468,8 +471,8 @@ void FourPi::PlotHistogram() {
 	}
 	tool.SetMarkerStyle(histBackground,2,20,1,2,1,1);
 
-	tree->Draw(variable + "0>>" + variable + "Sig1(" + nBins + "," + min + "," + max + ")",cutsOption);
-	histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");
+	tree->Draw(variable + "0>>" + variable + "Sig0(" + nBins + "," + min + "," + max + ")",cutsOption);
+	histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig0");
 	for(int i = 1; i < nInputs; ++i)
 	{	
 		tree->Draw(variable + i + ">>" + variable + "Sig" + i + "(" + nBins + "," + min + "," + max + ")",cutsOption);

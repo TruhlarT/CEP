@@ -49,8 +49,8 @@ TFile* data;
 
 void savePlots()
 {
-	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/part1New/StRP.root";
-    TString path = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/part1New/Figs/";
+	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/ppRun17/StRP.root";
+    TString path = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/ppRun17/Figs/";
 
 	data = TFile::Open(input, "read");
 	if (!data)
@@ -135,13 +135,25 @@ void savePlots()
                     TString{"PairRapInelKaon"}, 
                     TString{"PairRapEl+InelProton"}, 
                     TString{"PairRapElProton"}, 
-                    TString{"PairRapInelProton"}
+                    TString{"PairRapInelProton"},
+                    TString{"pionEl+Inel"},
+                    TString{"pionEl"},
+                    TString{"pionInel"},
+                    TString{"kaonEl+Inel"},
+                    TString{"kaonEl"},
+                    TString{"kaonInel"},
+                    TString{"protonEl+Inel"},
+                    TString{"protonEl"},
+                    TString{"protonInel"},
+                    TString{"4piEl+Inel"},
+                    TString{"4piEl"},
+                    TString{"4piInel"}
                 };
     TString nameSource[] = {TString{"BasicPlots/CutsFlow"}, TString{"BasicPlots/hMissingPt"}, 
                     TString{"Cuts/CutsFlow"}, TString{"El+Inel/trackQuality/zVertex"}, 
-                    TString{"Cuts/trckQ_0/NhitsFit"}, TString{"Cuts/trckQ_1/NhitsDEdx"}, 
-                    TString{"Cuts/trckQ_2/DcaZ"}, TString{"Cuts/trckQ_3/DcaXY"}, 
-                    TString{"Cuts/trckQ_4/Eta"}, TString{"Cuts/trckQ_5/t"}, 
+                    TString{"Cuts/trckQ_1/NhitsFit"}, TString{"Cuts/trckQ_2/NhitsDEdx"}, 
+                    TString{"Cuts/trckQ_3/DcaZ"}, TString{"Cuts/trckQ_4/DcaXY"}, 
+                    TString{"Cuts/trckQ_5/Eta"}, TString{"Cuts/trckQ_6/t"}, 
                     TString{"GoldenEvents/El+Inel/PID/mSquaredVschiPairPion"}, 
                     TString{"GoldenEvents/El+Inel/PID/mSquared"}, 
                     TString{"MoneyPlots/Uncorrected/uncorrInvMassPionEl+Inel"}, 
@@ -234,7 +246,24 @@ void savePlots()
                     TString{"MoneyPlots/Uncorrected/pairRapProtonEl+Inel"},
                     TString{"MoneyPlots/Uncorrected/pairRapProtonEl"},
                     TString{"MoneyPlots/Uncorrected/pairRapProtonInel"},
+                    TString{"MoneyPlots/RatioPlots/compPlotPionEl+Inel"},
+                    TString{"MoneyPlots/RatioPlots/compPlotPionEl"},
+                    TString{"MoneyPlots/RatioPlots/compPlotPionInel"},
+                    TString{"MoneyPlots/RatioPlots/compPlotKaonEl+Inel"},
+                    TString{"MoneyPlots/RatioPlots/compPlotKaonEl"},
+                    TString{"MoneyPlots/RatioPlots/compPlotKaonInel"},
+                    TString{"MoneyPlots/RatioPlots/compPlotProtonEl+Inel"},
+                    TString{"MoneyPlots/RatioPlots/compPlotProtonEl"},
+                    TString{"MoneyPlots/RatioPlots/compPlotProtonInel"},
+                    TString{"MoneyPlots/RatioPlots/4piEl+Inel"},
+                    TString{"MoneyPlots/RatioPlots/4piEl"},
+                    TString{"MoneyPlots/RatioPlots/4piInel"}
                 }; 
+
+
+
+
+
 
     TCanvas *cCanvas; 
 

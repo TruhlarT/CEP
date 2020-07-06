@@ -63,16 +63,22 @@ TString sideLabel[nSides] = { TString("East"), TString("West")};
 
 TFile* TPCeff;
 TFile* TOFeff;
+TFile* myEff;
 TFile* fout;
+TFile* graniitti;
 
 TTree* tree;
 TTree* treeBack;
 
 TH3D* hTOFeff[6]; // 0 = pi- 1 = K- 2 = pbar
 TH3D* hTPCeff[6]; // 3 = pi+ 4 = K+ 5 = p
+TH3D* hMyEff[6]; 
 TH1D* hInvMassCorr[nParticles][2][3]; // 0 - signal, 1 - Background
                                     //  - El + Inel, 1 - El, 2 - Inel 
+TH1D* hInvMassCorrMy[nParticles][2][3]; // 0 - signal, 1 - Background
+                                    //  - El + Inel, 1 - El, 2 - Inel 
 TH1D* hInvMassUncorr[nParticles][2][3]; // 0 - signal, 1 - Background
+TH1D* hIntMass4Pi[2][2][3]; // un/corr, signal/Background, combination
 TH1D* hPairRap[nParticles][2][3];
 TH1D* htSum[nParticles][2][3];
 TH1D* hphiRP[nParticles][2][3];
@@ -126,8 +132,15 @@ int main(int argc, char** argv) {
 	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/" + DataSet + "/";
 	TString granInput = "/home/truhlar/Downloads/graniitti/output/Graniitti.root";
 
-	TString cutsOption[] = {TString("!fourPiState"), TString("vertexZ<80 && vertexZ > -80"), TString("NhitsFit1 >=25 && NhitsFit0 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx0 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ0 < 1 && DcaZ0 > -1"), TString("DcaXY1 < 1.5 && DcaXY0 < 1.5"), TString("Eta1 > -0.7 && Eta1 < 0.7 && Eta0 > -0.7 && Eta0 < 0.7"), TString(" tEast < -0.12 && tWest < -0.12 && tEast > -1.0  && tWest > -1.0")};
-	TString cutsLabels[] = {TString("!fourPiState"), TString("|z_{vtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"), TString("|DCA(z)| < 1 cm"), TString("DCA(XY) < 1.5 cm"), TString("|#eta| < 0.7"), TString("-1.0 < t < - 0.23")  };
+	TString cutsOption[] = {TString("!fourPiState"), TString("vertexZ<80 && vertexZ > -80"), 
+            TString("NhitsFit1 >=25 && NhitsFit0 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx0 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ0 < 1 && DcaZ0 > -1"), TString("DcaXY1 < 1.5 && DcaXY0 < 1.5"), 
+            TString("Eta1 > -0.7 && Eta1 < 0.7 && Eta0 > -0.7 && Eta0 < 0.7"), TString(" tEast < -0.12 && tWest < -0.12 && tEast > -1.0  && tWest > -1.0")};
+    TString cutsOption4pi[] = {TString("vertexZ<80 && vertexZ > -80"), TString("NhitsFit1 >=25 && NhitsFit0 >= 25"), 
+            TString("NhitsDEdx1 >= 15 && NhitsDEdx0 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ0 < 1 && DcaZ0 > -1"), TString("DcaXY1 < 1.5 && DcaXY0 < 1.5"), 
+            TString("Eta1 > -0.7 && Eta1 < 0.7 && Eta0 > -0.7 && Eta0 < 0.7"), TString(" tEast < -0.12 && tWest < -0.12 && tEast > -1.0  && tWest > -1.0"),
+            TString("NhitsFit3 >=25 && NhitsFit2 >= 25"), TString("NhitsDEdx3 >= 15 && NhitsDEdx2 >= 15"), 
+            TString("DcaZ3 < 1 && DcaZ3 > -1 && DcaZ2 < 1 && DcaZ2 > -1"), TString("DcaXY3 < 1.5 && DcaXY2 < 1.5"), TString("Eta3 > -0.7 && Eta3 < 0.7 && Eta2 > -0.7 && Eta2 < 0.7")};
+	TString cutsLabels[] = {TString("!fourPiState"), TString("|z_{vtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"), TString("|DCA(z)| < 1 cm"), TString("DCA(XY) < 1.5 cm"), TString("|#eta| < 0.7"), TString("-1.0 < t < - 0.12")  };
 
 	TFile* data = TFile::Open(dataName, "read");
 	if (!data){
@@ -145,6 +158,8 @@ int main(int argc, char** argv) {
 
     TString TPCeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/etaPhiEfficiency_16_01_19_delta015_twoRuns.root";
     TString TOFeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effWithBinningForSystematics.root";
+    TString myEffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effMy.root";
+
 
     TPCeff = TFile::Open(TPCeffInput, "read");
     if (!TPCeff)
@@ -160,13 +175,21 @@ int main(int argc, char** argv) {
         return 5;
     }
 
+    myEff = TFile::Open(myEffInput, "read");
+    if (!myEff)
+    {
+        cout<<"Error: cannot open "<<myEffInput<<endl;
+        return 6;
+    }
+
     for (int i = 0; i < 6; ++i)
     {    
         hTPCeff[i] = (TH3D*)TPCeff -> Get(Form("hTPCEffiCD%i121",i)); // hTPCEffiCD%i120" for dead sector 19
         hTOFeff[i] = (TH3D*)TOFeff -> Get(Form("hTOFEffiCD%i12",i)); 
+        hMyEff[i] = (TH3D*)myEff -> Get("effMy_0");
     }
 
-    TFile* graniitti = TFile::Open(granInput, "read");
+    graniitti = TFile::Open(granInput, "read");
     if (!graniitti){
         cout<<"Error: cannot open: "<<granInput<<endl;
         return 6;
@@ -187,6 +210,28 @@ int main(int argc, char** argv) {
     fout->mkdir("Graniitti")->cd();
     Graniitti granPlots(data, graniitti, fout, output, showText);
     granPlots.PlotHistogram();
+
+//////////////////////////////////////////////////////////////////////
+//              4 pions state
+//////////////////////////////////////////////////////////////////////
+ 
+    TDirectory* fourPiDir = fout->mkdir("4pions");
+    fourPiDir->cd();
+
+    TString cuts = "";
+    int size = (sizeof(cutsOption4pi)/sizeof(*cutsOption4pi));
+    for (int i = 0; i < size; ++i)
+    {
+        cuts += cutsOption4pi[i];
+        if(i != size -1)
+            cuts += " && ";
+    }
+    cout<<cuts<<endl;
+    FourPi fourPiPlots(data, fout, output, showText, cuts);
+    fourPiPlots.PlotHistogram();
+    
+//////////////////////////////////////////////////////////////////////
+
 	
     fout->mkdir("BasicPlots")->cd();
 	BasicPlots Plots(data, fout, output, showText);
@@ -229,8 +274,8 @@ int main(int argc, char** argv) {
 	TDirectory* cutsDir = fout->mkdir("Cuts");
 	cutsDir->cd();
 
-	TString cuts = "";
-	int size = (sizeof(cutsOption)/sizeof(*cutsOption));
+	cuts = "";
+	size = (sizeof(cutsOption)/sizeof(*cutsOption));
 
 	TCanvas* newCanvas = new TCanvas("newCanvas","newCanvas",800,700);
 	gPad->SetMargin(0.11,0.02,0.105,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
@@ -421,18 +466,14 @@ int main(int argc, char** argv) {
 //        cCanvas2D->Write("transMomentum" + particleLables[i]);
 //    }
 
-
-//////////////////////////////////////////////////////////////////////
-//              4 pions state
-//////////////////////////////////////////////////////////////////////
- 
-    TDirectory* fourPiDir = fout->mkdir("4pions");
-    fourPiDir->cd();
-
-    FourPi fourPiPlots(data, fout, output, showText);
-    fourPiPlots.PlotHistogram();
-    
-//////////////////////////////////////////////////////////////////////
+    fout->cd();
+    for (int i = 0; i < 3; ++i)
+    {     
+        hIntMass4Pi[0][0][i]->Write("invMass4PiUncorrSig");
+        hIntMass4Pi[0][1][i]->Write("invMass4PiUncorrBcg");
+        hIntMass4Pi[1][0][i]->Write("invMass4PiCorrSig");
+        hIntMass4Pi[1][1][i]->Write("invMass4PiCorrBcg");
+    }
 
 	fout->Close();
 	data->Close();
@@ -458,6 +499,14 @@ void Init()
         hInvMassCorr[1][1][i]  = new TH1D("corrInvMass" + particleLables[1] + combinationLabel[i] + "Bcg", "Corrected inv. mass " + particleLables[1] + combinationLabel[i], 44, 0.8, 3);
         hInvMassCorr[2][1][i]  = new TH1D("corrInvMass" + particleLables[2] + combinationLabel[i] + "Bcg", "Corrected inv. mass " + particleLables[2] + combinationLabel[i], 24, 1.6, 4);
 
+        hInvMassCorrMy[0][0][i]  = new TH1D("corrInvMassMy" + particleLables[0] + combinationLabel[i] + "Sig", "Corrected inv. mass " + particleLables[0] + combinationLabel[i], 64, 0.3, 3.5);
+        hInvMassCorrMy[1][0][i]  = new TH1D("corrInvMassMy" + particleLables[1] + combinationLabel[i] + "Sig", "Corrected inv. mass " + particleLables[1] + combinationLabel[i], 44, 0.8, 3);
+        hInvMassCorrMy[2][0][i]  = new TH1D("corrInvMassMy" + particleLables[2] + combinationLabel[i] + "Sig", "Corrected inv. mass " + particleLables[2] + combinationLabel[i], 24, 1.6, 4);
+        hInvMassCorrMy[0][1][i]  = new TH1D("corrInvMassMy" + particleLables[0] + combinationLabel[i] + "Bcg", "Corrected inv. mass " + particleLables[0] + combinationLabel[i], 64, 0.3, 3.5);
+        hInvMassCorrMy[1][1][i]  = new TH1D("corrInvMassMy" + particleLables[1] + combinationLabel[i] + "Bcg", "Corrected inv. mass " + particleLables[1] + combinationLabel[i], 44, 0.8, 3);
+        hInvMassCorrMy[2][1][i]  = new TH1D("corrInvMassMy" + particleLables[2] + combinationLabel[i] + "Bcg", "Corrected inv. mass " + particleLables[2] + combinationLabel[i], 24, 1.6, 4);
+
+
         hInvMassUncorr[0][0][i]  = new TH1D("uncorrInvMass" + particleLables[0] + combinationLabel[i] + "Sig", "Uncorrected inv. mass " + particleLables[0] + combinationLabel[i], 64, 0.3, 3.5);
         hInvMassUncorr[1][0][i]  = new TH1D("uncorrInvMass" + particleLables[1] + combinationLabel[i] + "Sig", "Uncorrected inv. mass " + particleLables[1] + combinationLabel[i], 44, 0.8, 3);
         hInvMassUncorr[2][0][i]  = new TH1D("uncorrInvMass" + particleLables[2] + combinationLabel[i] + "Sig", "Uncorrected inv. mass " + particleLables[2] + combinationLabel[i], 24, 1.6, 4);
@@ -465,6 +514,11 @@ void Init()
         hInvMassUncorr[1][1][i]  = new TH1D("uncorrInvMass" + particleLables[1] + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + particleLables[1] + combinationLabel[i], 44, 0.8, 3);
         hInvMassUncorr[2][1][i]  = new TH1D("uncorrInvMass" + particleLables[2] + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + particleLables[2] + combinationLabel[i], 24, 1.6, 4);
     
+        hIntMass4Pi[0][0][i] = new  TH1D("uncorrInvMass4Pi" + combinationLabel[i] + "Sig", "Uncorrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
+        hIntMass4Pi[0][1][i] = new  TH1D("uncorrInvMass4Pi" + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
+        hIntMass4Pi[1][0][i] = new  TH1D("corrInvMass4Pi" + combinationLabel[i] + "Sig", "Corrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
+        hIntMass4Pi[1][1][i] = new  TH1D("corrInvMass4Pi" + combinationLabel[i] + "Bcg", "Corrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
+
         for (int iPart = 0; iPart < nParticles; ++iPart)
         {    
             hPairRap[iPart][0][i] = new TH1D("pairRap" + particleLables[iPart] + combinationLabel[i] + "Sig", "pairRapidity" + particleLables[iPart] + combinationLabel[i], 35,-0.7,1.1);
@@ -490,6 +544,8 @@ void ConnectInput(TTree* tree)
     tree->SetBranchAddress("elastic", &elastic);
     tree->SetBranchAddress("nSigTrk1Pion", &nSigmaTPC[Pion][0]);
     tree->SetBranchAddress("nSigTrk2Pion", &nSigmaTPC[Pion][1]);
+    tree->SetBranchAddress("nSigTrk3Pion", &nSigmaTPC[Pion][2]);
+    tree->SetBranchAddress("nSigTrk4Pion", &nSigmaTPC[Pion][3]);
     tree->SetBranchAddress("mSquared", &mSquared);
     tree->SetBranchAddress("pairRapidity", &pairRapidity);
     for (int iPart = 0; iPart < nParticles; ++iPart)
@@ -530,6 +586,7 @@ void ConnectInput(TTree* tree)
 void Make(int signal)
 {
     double effTotal, effTPC, effTOF;
+    double effMy, effVar;
     unsigned int PID;
    // cout<< vertexesZ[0] <<" "<< NhitsFit[0]<<" "<<NhitsFit[1] <<" "<< NhitsDEdx[0]<<" "<<NhitsDEdx[1] <<" "<<DcaZ[0] <<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1] <<" "<< !fourPiState<<endl; 
     if(vertexesZ[0] < 80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7 &&  t[0] < -0.12 && t[1] < -0.12 && t[0] > -1.0  && t[1] > -1.0 && !fourPiState)
@@ -538,6 +595,7 @@ void Make(int signal)
         if(elastic)
             combination = 1;
         effTotal = 1;
+        effMy = 1;
         if(chiPair[Pion] > 9 && chiPair[Kaon] > 9 && chiPair[Proton] < 9 && mSquared > 0.6) // it is... proton!
         {
             for (int iTrack = 0; iTrack < 2; ++iTrack)
@@ -548,11 +606,22 @@ void Make(int signal)
                 effTPC = hTPCeff[2 + PID]->GetBinContent( hTPCeff[2 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[2 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[2 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
                 effTOF = hTOFeff[2 + PID]->GetBinContent( hTOFeff[2 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[2 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[2 + PID]->GetZaxis()->FindBin(Eta[iTrack]));  
                 effTotal = effTotal*effTPC*effTOF;
+
+                effVar = hMyEff[2 + PID]->GetBinContent( hMyEff[2 + PID]->GetXaxis()->FindBin(Phi[iTrack]), hMyEff[2 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hMyEff[2 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
+                effMy = effMy * effVar;
             }
-            if(effTotal != 0 && transMomentum[0] > 0.4 && transMomentum[1] > 0.4 && (transMomentum[0] < 1.1 || transMomentum[1] < 1.1) )
+            if(transMomentum[0] > 0.4 && transMomentum[1] > 0.4 && (transMomentum[0] < 1.1 || transMomentum[1] < 1.1) )
             {
-                hInvMassCorr[Proton][signal][0]->Fill(invMass[Proton], 1/effTotal);
-                hInvMassCorr[Proton][signal][combination]->Fill(invMass[Proton], 1/effTotal);
+                if(effTotal != 0)
+                {
+                    hInvMassCorr[Proton][signal][0]->Fill(invMass[Proton], 1/effTotal);
+                    hInvMassCorr[Proton][signal][combination]->Fill(invMass[Proton], 1/effTotal);
+                }
+                if( effMy != 0)
+                {
+                    hInvMassCorrMy[Proton][signal][0]->Fill(invMass[Proton], 1/effMy);
+                    hInvMassCorrMy[Proton][signal][combination]->Fill(invMass[Proton], 1/effMy);
+                }
             }
             if(transMomentum[0] > 0.4 && transMomentum[1] > 0.4 && (transMomentum[0] < 1.1 || transMomentum[1] < 1.1) )
             {
@@ -577,11 +646,22 @@ void Make(int signal)
                 effTPC = hTPCeff[1 + PID]->GetBinContent( hTPCeff[1 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[1 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[1 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
                 effTOF = hTOFeff[1 + PID]->GetBinContent( hTOFeff[1 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[1 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[1 + PID]->GetZaxis()->FindBin(Eta[iTrack]));  
                 effTotal = effTotal*effTPC*effTOF;
+
+                effVar = hMyEff[2 + PID]->GetBinContent( hMyEff[1 + PID]->GetXaxis()->FindBin(Phi[iTrack]), hMyEff[1 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hMyEff[1 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
+                effMy = effMy * effVar;
             }
-            if(effTotal != 0 && transMomentum[0] > 0.3 && transMomentum[1] > 0.3 && (transMomentum[0] < 0.7 || transMomentum[1] < 0.7) )
+            if(transMomentum[0] > 0.3 && transMomentum[1] > 0.3 && (transMomentum[0] < 0.7 || transMomentum[1] < 0.7) )
             {
-                hInvMassCorr[Kaon][signal][0]->Fill(invMass[Kaon], 1/effTotal);
-                hInvMassCorr[Kaon][signal][combination]->Fill(invMass[Kaon], 1/effTotal);
+                if(effTotal != 0)
+                {
+                    hInvMassCorr[Kaon][signal][0]->Fill(invMass[Kaon], 1/effTotal);
+                    hInvMassCorr[Kaon][signal][combination]->Fill(invMass[Kaon], 1/effTotal);
+                }
+                if( effMy != 0)
+                {
+                    hInvMassCorrMy[Kaon][signal][0]->Fill(invMass[Kaon], 1/effMy);
+                    hInvMassCorrMy[Kaon][signal][combination]->Fill(invMass[Kaon], 1/effMy);
+                }
             }
             if(transMomentum[0] > 0.3 && transMomentum[1] > 0.3 && (transMomentum[0] < 0.7 || transMomentum[1] < 0.7) )
             {
@@ -608,11 +688,22 @@ void Make(int signal)
                 //cout<<hTPCeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack])<<" | "<< hTPCeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack])<<" | "<< hTPCeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack])<<endl;
 
                 effTotal = effTotal*effTPC*effTOF;
+
+                effVar = hMyEff[0 + PID]->GetBinContent( hMyEff[0 + PID]->GetXaxis()->FindBin(Phi[iTrack]), hMyEff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hMyEff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
+                effMy = effMy * effVar;
             }
-            if(effTotal != 0 && transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
+            if(transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
             {
-                hInvMassCorr[Pion][signal][0]->Fill(invMass[Pion], 1/effTotal);
-                hInvMassCorr[Pion][signal][combination]->Fill(invMass[Pion], 1/effTotal);
+                if(effTotal != 0)
+                {
+                    hInvMassCorr[Pion][signal][0]->Fill(invMass[Pion], 1/effTotal);
+                    hInvMassCorr[Pion][signal][combination]->Fill(invMass[Pion], 1/effTotal);
+                }
+                if( effMy != 0)
+                {
+                    hInvMassCorrMy[Pion][signal][0]->Fill(invMass[Pion], 1/effMy);
+                    hInvMassCorrMy[Pion][signal][combination]->Fill(invMass[Pion], 1/effMy);
+                }
             }
             if(transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
             {
@@ -629,7 +720,46 @@ void Make(int signal)
         }
 
     }
-
+    if( vertexesZ[0] < 80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && 
+    NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && 
+    DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.7 && Eta[0] < 0.7 && 
+    Eta[1] > -0.7 && Eta[1] < 0.7 &&  t[0] < -0.12 && t[1] < -0.12 && t[0] > -1.0  && 
+    t[1] > -1.0 && fourPiState  && NhitsFit[2] >=25 && NhitsFit[3] >= 25 && 
+    NhitsDEdx[2] >= 15 && NhitsDEdx[3] >= 15 && DcaZ[2] < 1 && DcaZ[2] > -1 && DcaZ[3] < 1 && 
+    DcaZ[3] > -1 && DcaXY[2] < 1.5 && DcaXY[3] < 1.5 && Eta[2] > -0.7 && Eta[2] < 0.7 && 
+    Eta[3] > -0.7 && Eta[3] < 0.7 && nSigmaTPC[Pion][0] < 3 && nSigmaTPC[Pion][1] < 3 && 
+    nSigmaTPC[Pion][2] < 3 && nSigmaTPC[Pion][3] < 3)
+    {
+        int combination = 2;
+        if(elastic)
+            combination = 1;
+        effTotal = 1;
+        for (int iTrack = 0; iTrack < 4; ++iTrack)
+        {
+            PID = 0;
+            if(charge[iTrack] > 0)
+                PID = 3;
+            effTPC = hTPCeff[0 + PID]->GetBinContent( hTPCeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
+            effTOF = hTOFeff[0 + PID]->GetBinContent( hTOFeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack])); 
+            effTotal = effTotal*effTPC*effTOF;
+        }
+        if(effTotal != 0 && transMomentum[0] > 0.2 && transMomentum[1] > 0.2 && transMomentum[2] > 0.2 && transMomentum[3] > 0.2)
+        {
+            hIntMass4Pi[1][signal][0]->Fill(invMass[Pion], 1/effTotal);
+            hIntMass4Pi[1][signal][combination]->Fill(invMass[Pion], 1/effTotal);
+        }
+        if(transMomentum[0] > 0.2 && transMomentum[1] > 0.2 && transMomentum[2] > 0.2 && transMomentum[3] > 0.2)
+        {
+            hIntMass4Pi[0][signal][0]->Fill(invMass[Pion]);
+            hIntMass4Pi[0][signal][combination]->Fill(invMass[Pion]);
+//            hPairRap[Pion][signal][0]->Fill(pairRapidity);
+//            hPairRap[Pion][signal][combination]->Fill(pairRapidity);
+//            htSum[Pion][signal][0]->Fill(TMath::Abs(t[0] + t[1]));
+//            htSum[Pion][signal][combination]->Fill(TMath::Abs(t[0] + t[1]));
+//            hphiRP[Pion][signal][0]->Fill(TMath::Abs(phiRP[0]*radian - phiRP[1]*radian));
+//            hphiRP[Pion][signal][combination]->Fill(TMath::Abs(phiRP[0]*radian - phiRP[1]*radian));
+        }
+    }
 }
 
 
@@ -648,8 +778,8 @@ void PlotMoneyPlot()
     TString stateLabel[] = {"#pi^{+}#pi^{-}","K^{+}K^{-}","p#bar{p}"}; 
     Plot tool;
 
-    TH1D *hist, *histCompare;
-    TString yLabel, name;
+    TH1D *hist, *histCompare, *histCompare2;
+    TString yLabel, name, varname;
     yLabel = "Number of events";
     name = "uncorrInvMass";
 
@@ -673,12 +803,13 @@ void PlotMoneyPlot()
             { 
                 if(corrIndex == 0)
                 {
-                    hist = hInvMassUncorr[i][0][comb];
-                    histCompare = hInvMassUncorr[i][1][comb];
+                    hist = (TH1D*)hInvMassUncorr[i][0][comb]->Clone("hist");
+                    histCompare = (TH1D*)hInvMassUncorr[i][1][comb]->Clone("histCompare");
                 }else
                 {
-                    hist = hInvMassCorr[i][0][comb];
-                    histCompare = hInvMassCorr[i][1][comb];
+                    hist = (TH1D*)hInvMassCorr[i][0][comb]->Clone("hist"); 
+                    histCompare = (TH1D*)hInvMassCorr[i][1][comb]->Clone("histCompare");
+                    histCompare2 = (TH1D*)hInvMassCorrMy[i][1][comb]->Clone("histCompare2");
                 }
                 hist->SetTitle(" ; m(" + stateLabel[i] + ") [GeV/c^{2}]; " + yLabel);
                 tool.SetGraphStyle(hist,4,20,1,4,1,1,0.9,1.3);
@@ -688,11 +819,19 @@ void PlotMoneyPlot()
                 tool.DrawTextStar(hist, 1);
                 tool.SetMarkerStyle(histCompare,2,20,1,2,1,1);
                 histCompare->Draw("ESAME");
-
+                if(corrIndex != 0)
+                {
+                    tool.SetMarkerStyle(histCompare2,6,20,1,6,1,1);
+                    histCompare2->Draw("ESAME");
+                }
                 TLegend* leg1 = new TLegend(0.58, 0.64, 0.78, 0.74);
                 tool.SetLegendStyle(leg1);
                 leg1->AddEntry(hist, combinationLabel[comb] + " (unlike-sign pairs)","p");
                 leg1->AddEntry(histCompare, combinationLabel[comb] + " (like-sign pairs)","p");
+                if(corrIndex != 0)
+                {
+                    leg1->AddEntry(histCompare2, combinationLabel[comb] + " My eff","p");
+                }
                 leg1->Draw("same");
 
                 newCanvas->Update();
@@ -794,9 +933,8 @@ void PlotMoneyPlot()
         for (int comb = 0; comb < nCombination; ++comb)
         { 
             pad1->cd();
-            hist = hInvMassCorr[i][0][comb];
-            histCompare = hInvMassUncorr[i][0][comb];
-            
+            hist = (TH1D*)hInvMassCorr[i][0][comb]->Clone("hist");
+            histCompare = (TH1D*)hInvMassUncorr[i][0][comb]->Clone("histCompare");
             tool.SetMarkerStyle(hist);
             tool.SetMarkerStyle(histCompare,2,20,1,2,1,1);
 
@@ -815,6 +953,7 @@ void PlotMoneyPlot()
             histCompare->Scale(scaleFactor);
 
             hist->GetYaxis()->SetRangeUser(0.001, hist->GetMaximum()*1.2);
+            //hist->GetXaxis()->SetRangeUser(0.3, 2.5);
 
             hist->SetTitle(" ; m(" + stateLabel[i] + ") [GeV/c^{2}] ; " + yLabel);
             hist->Draw();              
@@ -839,7 +978,7 @@ void PlotMoneyPlot()
             tool.SetLegendStyle(legendPID);
             legendPID -> SetTextSize(25);
             legendPID -> SetTextFont(43);
-            legendPID -> AddEntry(hist, "Corrected", "p");
+            legendPID -> AddEntry(hist, "Rafal eff", "p");
             legendPID -> AddEntry(histCompare, "Uncorrected", "p");
             legendPID -> Draw("same");
 
@@ -849,8 +988,8 @@ void PlotMoneyPlot()
             TH1D *h3 = (TH1D*)hist->Clone("h3");
             h3->GetYaxis()->SetLabelSize(0.);
             h3->SetMarkerColor(kBlack);
-            h3->SetMinimum(0.2);  // Define Y ..
-            h3->SetMaximum(2.2); // .. range
+            h3->SetMinimum(0.8);  // Define Y ..
+            h3->SetMaximum(1.15); // .. range
             h3->Divide(histCompare);
             h3->SetMarkerStyle(20);
             h3->Draw("ep");       // Draw the ratio plot
@@ -875,7 +1014,7 @@ void PlotMoneyPlot()
             h3->GetXaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
             h3->GetXaxis()->SetLabelSize(20);
 
-            TGaxis *axis = new TGaxis(h3->GetXaxis()->GetXmin(), 0.2, h3->GetXaxis()->GetXmin(), 2.2, 0.2, 2.2, 5, "");
+            TGaxis *axis = new TGaxis(h3->GetXaxis()->GetXmin(), 0.8, h3->GetXaxis()->GetXmin(), 1.15, 0.8, 1.15, 4, "");
             axis->SetLabelFont(43); // Absolute font size in pixel (precision 3)
             axis->SetLabelSize(20);
             axis->Draw("same");
@@ -888,6 +1027,237 @@ void PlotMoneyPlot()
             newCanvas->Update();
             newCanvas->Write(name + particleLables[i] + combinationLabel[comb]);
         }
+    }
+
+    name = "compPlot";
+    yLabel = "Normalized counts";
+    Double_t binning[3][2] =  {{0.3, 2.5},{0.8, 2.5}, {1.6, 3.5}};
+    for (int i = 0; i < nParticles; ++i)
+    { 
+        for (int comb = 0; comb < nCombination; ++comb)
+        { 
+            pad1->cd();
+            hist = (TH1D*)hInvMassCorr[i][0][comb]->Clone("hist");
+            hist -> Add(hInvMassCorr[i][1][comb], -1); 
+            varname = "Graniitti/" + combinationLabel[comb] + "/invMass" + particleLables[i]; 
+            histCompare = (TH1D*)fout -> Get(varname);
+            // Getting histogram created from TTree making warning when use Divide
+            if(!histCompare)
+            {
+                cout<<"Error: loading "<<varname<<endl;
+                continue;
+            }
+            
+            tool.SetMarkerStyle(hist);
+            tool.SetMarkerStyle(histCompare,2,20,1,2,1,1);
+
+            hist->GetXaxis()->SetRangeUser(binning[i][0], binning[i][1]);
+            histCompare->GetXaxis()->SetRangeUser(binning[i][0], binning[i][1]);
+
+            hist->GetXaxis()->SetTitleFont(43);
+            hist->GetYaxis()->SetTitleFont(43);
+            hist->GetXaxis()->SetTitleSize(25);
+            hist->GetYaxis()->SetTitleSize(25);
+            hist->GetXaxis()->SetTitleOffset(0.9);
+            hist->GetYaxis()->SetTitleOffset(1.5);
+            hist->GetYaxis()->SetLabelFont(43);
+            hist->GetYaxis()->SetLabelSize(20);
+
+            Double_t scaleFactor =   1 /hist->Integral();
+            hist->Scale(scaleFactor);
+            scaleFactor =   1 /histCompare->Integral();
+            histCompare->Scale(scaleFactor);
+
+            hist->GetYaxis()->SetRangeUser(0.0001, max(hist->GetMaximum(),histCompare->GetMaximum())*1.1);
+
+            hist->SetTitle(" ; m(" + stateLabel[i] + ") [GeV/c^{2}] ; " + yLabel);
+            hist->Draw();              
+            histCompare->Draw("same");         
+
+            TPaveText *textSTAR = new TPaveText(0.75,0.89,0.85,0.95,"brNDC"); 
+            textSTAR -> SetTextSize(0.05);
+            textSTAR -> SetFillColor(0);
+            textSTAR -> SetTextFont(62);
+            textSTAR -> AddText("STAR Internal");
+            textSTAR -> Draw("same");
+
+            textSTAR = new TPaveText(0.75,0.74,0.85,0.88,"brNDC"); 
+            textSTAR -> SetTextSize(25);
+            textSTAR -> SetFillColor(0);
+            textSTAR -> SetTextFont(43);
+            textSTAR -> AddText("p + p #rightarrow p + " + stateLabel[i] +" + p");
+            textSTAR -> AddText("#sqrt{s} = 510 GeV");
+            textSTAR -> Draw("same");
+
+            TLegend *legendPID = new TLegend(0.68,0.58,0.92,0.73,"","brNDC");
+            tool.SetLegendStyle(legendPID);
+            legendPID -> SetTextSize(25);
+            legendPID -> SetTextFont(43);
+            legendPID -> AddEntry(hist, "Data", "p");
+            legendPID -> AddEntry(histCompare, "Graniitti", "p");
+            legendPID -> Draw("same");
+
+            pad2->cd();       
+
+            // Define the ratio plot
+            TH1D *h3 = (TH1D*)hist->Clone("h3");
+            h3->GetYaxis()->SetLabelSize(0.);
+            h3->SetMarkerColor(kBlack);
+            h3->SetMinimum(0.1);  // Define Y ..
+            h3->SetMaximum(2.7); // .. range
+            h3->Divide(histCompare);
+            h3->SetMarkerStyle(20);
+            h3->Draw("ep");       // Draw the ratio plot
+
+            // Ratio plot (h3) settings
+            h3->SetTitle(""); // Remove the ratio title
+
+            // Y axis ratio plot settings
+            h3->GetYaxis()->SetTitle("Ratio");
+            h3->GetYaxis()->SetNdivisions(505);
+            h3->GetYaxis()->SetTitleSize(25);
+            h3->GetYaxis()->SetTitleFont(43);
+            h3->GetYaxis()->SetTitleOffset(1.5);
+            h3->GetYaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+            h3->GetYaxis()->SetLabelSize(0.0);
+
+            // X axis ratio plot settings
+            h3->GetXaxis()->SetTitleSize(25);
+            h3->GetXaxis()->SetTitleFont(43);
+            h3->GetXaxis()->SetTitleOffset(3.2);
+            h3->GetXaxis()->SetLabelOffset(0.025);
+            h3->GetXaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+            h3->GetXaxis()->SetLabelSize(20);
+
+            TGaxis *axis = new TGaxis(binning[i][0], 0.1, binning[i][0], 2.7, 0.1, 2.7, 5, "");
+            axis->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+            axis->SetLabelSize(20);
+            axis->Draw("same");
+
+            TLine *unity = new TLine(binning[i][0], 1., binning[i][1] , 1.);
+            unity->SetLineColor(kBlack);
+            unity->SetLineWidth(2);
+            unity->Draw();
+
+            newCanvas->Update();
+            newCanvas->Write(name + particleLables[i] + combinationLabel[comb]);
+        }
+    } 
+////////////////////////////////
+//    4 PI 
+////////////////////////////////
+    name = "4pi";  
+    pad1->Clear();
+    pad2->Clear();  
+    for (int comb = 0; comb < nCombination; ++comb)
+    { 
+        pad1->cd(); 
+        hist = (TH1D*)hIntMass4Pi[1][0][comb]->Clone("hist");
+        hist -> Add(hIntMass4Pi[1][1][comb], -1); 
+        varname = "Graniitti/" + combinationLabel[comb] + "/invMass4Pion"; 
+        histCompare = (TH1D*)fout -> Get(varname);
+        // Getting histogram created from TTree making warning when use Divide
+        if(!histCompare)
+        {
+            cout<<"Error: loading "<<varname<<endl;
+            continue;
+        }
+        double binMin, binMax;
+        binMin = 0.8;
+        binMax = 3.6;
+        tool.SetMarkerStyle(hist);
+        tool.SetMarkerStyle(histCompare,2,20,1,2,1,1);
+
+        hist->GetXaxis()->SetRangeUser(binMin, binMax);
+        histCompare->GetXaxis()->SetRangeUser(binMin, binMax);
+
+        hist->GetXaxis()->SetTitleFont(43);
+        hist->GetYaxis()->SetTitleFont(43);
+        hist->GetXaxis()->SetTitleSize(25);
+        hist->GetYaxis()->SetTitleSize(25);
+        hist->GetXaxis()->SetTitleOffset(0.9);
+        hist->GetYaxis()->SetTitleOffset(1.5);
+        hist->GetYaxis()->SetLabelFont(43);
+        hist->GetYaxis()->SetLabelSize(20);
+
+        Double_t scaleFactor =   1 /hist->Integral();
+        hist->Scale(scaleFactor);
+        scaleFactor =   1 /histCompare->Integral();
+        histCompare->Scale(scaleFactor);
+
+        hist->GetYaxis()->SetRangeUser(0.0001, max(hist->GetMaximum(),histCompare->GetMaximum())*1.25);
+
+        hist->SetTitle(" ; m(#pi^{+}#pi^{+}#pi^{-}#pi^{-}) [GeV/c^{2}] ; " + yLabel);
+        hist->Draw();              
+        histCompare->Draw("same");         
+
+        TPaveText *textSTAR = new TPaveText(0.75,0.89,0.85,0.95,"brNDC"); 
+        textSTAR -> SetTextSize(0.05);
+        textSTAR -> SetFillColor(0);
+        textSTAR -> SetTextFont(62);
+        textSTAR -> AddText("STAR Internal");
+        textSTAR -> Draw("same");
+
+        textSTAR = new TPaveText(0.75,0.74,0.85,0.88,"brNDC"); 
+        textSTAR -> SetTextSize(25);
+        textSTAR -> SetFillColor(0);
+        textSTAR -> SetTextFont(43);
+        textSTAR -> AddText("p + p #rightarrow p + #pi^{+}#pi^{+}#pi^{-}#pi^{-} + p");
+        textSTAR -> AddText("#sqrt{s} = 510 GeV");
+        textSTAR -> Draw("same");
+
+        TLegend *legendPID = new TLegend(0.68,0.58,0.92,0.73,"","brNDC");
+        tool.SetLegendStyle(legendPID);
+        legendPID -> SetTextSize(25);
+        legendPID -> SetTextFont(43);
+        legendPID -> AddEntry(hist, "Data", "p");
+        legendPID -> AddEntry(histCompare, "Graniitti", "p");
+        legendPID -> Draw("same");
+
+        pad2->cd();       
+
+        // Define the ratio plot
+        TH1D *h3 = (TH1D*)hist->Clone("h3");
+        h3->GetYaxis()->SetLabelSize(0.);
+        h3->SetMarkerColor(kBlack);
+        h3->SetMinimum(0.01);  // Define Y ..
+        h3->SetMaximum(4.7); // .. range
+        h3->Divide(histCompare);
+        h3->SetMarkerStyle(20);
+        h3->Draw("ep");       // Draw the ratio plot
+
+        // Ratio plot (h3) settings
+        h3->SetTitle(""); // Remove the ratio title
+
+        // Y axis ratio plot settings
+        h3->GetYaxis()->SetTitle("Ratio");
+        h3->GetYaxis()->SetNdivisions(505);
+        h3->GetYaxis()->SetTitleSize(25);
+        h3->GetYaxis()->SetTitleFont(43);
+        h3->GetYaxis()->SetTitleOffset(1.5);
+        h3->GetYaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+        h3->GetYaxis()->SetLabelSize(0.0);
+
+        // X axis ratio plot settings
+        h3->GetXaxis()->SetTitleSize(25);
+        h3->GetXaxis()->SetTitleFont(43);
+        h3->GetXaxis()->SetTitleOffset(3.2);
+        h3->GetXaxis()->SetLabelOffset(0.025);
+        h3->GetXaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+        h3->GetXaxis()->SetLabelSize(20);
+
+        TGaxis *axis = new TGaxis(binMin - 0.06, 0.01, binMin - 0.06, 4.7, 0.01, 4.7, 5, "");
+        axis->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+        axis->SetLabelSize(20); 
+        axis->Draw("same");
+
+        TLine *unity = new TLine(binMin, 1., binMax + 0.01, 1.);
+        unity->SetLineColor(kBlack);
+        unity->SetLineWidth(2);
+        unity->Draw();
+
+        newCanvas->Update();
+        newCanvas->Write(name +combinationLabel[comb]);
     }
 
 }

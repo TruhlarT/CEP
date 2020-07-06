@@ -71,25 +71,17 @@ void BasicPlots::PlotHistogram() {
 //////////////////////////////////////////
 
 	hCuts = (TH1F*)data -> Get("AnalysisFlow");
-	hMissingPtTPC = (TH1D*)data -> Get("All/MissingPt_TPC2t_Combi2part");
-	hMissingPtQ0 = (TH1D*)data -> Get("All/MissingPt_Q0_Combi2part");
-	hMissingPtExc = (TH1D*)data -> Get("All/MissingPt_Excl_Combi2part");
 
 // //////////////////////////////////////////////////////////
 // Plot Cuts Flow
-	TString Labels[] = { TString("All"), TString("CPT2noBBCL"), TString("El+Inel"), TString("2 TPC-TOF tracks"), 
-	                  TString("Same vertex"), TString("TotCharge 0"), TString("p_{T}^{miss} < 0.1 GeV/c"), TString(""),};
+	TString Labels[] = { TString("All"), TString("2 TPC-TOF tracks"), 
+	                  TString("Same vertex"), TString("TotCharge 0"), TString(""),};
 	//gPad->SetMargin(0.9,0.02,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
 	gPad->SetLogy();
 
 	TH1F* hCutsFlow = new TH1F("cuts", "cuts", 8, 1, 9);
 	int i = 1;
-	for(int tb=1; tb<8; ++tb){ 
-		if(tb==3){
-			hCutsFlow->GetXaxis()->SetBinLabel(tb, Labels[tb-1]);
-			hCutsFlow->SetBinContent(tb,hCuts->GetBinContent(i)+hCuts->GetBinContent((++i)++));
-			continue;
-		}
+	for(int tb=1; tb<5; ++tb){ 
 		hCutsFlow->GetXaxis()->SetBinLabel(tb, Labels[tb-1]);
 		hCutsFlow->SetBinContent(tb,hCuts->GetBinContent(i));
 		i++;
@@ -116,57 +108,6 @@ void BasicPlots::PlotHistogram() {
 	cCanvas->Update();
 	//cCanvas->SaveAs(output + "BasicPlots/Cuts.png");
 	cCanvas->Write("CutsFlow");
-//////////////////////////////////////////
-//////////////////////////////////////////
-////////////// 
-	gPad->SetLogy();
-	hMissingPtTPC->SetStats(0);
-	hMissingPtTPC->SetTitle(" ; p_{T}^{miss} [GeV/c];Number of events");
-	tool.SetGraphStyle(hMissingPtTPC);
-	//tool.SetMarkerStyle(hMissingPtTPC);
-	hMissingPtTPC->SetMinimum(10);
-
-	hMissingPtTPC->Draw();	
-	hMissingPtQ0->SetFillColor(4);
-	hMissingPtQ0->SetLineColor(4);
-	hMissingPtQ0->SetFillStyle(1001);
-	hMissingPtQ0->Draw("same");
-	hMissingPtExc->SetFillColorAlpha(2, 0.5);
-	hMissingPtExc->SetLineColor(2);
-	hMissingPtExc->SetFillStyle(1001);
-	hMissingPtExc->Draw("same");
-	cCanvas->cd();
-
-
-	leg1 = new TLegend(0.3,0.8,0.5,0.95);
-	tool.SetLegendStyle(leg1);
-	leg1 -> AddEntry(hMissingPtTPC, "2 TPC-TOF tracks", "l");
-	leg1 -> AddEntry(hMissingPtQ0, "Total charge 0", "fl");
-	leg1 -> AddEntry(hMissingPtExc, "Exclusive", "fl");
-	leg1->Draw("same");
-
-	TPaveText *textPub1 = new TPaveText(0.25,0.75,0.35,0.75,"brNDC");
-	tool.SetTextStyle(textPub1);
-	if(TEXT)
-		textPub1 -> AddText("Exclusive peak");
-	textPub1 -> Draw("same");
-
-	TPaveText *textPub2 = new TPaveText(0.75,0.79,0.9,0.9,"brNDC");
-	tool.SetTextStyle(textPub2);
-	textPub2 -> AddText("p + p #rightarrow p + X + p");
-	textPub2 -> AddText("#sqrt{s} = 510 GeV");
-	textPub2 -> Draw("same");
-	tool.DrawTextStar(tmpHist,2);
-
-	TLine *left = new TLine(0.1,0,0.1,600000);
-	tool.SetLineStyle(left,10,1,4);
-    left->Draw("same");
-
-	cCanvas->Update();
-	cCanvas-> Write("hMissingPt");
-	//cCanvas->SaveAs(output + "BasicPlots/cMissingPt.png");
-	cCanvas->Close();
-
   
 }//BasicPlots::PlotHistogram
 

@@ -198,17 +198,17 @@ void RPplots::PlotHistogram() {
     cCanvas->Write(variable);
 /////////////////////////////////////////////
 // Plot phi 
-    variable = "phiRp";
+ /*   variable = "deltaPhi";
     nBins = 100;
     min = 0.0;
-    max = 350.0;
-    treeBack->Draw("TMath::Abs( " + variable +"East*57.2957795 - " + variable +"West*57.2957795)>>" + variable +"Bcg1(" + nBins + "," + min + "," + max + ")",cuts);
+    max = 200.0;
+    treeBack->Draw("TMath::Abs( " + variable +"*57.2957795)>>" + variable +"Bcg1(" + nBins + "," + min + "," + max + ")",cuts);
     histBackground = (TH1F*)gPad->GetPrimitive(variable +"Bcg1");
     tool.SetMarkerStyle(histBackground,2,20,1,2,1,1);
 
-    tree->Draw("TMath::Abs( " + variable +"East*57.2957795 - " + variable +"West*57.2957795)>>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",cuts);
+    tree->Draw("TMath::Abs( " + variable +"*57.2957795)>>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",cuts);
     histSignal = (TH1F*)gPad->GetPrimitive(variable +"Sig1");   
-    histSignal->SetTitle(" ; |#phi_{1} - #phi_{2}| [deg]; Number of tracks");
+    histSignal->SetTitle(" ; |#Delta #varphi| [deg]; Number of tracks");
     tool.SetGraphStyle(histSignal,4,20,1,4,1,1,0.9,1.4);
     tool.SetMarkerStyle(histSignal);
     histSignal->Draw("E");
@@ -225,7 +225,7 @@ void RPplots::PlotHistogram() {
 
 
     cCanvas->Update();
-    cCanvas->Write("Delta" + variable); 
+    cCanvas->Write("Delta" + variable); */
 //////////////////////////////////////////////////
     TCanvas *cCanvas2D = new TCanvas("cCanvas2D","cCanvas2D",800,700);
     gPad->SetMargin(0.09,0.13,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
