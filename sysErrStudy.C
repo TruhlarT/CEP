@@ -60,17 +60,17 @@ TString rpNames[nRomanPots] = { TString("E1U"), TString("E1D"), TString("E2U"), 
 TFile* fout;
 TFile* TPCeff;
 TFile* TOFeff;
-TFile* MyEff[2];
+TFile* MyEff;
 TFile* data;
 
 TTree* recTree;
 
 TH1F* hInvMass[4];
 
-TH3D* hTPCeff[6];
-TH3D* hTOFeff[6];
-TH3F* hMyEff3D[2];
-TH1* hMyEffPt[2];
+TH3F* hTPCeff;
+TH3F* hTOFeff;
+TH3F* hMyEff3D;
+TH1* hMyEffPt;
 
 Int_t nTracks, totalCharge, nTofTrks; 
 UInt_t runNumber;
@@ -124,17 +124,20 @@ Double_t Eta[4];
 Double_t Phi[4];
 Double_t Chi2[4];
 
+
+const double nFitLim[2] = { 26.0 , 24.0}; 
+const double nDEdxLim[2] = { 16.0 , 14.0}; 
+const double dcaLim[2] = { 1.3, 1.7}; 
+
 void Init();
 void ConnectInput();
 void Make();
 
-void effStudy()
+void sysErrStudy()
 {
     TString rafalEff = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/etaPhiEfficiency_16_01_19_delta015_twoRuns.root";
-    TString myEff[2];
-    myEff[0] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effPionsM.root";
-    myEff[1] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effPionsP.root";
-    TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/massCompare.root";
+    TString myEff = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effMy.root";
+    TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/sysStudy.root";
     TString TOFeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effWithBinningForSystematics.root";
     TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/ppRun17.root";
 
@@ -152,35 +155,20 @@ void effStudy()
         return;
     }
 
-    MyEff[0] = TFile::Open(myEff[0], "read");
-    if (!MyEff[0])
+    MyEff = TFile::Open(myEff, "read");
+    if (!MyEff)
     {
-        cout<<"Error: cannot open "<<myEff[0]<<endl;
+        cout<<"Error: cannot open "<<myEff<<endl;
         return;
     }
 
-    MyEff[1] = TFile::Open(myEff[1], "read");
-    if (!MyEff[1])
-    {
-        cout<<"Error: cannot open "<<myEff[1]<<endl;
-        return;
-    }
-
-    for (int i = 0; i < 6; ++i)
-    {    
-        hTPCeff[i] = (TH3D*)TPCeff -> Get(Form("hTPCEffiCD%i121",i)); // hTPCEffiCD%i120" for dead sector 19
-        hTOFeff[i] = (TH3D*)TOFeff -> Get(Form("hTOFEffiCD%i12",i)); 
-    }
-    hMyEff3D[0] = (TH3F*)MyEff[0] -> Get("effRafal");
-    hMyEff3D[1] = (TH3F*)MyEff[1] -> Get("effRafal");
-    //hMyEff3D[0] = (TH3F*)MyEff[0] -> Get("effMy_0");
-    //hMyEff3D[1] = (TH3F*)MyEff[1] -> Get("effMy_0");
+    hTPCeff = (TH3F*)TPCeff -> Get(Form("hTPCEffiCD%i120",3));
+    hTOFeff = (TH3F*)TOFeff -> Get(Form("hTOFEffiCD%i12",3));
+//    hMyEff3D = (TH3F*)MyEff -> Get("effRafal");
+    hMyEff3D = (TH3F*)MyEff -> Get("effMy_0");
+    hMyEffPt = hMyEff3D -> Project3D("y");
     double nBinsXZ = 20*24;
-    hMyEffPt[0] = hMyEff3D[0] -> Project3D("y");
-    hMyEffPt[0]->Scale(1/nBinsXZ);
-
-    hMyEffPt[1] = hMyEff3D[1] -> Project3D("y");
-    hMyEffPt[1]->Scale(1/nBinsXZ);
+    hMyEffPt->Scale(1/nBinsXZ);
 
     data = TFile::Open(input, "read");
     if (!data)
@@ -191,8 +179,7 @@ void effStudy()
 
 
     fout = new TFile(output,"RECREATE");
-    hMyEffPt[0]->Write("effPt-");
-    hMyEffPt[1]->Write("effPt+");
+    hMyEffPt->Write("effPt");
     Init(); // Preparing histograms 
     ConnectInput(); // Connecting input
 
@@ -211,35 +198,53 @@ void effStudy()
     gPad->SetTickx();
     gPad->SetTicky(); 
     gPad->SetLogy(0);
+    gStyle->SetOptStat("11111");
     gStyle->SetOptStat("");
     gStyle->SetPalette(1);
     gStyle->SetLineWidth(2);      //axis line
     gStyle->SetFrameLineWidth(2); //frame line
     TString stateLabel[] = {"#pi^{+}#pi^{-}","K^{+}K^{-}","p#bar{p}"}; 
-    
 
+    gPad->SetMargin(0.9,0.02,0.3,0.02);
+    gStyle->SetPadTickY(1);
+    gStyle->SetTickLength(0.02,"Y");
+    gStyle->SetTickLength(0.03,"X");
+    // Upper plot will be in pad1
+    TPad *pad1 = new TPad("pad1", "pad1", 0, 0.295, 1, 1.0);
+    pad1->SetTopMargin(0.04);
+    pad1->SetRightMargin(0.02);
+    pad1->SetBottomMargin(0); // Upper and lower plot are joined
+    pad1->Draw();             // Draw the upper pad: pad1
+             
+    newCanvas->cd();          // Go back to the main canvas before defining pad2
+    TPad *pad2 = new TPad("pad2", "pad2", 0, 0.00, 1, 0.2985);
+    pad2->SetTopMargin(0);
+    pad2->SetRightMargin(0.02);
+    pad2->SetBottomMargin(0.3);
+    pad2->Draw();
+/*
     Double_t scaleFactor; 
     for (int i = 0; i < 4; ++i)
     {
         scaleFactor =   1 /hInvMass[i]->Integral();
         hInvMass[i]->Scale(scaleFactor);
     }
+*/
 
+    TH1F *h4 = (TH1F*)hInvMass[0]->Clone("h4");
+    pad1->cd();
     hInvMass[1]->SetMarkerColor(2);
     hInvMass[1]->SetMarkerSize(1);
     hInvMass[1]->SetMarkerStyle(24);
+    hInvMass[1]->SetStats(false);
 
     hInvMass[2]->SetMarkerColor(1);
     hInvMass[2]->SetMarkerSize(1);
     hInvMass[2]->SetMarkerStyle(25);
-
-    hInvMass[3]->SetMarkerColor(8);
-    hInvMass[3]->SetMarkerSize(1);
-    hInvMass[3]->SetMarkerStyle(26);
-
+    hInvMass[2]->SetStats(false);
 
     hInvMass[0]->SetStats(false);
-    hInvMass[0]->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}];Normalized counts");
+    hInvMass[0]->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}]; counts");
     hInvMass[0]->GetXaxis()->SetTitleFont(42);
     hInvMass[0]->GetYaxis()->SetTitleFont(42);
     hInvMass[0]->GetXaxis()->SetLabelFont(42);
@@ -248,17 +253,17 @@ void effStudy()
     hInvMass[0]->GetYaxis()->SetTitleSize(0.045);
     hInvMass[0]->GetXaxis()->SetTitleOffset(0.9);
     hInvMass[0]->GetYaxis()->SetTitleOffset(1.3);
-    hInvMass[0]->GetYaxis()->SetRangeUser(0.0,0.07);
+    hInvMass[0]->GetYaxis()->SetRangeUser(10.0,hInvMass[2]->GetMaximum()*1.1);
     hInvMass[0]->SetMarkerColor(4);
     hInvMass[0]->SetMarkerSize(1);
-    hInvMass[0]->SetMarkerStyle(30);
+    hInvMass[0]->SetMarkerStyle(26);
     hInvMass[0]->SetLineColor(4);
     hInvMass[0]->SetLineStyle(1);
     hInvMass[0]->SetLineWidth(1);
     hInvMass[0]->Draw("E");
     hInvMass[1]->Draw("ESAME");
     hInvMass[2]->Draw("ESAME");
-    hInvMass[3]->Draw("ESAME");
+
 
     TPaveText *textPub = new TPaveText(0.7,0.75,0.92,0.88,"brNDC");
     textPub -> SetTextSize(0.04);
@@ -282,11 +287,61 @@ void effStudy()
     leg1->SetBorderSize(0);
     leg1->SetTextSize(0.04);
     leg1->SetTextFont(42);
-    leg1->AddEntry(hInvMass[0],"Uncorrected","p");
-    leg1->AddEntry(hInvMass[1],"Corr. by eff. from run15","p");
-    leg1->AddEntry(hInvMass[2],"Corr. by pure STARsim eff.","p");
-    leg1->AddEntry(hInvMass[3],"Corr. by eff.(p_{T})","p");
+    leg1->AddEntry(hInvMass[0],"Uncorr. standard cuts","p");
+    leg1->AddEntry(hInvMass[1],"Uncorr. strict cuts","p");
+    leg1->AddEntry(hInvMass[2],"Uncorr. loose cuts","p");
     leg1->Draw("same");
+
+    pad2->cd();
+    // Define the ratio plot
+    TH1F *h3 = (TH1F*)hInvMass[0]->Clone("h3");
+    //h3->GetYaxis()->SetLabelSize(0.);
+    h3->SetMarkerColor(2);
+    h3->SetLineColor(2);
+    h3->SetMinimum(0.7);  // Define Y ..
+    h3->SetMaximum(1.3); // .. range
+    h3->Divide(hInvMass[1]);
+    h3->SetMarkerStyle(20);
+    h3->Draw("HIST");       // Draw the ratio plot
+
+    
+    //h4->GetYaxis()->SetLabelSize(0.);
+    h4->SetMarkerColor(6);
+    h4->SetLineColor(6);
+    h4->Divide(hInvMass[2]);
+    h4->SetMarkerStyle(20);
+    h4->Draw("HISTSAME");       // Draw the ratio plot
+
+    // Ratio plot (h3) settings
+    h3->SetTitle(""); // Remove the ratio title
+
+    // Y axis ratio plot settings
+    h3->GetYaxis()->SetTitle("Ratio");
+    h3->GetYaxis()->SetNdivisions(505);
+    h3->GetYaxis()->SetTitleSize(25);
+    h3->GetYaxis()->SetTitleFont(43);
+    h3->GetYaxis()->SetTitleOffset(1.5);
+    h3->GetYaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+    h3->GetYaxis()->SetLabelSize(0.0);
+
+    // X axis ratio plot settings
+    h3->GetXaxis()->SetTitleSize(25);
+    h3->GetXaxis()->SetTitleFont(43);
+    h3->GetXaxis()->SetTitleOffset(3.2);
+    h3->GetXaxis()->SetLabelOffset(0.025);
+    h3->GetXaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+    h3->GetXaxis()->SetLabelSize(20);
+
+    TGaxis *axis = new TGaxis(h3->GetXaxis()->GetXmin(), 0.7, h3->GetXaxis()->GetXmin(), 1.3, 0.7, 1.3, 4, "");
+    axis->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+    axis->SetLabelSize(20);
+    axis->Draw("same");
+
+    TLine *unity = new TLine(h3->GetXaxis()->GetXmin(), 1., h3->GetXaxis()->GetXmax() , 1.);
+    unity->SetLineColor(kBlack);
+    unity->SetLineWidth(2);
+    unity->Draw();
+
 
     gStyle->SetOptStat("");
     newCanvas->Update();
@@ -305,9 +360,8 @@ void Make()
     double effTotal, effTPC, effTOF;
     double effMy, effVar;
     double effPt, effPtVar;
-    unsigned int PID, pidMy;
    // cout<< vertexesZ[0] <<" "<< NhitsFit[0]<<" "<<NhitsFit[1] <<" "<< NhitsDEdx[0]<<" "<<NhitsDEdx[1] <<" "<<DcaZ[0] <<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1] <<" "<< !fourPiState<<endl; 
-    if(vertexesZ[0] < 80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7 &&  t[0] < -0.12 && t[1] < -0.12 && t[0] > -1.0  && t[1] > -1.0 && !fourPiState)
+    if(vertexesZ[0] < 80 && vertexesZ[0] > -80 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7 &&  t[0] < -0.12 && t[1] < -0.12 && t[0] > -1.0  && t[1] > -1.0 && !fourPiState)
     {
         effTotal = 1;
         effMy = 1;
@@ -323,40 +377,18 @@ void Make()
         }
         else if( chiPair[Pion] < 12) // it is... pion!
         {
-            for (int iTrack = 0; iTrack < 2; ++iTrack)
-            {
-                PID = 0;
-                pidMy = 0;
-                if(charge[iTrack] > 0)
-                {
-                    PID = 3;
-                    pidMy = 1;
-                }
-                effTPC = hTPCeff[0 + PID]->GetBinContent( hTPCeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTPCeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTPCeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack]));
-                effTOF = hTOFeff[0 + PID]->GetBinContent( hTOFeff[0 + PID]->GetXaxis()->FindBin(vertexesZ[iTrack]), hTOFeff[0 + PID]->GetYaxis()->FindBin(transMomentum[iTrack]), hTOFeff[0 + PID]->GetZaxis()->FindBin(Eta[iTrack])); 
-                effTotal = effTotal*effTPC*effTOF;
-
-                effVar = hMyEff3D[pidMy]->GetBinContent( hMyEff3D[pidMy]->GetXaxis()->FindBin(vertexesZ[iTrack]), hMyEff3D[pidMy]->GetYaxis()->FindBin(transMomentum[iTrack]), hMyEff3D[pidMy]->GetZaxis()->FindBin(Eta[iTrack])); 
-                Double_t phiToMC = Phi[iTrack];
-                if( phiToMC < 0)
-                    phiToMC = 2*3.14159265359 + phiToMC;
-                //effVar = hMyEff3D[pidMy]->GetBinContent( hMyEff3D[pidMy]->GetXaxis()->FindBin(phiToMC), hMyEff3D[pidMy]->GetYaxis()->FindBin(transMomentum[iTrack]), hMyEff3D[pidMy]->GetZaxis()->FindBin(Eta[iTrack])); 
-                //if( effVar == 0)
-                //    cout<<"EffVar: "<< Phi[iTrack] << " " << transMomentum[iTrack] << " " << Eta[iTrack] <<endl;
-                effMy = effMy * effVar;
-
-                effPtVar = hMyEffPt[pidMy]->GetBinContent( hMyEffPt[pidMy]->GetXaxis()->FindBin(transMomentum[iTrack]));
-                effPt = effPt * effPtVar;
-            }
             if(transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
             {
-                hInvMass[0]->Fill(invMass[Pion]);
-                if(effTotal != 0)
-                    hInvMass[1]->Fill(invMass[Pion], 1/effTotal);
-                if(effMy != 0)
-                    hInvMass[2]->Fill(invMass[Pion], 1/effMy);
-                if(effPt != 0)
-                    hInvMass[3]->Fill(invMass[Pion], 1/effPt);
+                if( NhitsFit[0] >= 25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 
+                    && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 )
+                    hInvMass[0]->Fill(invMass[Pion]);
+                for (int ind = 0; ind < 2; ++ind)
+                {
+                    if( NhitsFit[0] >= nFitLim[ind] && NhitsFit[1] >= nFitLim[ind] && NhitsDEdx[0] >= nDEdxLim[ind] && NhitsDEdx[1] >= nDEdxLim[ind] 
+                        && DcaXY[0] < dcaLim[ind] && DcaXY[1] < dcaLim[ind] )
+                        hInvMass[ind + 1]->Fill(invMass[Pion]);
+
+                }
 
             }
 
@@ -369,10 +401,9 @@ void Make()
 
 void Init(){
 
-    hInvMass[0] = new TH1F("invMass", " inv. mass ", 64, 0.3, 3.5);
-    hInvMass[1] = new TH1F("invMassRafal", "corrected inv. mass with Rafal eff. ", 64, 0.3, 3.5);
-    hInvMass[2] = new TH1F("invMassMy", "corrected inv. mass with my eff. ", 64, 0.3, 3.5);
-    hInvMass[3] = new TH1F("invMassMyPt", "corrected inv. mass with my eff (just pT)", 64, 0.3, 3.5);
+    hInvMass[0] = new TH1F("invMass", "uncorrected standard inv. mass", 64, 0.3, 3.5);
+    hInvMass[1] = new TH1F("invMassLow", "uncorrected inv. mass with strict cuts", 64, 0.3, 3.5);
+    hInvMass[2] = new TH1F("invMassUp", "uncorrected inv. mass with loose cuts ", 64, 0.3, 3.5);
 }
 
 void ConnectInput(){

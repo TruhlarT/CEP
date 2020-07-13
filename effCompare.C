@@ -75,8 +75,8 @@ void Make();
 void effCompare()
 {
     TString rafalEff = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/etaPhiEfficiency_16_01_19_delta015_twoRuns.root";
-    TString myEff = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/myEffNew.root";
-	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/effCompare.root";
+    TString myEff = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effMy.root";
+	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/massCompare.root";
 
     TPCeff = TFile::Open(rafalEff, "read");
     if (!TPCeff)

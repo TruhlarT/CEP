@@ -50,7 +50,7 @@ void Plot::SetMarkerStyle(TH1* hist, Int_t markColor, Int_t markStyle, Int_t mar
 }//SetMarkerStyle
 
 
-void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t yMin, Float_t xMax, Float_t yMax, Int_t align, Bool_t data)
+void Plot::DrawText(TH1* hist, Int_t state, Int_t pair, Float_t xMin, Float_t yMin, Float_t xMax, Float_t yMax, Int_t align, Bool_t data)
 {
 	TString centralState;
 	switch(state){
@@ -72,6 +72,9 @@ void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t y
 			centralState = "#pi^{+} #pi^{+} #pi^{-} #pi^{-}";
 			break;
 	}
+	if(pair == 2)
+		xMin-=0.06;
+
 	TPaveText *textPub = new TPaveText(xMin,yMin,xMax,yMax,"brNDC");
 	textPub -> SetTextSize(siz-0.005);
 	textPub -> SetTextAlign(align);
@@ -81,8 +84,10 @@ void Plot::DrawText(TH1* hist, Int_t state, Bool_t pair, Float_t xMin, Float_t y
 	if(data) textPub -> AddText("#sqrt{s} = 510 GeV");
 	int NentriesEl = hist->Integral();
 	TString tileIdStrEl; tileIdStrEl.Form("%i h_{cand}^{Exc}",NentriesEl);
-	if(pair)
+	if(pair == 1)
 		tileIdStrEl.Form("%i Excl. events",NentriesEl);
+	if(pair == 2)
+		tileIdStrEl.Form("%i Corrected excl. events",NentriesEl);
 	textPub -> AddText(tileIdStrEl);
 	textPub -> Draw("same");
 
@@ -111,7 +116,8 @@ void Plot::DrawTextStar(TH1* hist, Int_t position, Bool_t star)
 	textSTAR -> SetFillColor(0);
 	textSTAR -> SetTextFont(62);
 	if(star)
-		textSTAR->AddText("STAR Internal");
+		//textSTAR->AddText("STAR Internal");
+		textSTAR->AddText("Request for Preliminary");
 	else
 		textSTAR -> AddText("THIS THESIS");
 	textSTAR -> Draw("same");
