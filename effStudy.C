@@ -132,8 +132,8 @@ void effStudy()
 {
     TString rafalEff = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/etaPhiEfficiency_16_01_19_delta015_twoRuns.root";
     TString myEff[2];
-    myEff[0] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effPionsM.root";
-    myEff[1] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effPionsP.root";
+    myEff[0] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/NewEff/effPionsM.root";
+    myEff[1] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/NewEff/effPionsP.root";
     TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/massCompare.root";
     TString TOFeffInput = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effWithBinningForSystematics.root";
     TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/ppRun17.root";
@@ -239,7 +239,7 @@ void effStudy()
 
 
     hInvMass[0]->SetStats(false);
-    hInvMass[0]->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV/c^{2}];Normalized counts");
+    hInvMass[0]->SetTitle(" ; m(#pi^{+}#pi^{-}) [GeV];Normalized counts");
     hInvMass[0]->GetXaxis()->SetTitleFont(42);
     hInvMass[0]->GetYaxis()->SetTitleFont(42);
     hInvMass[0]->GetXaxis()->SetLabelFont(42);
@@ -283,9 +283,9 @@ void effStudy()
     leg1->SetTextSize(0.04);
     leg1->SetTextFont(42);
     leg1->AddEntry(hInvMass[0],"Uncorrected","p");
-    leg1->AddEntry(hInvMass[1],"Corr. by eff. from run15","p");
+    leg1->AddEntry(hInvMass[1],"Corr. by eff. from 200 GeV","p");
     leg1->AddEntry(hInvMass[2],"Corr. by pure STARsim eff.","p");
-    leg1->AddEntry(hInvMass[3],"Corr. by eff.(p_{T})","p");
+    leg1->AddEntry(hInvMass[3],"Corr. by eff. (p_{T})","p");
     leg1->Draw("same");
 
     gStyle->SetOptStat("");

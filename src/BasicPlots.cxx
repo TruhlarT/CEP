@@ -121,7 +121,7 @@ void BasicPlots::PlotHistogram() {
 ////////////// 
 	gPad->SetLogy();
 	hMissingPtTPC->SetStats(0);
-	hMissingPtTPC->SetTitle(" ; p_{T}^{miss} [GeV/c];Number of events");
+	hMissingPtTPC->SetTitle(" ; p_{T}^{miss} [GeV];Number of events");
 	tool.SetGraphStyle(hMissingPtTPC);
 	//tool.SetMarkerStyle(hMissingPtTPC);
 	hMissingPtTPC->SetMinimum(10);
@@ -131,7 +131,7 @@ void BasicPlots::PlotHistogram() {
 	hMissingPtQ0->SetLineColor(4);
 	hMissingPtQ0->SetFillStyle(1001);
 	hMissingPtQ0->Draw("same");
-	hMissingPtExc->SetFillColorAlpha(2, 0.5);
+	hMissingPtExc->SetFillColorAlpha(2, 0.3);
 	hMissingPtExc->SetLineColor(2);
 	hMissingPtExc->SetFillStyle(1001);
 	hMissingPtExc->Draw("same");

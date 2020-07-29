@@ -101,7 +101,7 @@ void Make();
 
 void zvertex()
 {
-	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/ppRun17.root";
+	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/anaFlow2.root";
 	data = TFile::Open(input, "read");
 	if (!data)
 	{
@@ -216,7 +216,7 @@ void zvertex()
     leg1->SetBorderSize(0);
     leg1->SetTextSize(0.04);
     leg1->SetTextFont(42);
-    leg1->AddEntry(histSignal,"El+Inel","p");
+    leg1->AddEntry(histSignal,"Data","p");
     leg1->Draw("same");
     cCanvas->Update();
 

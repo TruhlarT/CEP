@@ -58,7 +58,7 @@ enum COMBINATIONS {ElInel = 0, El = 1, Inel = 2, nCombination};
 enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
 
 TString particleLables[nParticles] = { TString("Pion"), TString("Kaon"), TString("Proton")};
-TString combinationLabel[nCombination] = { TString("El+Inel"), TString("El"), TString("Inel")};
+TString combinationLabel[nCombination] = { TString("Data"), TString("El"), TString("Inel")};
 TString sideLabel[nSides] = { TString("East"), TString("West")};
 
 TFile* TPCeff[6];
@@ -152,12 +152,12 @@ int main(int argc, char** argv) {
     }
 
     TString TPCeffInput[6];
-    TPCeffInput[0] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effPionsM.root";
-    TPCeffInput[1] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effKaonsM.root";
-    TPCeffInput[2] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effProtonsM.root";
-    TPCeffInput[3] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effPionsP.root";
-    TPCeffInput[4] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effKaonsP.root";
-    TPCeffInput[5] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/effProtonsP.root";
+    TPCeffInput[0] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/NewEff/effPionsM.root";
+    TPCeffInput[1] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/NewEff/effKaonsM.root";
+    TPCeffInput[2] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/NewEff/effProtonsM.root";
+    TPCeffInput[3] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/NewEff/effPionsP.root";
+    TPCeffInput[4] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/NewEff/effKaonsP.root";
+    TPCeffInput[5] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/NewEff/effProtonsP.root";
      // 0 = pi- 1 = K- 2 = pbar  3 = pi+ 4 = K+ 5 = p
 
     for (int i = 0; i < 6; ++i)
@@ -193,7 +193,7 @@ int main(int argc, char** argv) {
     fout->mkdir("Graniitti")->cd();
     Graniitti granPlots(data, graniitti, fout, output, showText);
     granPlots.PlotHistogram();
-
+/*
 //////////////////////////////////////////////////////////////////////
 //              4 pions state
 //////////////////////////////////////////////////////////////////////
@@ -418,7 +418,7 @@ int main(int argc, char** argv) {
 //////////////////////////////////////////////////////////////////////
 //				PID cuts applied
 //////////////////////////////////////////////////////////////////////
-
+*/
     Init();
     ConnectInput(tree);
     for(Long64_t iev=0; iev<tree->GetEntries(); ++iev)
@@ -450,14 +450,14 @@ int main(int argc, char** argv) {
 //    }
 
     fout->cd();
-    for (int i = 0; i < 3; ++i)
+ /*   for (int i = 0; i < 3; ++i)
     {     
         hIntMass4Pi[0][0][i]->Write("invMass4PiUncorrSig");
         hIntMass4Pi[0][1][i]->Write("invMass4PiUncorrBcg");
         hIntMass4Pi[1][0][i]->Write("invMass4PiCorrSig");
         hIntMass4Pi[1][1][i]->Write("invMass4PiCorrBcg");
     }
-
+*/
 	fout->Close();
 	data->Close();
 

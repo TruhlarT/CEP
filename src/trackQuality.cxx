@@ -18,6 +18,8 @@ trackQuality::trackQuality(TFile* dataInput, TFile* fileOut, TString outnam, boo
 
 	TEXT = text;
 
+	dataLabel = "Data";
+	/*
 	if(inputCuts.Contains("!elastic"))
 	{
         dataLabel = "Inel";
@@ -30,7 +32,7 @@ trackQuality::trackQuality(TFile* dataInput, TFile* fileOut, TString outnam, boo
     {
         dataLabel = "El+Inel";
     }
-
+	*/
 	cout << "trackQuality::trackQuality() called" << endl;
 
 }//trackQuality

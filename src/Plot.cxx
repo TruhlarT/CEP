@@ -88,7 +88,7 @@ void Plot::DrawText(TH1* hist, Int_t state, Int_t pair, Float_t xMin, Float_t yM
 		tileIdStrEl.Form("%i Excl. events",NentriesEl);
 	if(pair == 2)
 		tileIdStrEl.Form("%i Corrected excl. events",NentriesEl);
-	textPub -> AddText(tileIdStrEl);
+	//textPub -> AddText(tileIdStrEl);
 	textPub -> Draw("same");
 
 }
@@ -116,8 +116,8 @@ void Plot::DrawTextStar(TH1* hist, Int_t position, Bool_t star)
 	textSTAR -> SetFillColor(0);
 	textSTAR -> SetTextFont(62);
 	if(star)
-		//textSTAR->AddText("STAR Internal");
-		textSTAR->AddText("Request for Preliminary");
+		textSTAR->AddText("STAR Internal");
+		//textSTAR->AddText("Request for Preliminary");
 	else
 		textSTAR -> AddText("THIS THESIS");
 	textSTAR -> Draw("same");

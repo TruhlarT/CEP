@@ -44,7 +44,7 @@ public:
 	// Int_t state = 1 pions
 	// Int_t state = 2 kaons
 	// Int_t state = 3 protons
-	void DrawTextStar(TH1* hist, Int_t position = 2, Bool_t star = true); 
+	void DrawTextStar(TH1* hist, Int_t position = 2, Bool_t star = false); 
 	// position = 0  top-left
 	// position = 1  top-mid
 	// position = 2  top-right

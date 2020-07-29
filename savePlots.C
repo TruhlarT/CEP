@@ -49,8 +49,8 @@ TFile* data;
 
 void savePlots()
 {
-	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/ppRun17/StRP.root";
-    TString path = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/ppRun17/Figs/";
+	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/anaFlow2/StRP.root";
+    TString path = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/anaFlow2/Figs/";
 
 	data = TFile::Open(input, "read");
 	if (!data)

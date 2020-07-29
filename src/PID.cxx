@@ -157,7 +157,7 @@ void PID::PlotHistogram(){
 
 	tree->Draw(variable +">>" + variable +"Sig( 200, -0.5, 1.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
-	tmpHist->SetTitle(" ; m^{2}_{TOF} [GeV^{2}/c^{4}]; Number of events");
+	tmpHist->SetTitle(" ; m^{2}_{TOF} [GeV^{2}]; Number of events");
 	//tmpHist->GetXaxis()->SetRangeUser(0,2.5);
 	tool.SetGraphStyle(tmpHist);
 	tool.SetMarkerStyle(tmpHist);
@@ -361,7 +361,7 @@ void PID::PlotHistogram(){
 	tree->Draw(variable + "0:charge0*momentum0" + ">>" + variable + "Vs" + variable2 + "2Sig(120,-3,3,80,0,10)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2Sig");
 	tmp2DHist->Add(tmp2DHist2);
-	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p [GeV/c] ;dE/dx [keV/cm]");
+	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p [GeV] ;dE/dx [keV/cm]");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.8);
 	tmp2DHist->Draw("colz");
 	tool.DrawText(tmp2DHist,0,true,0.08,0.78,0.25,0.9,12);
@@ -417,7 +417,7 @@ for(int i = 0; i < 3; ++i){
 	variable2 = "mSquared";
 	tree->Draw(variable2 + ":" + variable + ">>" + variable + "Vs" + variable2 + "Sig(100,0,16,100,-0.5,1.5)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "Sig");
-	tmp2DHist->SetTitle(" ; #chi^{2}_{dE/dx}(" + particleSign[i] +"); m^{2}_{TOF} [GeV^{2}/c^{4}]");
+	tmp2DHist->SetTitle(" ; #chi^{2}_{dE/dx}(" + particleSign[i] +"); m^{2}_{TOF} [GeV^{2}]");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,1.0);
 
 	tmp2DHist->Draw("colz");
@@ -435,7 +435,7 @@ for(int i = 0; i < 3; ++i){
 	tree->Draw(variable2 + ":" + "charge0*transMomentum0" + ">>" + variable + "Vs" + variable2 + "2Sig(80,-4,4,100,0,50)",cuts,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2Sig");
 	tmp2DHist->Add(tmp2DHist2);
-	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV/c] ; #chi^{2}_{dE/dx}(" + particleSign[i] +")");
+	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV] ; #chi^{2}_{dE/dx}(" + particleSign[i] +")");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,0.9);
 	tmp2DHist->Draw("colz");
 	tool.DrawText(tmp2DHist,0,true,0.08,0.78,0.25,0.9,12);
@@ -469,7 +469,7 @@ for(int i = 0; i < 3; ++i){
 	tree->Draw(variable + "0:charge0*transMomentum0" + ">>" + variable + "Vs" + variable2 + "2cSig(120,-3,3,80,0,10)"," chiPairPion < 3" + cutsWithPrefix,"colz");
 	tmp2DHist = (TH2F*)gPad->GetPrimitive(variable + "Vs" + variable2 + "2cSig");
 	tmp2DHist->Add(tmp2DHist6);
-	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV/c] ;dE/dx [keV/cm]");
+	tmp2DHist->SetTitle(" ; #frac{q}{e} #times p_{T} [GeV] ;dE/dx [keV/cm]");
 	tool.SetGraphStyle(tmp2DHist,4,20,1,4,1,1,0.9,1.0);
 	tool.SetMarkerStyle(tmp2DHist,4,29,1,4,1,1);;
 	tmp2DHist->Draw("SCAT");
