@@ -176,7 +176,7 @@ cout<<"kuk:   "<<"3"<<endl;
 
 	tree->Draw(variable + ">>" + variable + "Sig(" + nBins + "," + min + "," + max + ")",cutsOption);
 	histSignal = (TH1F*)gPad->GetPrimitive(variable + "Sig");
-	histSignal->SetTitle(" ; m(#pi^{+}#pi^{+}#pi^{-}#pi^{-}) [GeV/c^{2}]; Number of events");
+	histSignal->SetTitle(" ; m(#pi^{+}#pi^{+}#pi^{-}#pi^{-}) [GeV]; Number of events");
 	tool.SetGraphStyle(histSignal,4,20,1,4,1,1,0.9,1.3);
 	tool.SetMarkerStyle(histSignal);
 	histSignal->Draw("E");
@@ -186,8 +186,8 @@ cout<<"kuk:   "<<"3"<<endl;
 
 	leg1 = new TLegend(0.58, 0.63, 0.78, 0.73);
 	tool.SetLegendStyle(leg1);
-	leg1->AddEntry(histSignal,"In+El (unlike-sign pairs)","p");
-	leg1->AddEntry(histBackground,"In+El (like-sign pairs)","p");
+	leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","p");
+	leg1->AddEntry(histBackground,"Data (like-sign pairs)","p");
 	leg1->Draw("same");
 	
 	if(TEXT){

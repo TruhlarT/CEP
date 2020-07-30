@@ -189,11 +189,11 @@ int main(int argc, char** argv) {
 //////////////////////////////////////////////////////////////////////
 //					No cuts applied 
 //////////////////////////////////////////////////////////////////////
-
+/*
     fout->mkdir("Graniitti")->cd();
     Graniitti granPlots(data, graniitti, fout, output, showText);
     granPlots.PlotHistogram();
-/*
+*/
 //////////////////////////////////////////////////////////////////////
 //              4 pions state
 //////////////////////////////////////////////////////////////////////
@@ -212,7 +212,7 @@ int main(int argc, char** argv) {
     cout<<cuts<<endl;
     FourPi fourPiPlots(data, fout, output, showText, cuts);
     fourPiPlots.PlotHistogram();
-    
+ /*   
 //////////////////////////////////////////////////////////////////////
 
 	
@@ -249,7 +249,7 @@ int main(int argc, char** argv) {
         RPplots RPplotsWithCuts(data, fout, output, showCutsLine, usedCuts);
         RPplotsWithCuts.PlotHistogram();
     }
-
+*/
 //////////////////////////////////////////////////////////////////////
 //				All cuts applied
 //////////////////////////////////////////////////////////////////////
@@ -270,7 +270,7 @@ int main(int argc, char** argv) {
 	gStyle->SetLineWidth(2);      //axis line
 	gStyle->SetFrameLineWidth(2); //frame line
 
-	TH1F* hCutsFlow = new TH1F("cuts", "cuts", size+1, 0, size);
+/*	TH1F* hCutsFlow = new TH1F("cuts", "cuts", size+1, 0, size);
 	
 	tree->Draw("invMassPion>>invMassPionSignal");
 	TH1F *tmpHist = (TH1F*)gPad->GetPrimitive("invMassPionSignal");
@@ -352,7 +352,7 @@ int main(int argc, char** argv) {
         RPplotsWithCuts.PlotHistogram();
     }
 
-
+*/
 ///////////////////////////////////////////////////////////////
 //    TDirectory* TomasDir = cutsDir->mkdir("PID_Tomas");
 //    TomasDir->cd();
@@ -418,7 +418,7 @@ int main(int argc, char** argv) {
 //////////////////////////////////////////////////////////////////////
 //				PID cuts applied
 //////////////////////////////////////////////////////////////////////
-*/
+
     Init();
     ConnectInput(tree);
     for(Long64_t iev=0; iev<tree->GetEntries(); ++iev)
@@ -450,14 +450,14 @@ int main(int argc, char** argv) {
 //    }
 
     fout->cd();
- /*   for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 3; ++i)
     {     
         hIntMass4Pi[0][0][i]->Write("invMass4PiUncorrSig");
         hIntMass4Pi[0][1][i]->Write("invMass4PiUncorrBcg");
         hIntMass4Pi[1][0][i]->Write("invMass4PiCorrSig");
         hIntMass4Pi[1][1][i]->Write("invMass4PiCorrBcg");
     }
-*/
+
 	fout->Close();
 	data->Close();
 
