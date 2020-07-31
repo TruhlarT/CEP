@@ -61,6 +61,7 @@ TString sideLabel[nSides] = { TString("East"), TString("West")};
 TFile* fout;
 TFile* TPCeff[6];
 TFile* data;
+TFile* graniitti;
 
 TTree* tree;
 TTree* treeBack;
@@ -156,6 +157,7 @@ void thesisPlots()
 
     TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/thesisPlot.root";
     TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/anaFlow2.root";
+
 
     TString TPCeffInput[6];
     TPCeffInput[0] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/NewEff/effPionsM.root";

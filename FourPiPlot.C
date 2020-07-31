@@ -156,6 +156,7 @@ void Make(int signal);
 
 void PlotPlots();
 void PlotCutsFlow();
+void PlotMassPlots();
 
 void FourPiPlot()
 {
@@ -218,6 +219,7 @@ void FourPiPlot()
 
     PlotPlots();
     PlotCutsFlow();
+    PlotMassPlots();
 
     fout->Write();
     fout->Close();
@@ -995,4 +997,166 @@ void PlotCutsFlow()
     newCanvas->Update();
     newCanvas->Write("CutsFlow");
     newCanvas->Close();
+}
+
+
+void PlotMassPlots()
+{
+
+
+    TCanvas *cCanvas = new TCanvas("cCanvas","cCanvas",800,700);
+    gPad->SetMargin(0.12,0.03,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+    gPad->SetTickx();
+    gPad->SetTicky();  
+    gStyle->SetOptStat("");
+    gStyle->SetPalette(1);
+    gStyle->SetLineWidth(2);      //axis line
+    gStyle->SetFrameLineWidth(2); //frame line
+
+    TH1D* histSignal;
+    TH1D* histBackground;
+
+    histSignal = (TH1D*)hInvMassUncorr[0]->Clone("histSignal");
+    histBackground = (TH1D*)hInvMassUncorr[1]->Clone("histBackground");
+
+    histSignal->SetTitle(" ; m(#pi^{+}#pi^{+}#pi^{-}#pi^{-}) [GeV]; Number of events");
+    histSignal->SetStats(false);
+    histSignal->GetXaxis()->SetTitleFont(42);
+    histSignal->GetYaxis()->SetTitleFont(42);
+    histSignal->GetXaxis()->SetLabelFont(42);
+    histSignal->GetYaxis()->SetLabelFont(42);
+    histSignal->GetXaxis()->SetLabelSize(labelSize);
+    histSignal->GetYaxis()->SetLabelSize(labelSize);
+    histSignal->GetXaxis()->SetTitleSize(labelSize);
+    histSignal->GetYaxis()->SetTitleSize(labelSize);
+    histSignal->GetXaxis()->SetTitleOffset(1.0);
+    histSignal->GetYaxis()->SetTitleOffset(1.3);  
+    histSignal->GetYaxis()->SetRangeUser(0.0, TMath::Max(histSignal->GetMaximum(),histBackground->GetMaximum())*1.2);
+    histSignal->SetMarkerColor(1);
+    histSignal->SetMarkerSize(1);
+    histSignal->SetMarkerStyle(20);
+    histSignal->SetLineColor(1);
+    histSignal->SetLineStyle(1);
+    histSignal->SetLineWidth(1);
+    histSignal->Draw("E");
+    
+    gStyle->SetOptStat("");
+    gStyle->SetPalette(1);
+
+    histBackground->SetMarkerColor(2);
+    histBackground->SetMarkerSize(1);
+    histBackground->SetMarkerStyle(22);
+    histBackground->SetLineColor(2);
+    histBackground->SetLineStyle(1);
+    histBackground->SetLineWidth(1);
+    histBackground->Draw("ESAME");
+
+
+    TPaveText *textPub = new TPaveText(0.65,0.75,0.92,0.88,"brNDC");
+    textPub -> SetTextSize(textSize);
+    textPub -> SetTextAlign(22);
+    textPub -> SetFillColor(0);
+    textPub -> SetTextFont(42);
+    textPub -> AddText("p + p #rightarrow p + #pi^{+}#pi^{+}#pi^{-}#pi^{-} + p");
+    textPub -> AddText("#sqrt{s} = 510 GeV");
+    textPub -> Draw("same");
+
+    TPaveText *textSTAR;
+    textSTAR = new TPaveText(0.65,0.89,0.9,0.95,"brNDC");
+    textSTAR -> SetTextSize(textSize);
+    textSTAR -> SetTextAlign(22);
+    textSTAR -> SetFillColor(0);
+    textSTAR -> SetTextFont(62);
+    textSTAR->AddText("THIS THESIS");
+    textSTAR -> Draw("same");
+
+    TLegend* leg1 = new TLegend(0.55, 0.65, 0.78, 0.74);
+    leg1->SetFillStyle(0);
+    leg1->SetBorderSize(0);
+    leg1->SetTextSize(textSize);
+    leg1->SetTextFont(42);
+    leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","pe");
+    leg1->AddEntry(histBackground,"Data (like-sign pairs)","pe");
+    leg1->Draw("same");
+
+
+    cCanvas->Update();
+    cCanvas->Write("4piUncorr");
+
+    cout<<"I have 4pi events: "<< histSignal->Integral()<<endl;
+
+
+    histSignal = (TH1D*)hInvMassCorr[0]->Clone("histSignal");
+    histBackground = (TH1D*)hInvMassCorr[1]->Clone("histBackground");
+
+    Double_t scaleFactor; 
+    scaleFactor =   1 /histSignal->Integral();
+    histSignal->Scale(scaleFactor);
+    histBackground->Scale(scaleFactor);
+
+    histSignal->SetTitle(" ; m(#pi^{+}#pi^{+}#pi^{-}#pi^{-}) [GeV]; Probability per event / 80 MeV");
+    histSignal->SetStats(false);
+    histSignal->GetXaxis()->SetTitleFont(42);
+    histSignal->GetYaxis()->SetTitleFont(42);
+    histSignal->GetXaxis()->SetLabelFont(42);
+    histSignal->GetYaxis()->SetLabelFont(42);
+    histSignal->GetXaxis()->SetLabelSize(labelSize);
+    histSignal->GetYaxis()->SetLabelSize(labelSize);
+    histSignal->GetXaxis()->SetTitleSize(labelSize);
+    histSignal->GetYaxis()->SetTitleSize(labelSize);
+    histSignal->GetXaxis()->SetTitleOffset(1.0);
+    histSignal->GetYaxis()->SetTitleOffset(1.3);  
+    histSignal->GetYaxis()->SetRangeUser(0.0, TMath::Max(histSignal->GetMaximum(),histBackground->GetMaximum())*1.2);
+    histSignal->SetMarkerColor(1);
+    histSignal->SetMarkerSize(1);
+    histSignal->SetMarkerStyle(20);
+    histSignal->SetLineColor(1);
+    histSignal->SetLineStyle(1);
+    histSignal->SetLineWidth(1);
+    histSignal->Draw("E");
+    
+    gStyle->SetOptStat("");
+    gStyle->SetPalette(1);
+
+    histBackground->SetMarkerColor(2);
+    histBackground->SetMarkerSize(1);
+    histBackground->SetMarkerStyle(22);
+    histBackground->SetLineColor(2);
+    histBackground->SetLineStyle(1);
+    histBackground->SetLineWidth(1);
+    histBackground->Draw("ESAME");
+
+
+    textPub = new TPaveText(0.65,0.75,0.92,0.88,"brNDC");
+    textPub -> SetTextSize(textSize);
+    textPub -> SetTextAlign(22);
+    textPub -> SetFillColor(0);
+    textPub -> SetTextFont(42);
+    textPub -> AddText("p + p #rightarrow p + #pi^{+}#pi^{+}#pi^{-}#pi^{-} + p");
+    textPub -> AddText("#sqrt{s} = 510 GeV");
+    textPub -> Draw("same");
+
+    textSTAR = new TPaveText(0.65,0.89,0.9,0.95,"brNDC");
+    textSTAR -> SetTextSize(textSize);
+    textSTAR -> SetTextAlign(22);
+    textSTAR -> SetFillColor(0);
+    textSTAR -> SetTextFont(62);
+    textSTAR->AddText("THIS THESIS");
+    textSTAR -> Draw("same");
+
+    leg1 = new TLegend(0.55, 0.65, 0.78, 0.74);
+    leg1->SetFillStyle(0);
+    leg1->SetBorderSize(0);
+    leg1->SetTextSize(textSize);
+    leg1->SetTextFont(42);
+    leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","pe");
+    leg1->AddEntry(histBackground,"Data (like-sign pairs)","pe");
+    leg1->Draw("same");
+
+
+    cCanvas->Update();
+    cCanvas->Write("4piCorr");
+    cCanvas->Close();
+
+
 }
