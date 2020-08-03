@@ -623,12 +623,15 @@ void PlotDeltaPhi()
 
     TH1D *hist, *histCompare;
     TString name = "phiPlot";
-    TString yLabel = "Probability per event";
+    TString yLabelDef = "Probability per event";
+    TString yLabel;
+    Double_t nBins[4] = {10, 10, 20, 20};
     Double_t binning[4][2] =  {{0.0, 180.0},{0.0, 180.0}, {0.0, 180.0}, {0.0, 180.0}};
     Double_t limits[4][2] = { {0.01, 2.4}, {0.01, 2.4}, {0.01, 2.4}, {0.01, 2.4}}; 
     for (int i = 0; i < nParticles +1; ++i)
     { 
         int comb = 0;
+        yLabel = yLabelDef + " / " nBins[i] + " deq";
 
         pad1->cd(); 
         hist = (TH1D*)hDeltaPhiCorr[i][0][comb]->Clone("hist");

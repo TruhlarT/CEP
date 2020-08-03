@@ -212,14 +212,14 @@ int main(int argc, char** argv) {
     cout<<cuts<<endl;
     FourPi fourPiPlots(data, fout, output, showText, cuts);
     fourPiPlots.PlotHistogram();
- /*   
+    
 //////////////////////////////////////////////////////////////////////
 
 	
     fout->mkdir("BasicPlots")->cd();
 	BasicPlots Plots(data, fout, output, showText);
 	Plots.PlotHistogram();
-
+/*
     TDirectory* curDir = fout->mkdir("El+Inel");
     curDir->cd();
     TString usedCuts = "";

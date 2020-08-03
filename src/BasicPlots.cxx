@@ -72,6 +72,7 @@ void BasicPlots::PlotHistogram() {
 
 	hCuts = (TH1F*)data -> Get("AnalysisFlow");
 	hMissingPtTPC = (TH1D*)data -> Get("All/MissingPt_TPC2t_Combi2part");
+	hMissingPtTOF = (TH1D*)data -> Get("All/MissingPt_TOF2trk_Combi2part");
 	hMissingPtQ0 = (TH1D*)data -> Get("All/MissingPt_Q0_Combi2part");
 	hMissingPtExc = (TH1D*)data -> Get("All/MissingPt_Excl_Combi2part");
 
@@ -120,13 +121,17 @@ void BasicPlots::PlotHistogram() {
 //////////////////////////////////////////
 ////////////// 
 	gPad->SetLogy();
-	hMissingPtTPC->SetStats(0);
-	hMissingPtTPC->SetTitle(" ; p_{T}^{miss} [GeV];Number of events");
-	tool.SetGraphStyle(hMissingPtTPC);
+	hMissingPtTOF->SetStats(0);
+	hMissingPtTOF->SetTitle(" ; p_{T}^{miss} [GeV];Number of events");
+	tool.SetGraphStyle(hMissingPtTOF);
 	//tool.SetMarkerStyle(hMissingPtTPC);
 	hMissingPtTPC->SetMinimum(10);
 
-	hMissingPtTPC->Draw();	
+	//hMissingPtTPC->Draw();	
+    hMissingPtTOF->SetFillColorAlpha(7, 0.2);
+    hMissingPtTOF->SetLineColor(28);
+    hMissingPtTOF->SetFillStyle(1001);
+    hMissingPtTOF->Draw(); 
 	hMissingPtQ0->SetFillColor(4);
 	hMissingPtQ0->SetLineColor(4);
 	hMissingPtQ0->SetFillStyle(1001);
@@ -138,9 +143,11 @@ void BasicPlots::PlotHistogram() {
 	cCanvas->cd();
 
 
-	leg1 = new TLegend(0.3,0.8,0.5,0.95);
+	leg1 = new TLegend(0.66,0.73,0.95,0.9);
 	tool.SetLegendStyle(leg1);
-	leg1 -> AddEntry(hMissingPtTPC, "2 TPC-TOF tracks", "l");
+	leg1->SetMargin(0.1);
+	//leg1 -> AddEntry(hMissingPtTPC, "2 TPC tracks", "l");
+	leg1 -> AddEntry(hMissingPtTOF, "2 TPC-TOF tracks", "fl");
 	leg1 -> AddEntry(hMissingPtQ0, "Total charge 0", "fl");
 	leg1 -> AddEntry(hMissingPtExc, "Exclusive", "fl");
 	leg1->Draw("same");
@@ -151,14 +158,24 @@ void BasicPlots::PlotHistogram() {
 		textPub1 -> AddText("Exclusive peak");
 	textPub1 -> Draw("same");
 
-	TPaveText *textPub2 = new TPaveText(0.75,0.79,0.9,0.9,"brNDC");
-	tool.SetTextStyle(textPub2);
-	textPub2 -> AddText("p + p #rightarrow p + X + p");
-	textPub2 -> AddText("#sqrt{s} = 510 GeV");
-	textPub2 -> Draw("same");
-	tool.DrawTextStar(tmpHist,2);
+    textPub = new TPaveText(0.34,0.9,0.95,0.95,"brNDC");
+    textPub -> SetTextSize(0.04);
+    textPub -> SetTextAlign(12);
+    textPub -> SetFillColor(0);
+    textPub -> SetTextFont(42);
+    textPub -> AddText("p + p #rightarrow p + #pi^{+}#pi^{+}#pi^{-}#pi^{-} + p      #sqrt{s} = 510 GeV");
+    //textPub -> AddText("#sqrt{s} = 510 GeV");
+    textPub -> Draw("same");
 
-	TLine *left = new TLine(0.1,0,0.1,600000);
+    TPaveText *textSTAR = new TPaveText(0.13,0.9,0.25,0.95,"brNDC");
+    textSTAR -> SetTextSize(0.04);
+    textSTAR -> SetTextAlign(12);
+    textSTAR -> SetFillColor(0);
+    textSTAR -> SetTextFont(62);
+    textSTAR -> AddText("THIS THESIS");
+    textSTAR -> Draw("same");
+
+	TLine *left = new TLine(0.1,0,0.1,hMissingPtTOF->GetMaximum()*1.1);
 	tool.SetLineStyle(left,10,1,4);
     left->Draw("same");
 

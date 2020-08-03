@@ -154,6 +154,8 @@ void ConnectInput(TTree* tree);
 void Make(int signal);
 
 
+void PlotPtMiss();
+
 void PlotPlots();
 void PlotCutsFlow();
 void PlotMassPlots();
@@ -216,6 +218,7 @@ void FourPiPlot()
         Make(1);
     }
 
+    PlotPtMiss();
 
     PlotPlots();
     PlotCutsFlow();
@@ -455,8 +458,8 @@ void PlotPlots()
     leg1->SetBorderSize(0);
     leg1->SetTextSize(textSize);
     leg1->SetTextFont(42);
-    leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","pe");
-    leg1->AddEntry(histBackground,"Data (like-sign pairs)","pe");
+    leg1->AddEntry(histSignal,"Data (right-sign comb.)","pe");
+    leg1->AddEntry(histBackground,"Data (wrong-sign comb.)","pe");
     leg1->Draw("same");
 
 
@@ -534,8 +537,8 @@ void PlotPlots()
     leg1->SetBorderSize(0);
     leg1->SetTextSize(textSize);
     leg1->SetTextFont(42);
-    leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","pe");
-    leg1->AddEntry(histBackground,"Data (like-sign pairs)","pe");
+    leg1->AddEntry(histSignal,"Data (right-sign comb.)","pe");
+    leg1->AddEntry(histBackground,"Data (wrong-sign comb.)","pe");
     leg1->Draw("same");
 
     left02 = new TLine(15,0.0,15,histSignal->GetMaximum()*0.6);
@@ -606,8 +609,8 @@ void PlotPlots()
     leg1->SetBorderSize(0);
     leg1->SetTextSize(textSize);
     leg1->SetTextFont(42);
-    leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","pe");
-    leg1->AddEntry(histBackground,"Data (like-sign pairs)","pe");
+    leg1->AddEntry(histSignal,"Data (right-sign comb.)","pe");
+    leg1->AddEntry(histBackground,"Data (wrong-sign comb.)","pe");
     leg1->Draw("same");
 
     left02 = new TLine(25,0.0,25,histSignal->GetMaximum()*0.6);
@@ -678,8 +681,8 @@ void PlotPlots()
     leg1->SetBorderSize(0);
     leg1->SetTextSize(textSize);
     leg1->SetTextFont(42);
-    leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","pe");
-    leg1->AddEntry(histBackground,"Data (like-sign pairs)","pe");
+    leg1->AddEntry(histSignal,"Data (right-sign comb.)","pe");
+    leg1->AddEntry(histBackground,"Data (wrong-sign comb.)","pe");
     leg1->Draw("same");
 
     left02 = new TLine(1.5,0.0,1.5,histSignal->GetMaximum()*0.6);
@@ -749,8 +752,8 @@ void PlotPlots()
     leg1->SetBorderSize(0);
     leg1->SetTextSize(textSize);
     leg1->SetTextFont(42);
-    leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","pe");
-    leg1->AddEntry(histBackground,"Data (like-sign pairs)","pe");
+    leg1->AddEntry(histSignal,"Data (right-sign comb.)","pe");
+    leg1->AddEntry(histBackground,"Data (wrong-sign comb.)","pe");
     leg1->Draw("same");
 
     left02 = new TLine(-1.0,0.0,-1.0,histSignal->GetMaximum()*0.6);
@@ -827,8 +830,8 @@ void PlotPlots()
     leg1->SetBorderSize(0);
     leg1->SetTextSize(textSize);
     leg1->SetTextFont(42);
-    leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","pe");
-    leg1->AddEntry(histBackground,"Data (like-sign pairs)","pe");
+    leg1->AddEntry(histSignal,"Data (right-sign comb.)","pe");
+    leg1->AddEntry(histBackground,"Data (wrong-sign comb.)","pe");
     leg1->Draw("same");
 
     left02 = new TLine(-0.7,0.0,-0.7,histSignal->GetMaximum()*0.6);
@@ -904,8 +907,8 @@ void PlotPlots()
     leg1->SetBorderSize(0);
     leg1->SetTextSize(textSize);
     leg1->SetTextFont(42);
-    leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","pe");
-    leg1->AddEntry(histBackground,"Data (like-sign pairs)","pe");
+    leg1->AddEntry(histSignal,"Data (right-sign comb.)","pe");
+    leg1->AddEntry(histBackground,"Data (wrong-sign comb.)","pe");
     leg1->Draw("same");
 
     left02 = new TLine(-1.0,0.0,-1.0,histSignal->GetMaximum()*0.6);
@@ -1075,8 +1078,8 @@ void PlotMassPlots()
     leg1->SetBorderSize(0);
     leg1->SetTextSize(textSize);
     leg1->SetTextFont(42);
-    leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","pe");
-    leg1->AddEntry(histBackground,"Data (like-sign pairs)","pe");
+    leg1->AddEntry(histSignal,"Data (right-sign comb.)","pe");
+    leg1->AddEntry(histBackground,"Data (wrong-sign comb.)","pe");
     leg1->Draw("same");
 
 
@@ -1149,13 +1152,112 @@ void PlotMassPlots()
     leg1->SetBorderSize(0);
     leg1->SetTextSize(textSize);
     leg1->SetTextFont(42);
-    leg1->AddEntry(histSignal,"Data (unlike-sign pairs)","pe");
-    leg1->AddEntry(histBackground,"Data (like-sign pairs)","pe");
+    leg1->AddEntry(histSignal,"Data (right-sign comb.)","pe");
+    leg1->AddEntry(histBackground,"Data (wrong-sign comb.)","pe");
     leg1->Draw("same");
 
 
     cCanvas->Update();
     cCanvas->Write("4piCorr");
+    cCanvas->Close();
+
+
+}
+
+
+void PlotPtMiss()
+{
+    
+    TCanvas *cCanvas = new TCanvas("cCanvas","cCanvas",800,700);
+    gPad->SetMargin(0.11,0.02,0.105,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+    gPad->SetTickx();
+    gPad->SetTicky();  
+    gStyle->SetOptStat("");
+    gStyle->SetPalette(1);
+    gStyle->SetLineWidth(2);      //axis line
+    gStyle->SetFrameLineWidth(2); //frame line
+
+    TH1D *hMissingPtTPC, *hMissingPtTOF, *hMissingPtQ0, *hMissingPtExc;
+    hMissingPtTPC = (TH1D*)data -> Get("All/MissingPt_TPC2t_Combi4part");
+    hMissingPtTOF = (TH1D*)data -> Get("All/MissingPt_TOF2trk_Combi4part");
+    hMissingPtQ0 = (TH1D*)data -> Get("All/MissingPt_Q0_Combi4part");
+    hMissingPtExc = (TH1D*)data -> Get("All/MissingPt_Excl_Combi4part");
+
+    gPad->SetLogy();
+    hMissingPtTOF->SetStats(0);
+    hMissingPtTOF->SetTitle(" ; p_{T}^{miss} [GeV];Number of events");
+    hMissingPtTOF->GetXaxis()->SetTitleFont(42);
+    hMissingPtTOF->GetYaxis()->SetTitleFont(42);
+    hMissingPtTOF->GetXaxis()->SetLabelFont(42);
+    hMissingPtTOF->GetYaxis()->SetLabelFont(42);
+    hMissingPtTOF->GetXaxis()->SetTitleSize(labelSize);
+    hMissingPtTOF->GetYaxis()->SetTitleSize(labelSize);
+    hMissingPtTOF->GetXaxis()->SetLabelSize(labelSize);
+    hMissingPtTOF->GetYaxis()->SetLabelSize(labelSize);
+    hMissingPtTOF->GetXaxis()->SetTitleOffset(1.0);
+    hMissingPtTOF->GetYaxis()->SetTitleOffset(1.1);
+    hMissingPtTOF->SetMarkerColor(4);
+    hMissingPtTOF->SetMarkerSize(1);
+    hMissingPtTOF->SetMarkerStyle(20);
+    hMissingPtTOF->SetLineColor(4);
+    hMissingPtTOF->SetLineStyle(1);
+    hMissingPtTOF->SetLineWidth(1);
+    hMissingPtTOF->GetYaxis()->SetRangeUser(10, hMissingPtTOF->GetMaximum()*4);
+
+    //hMissingPtTPC->Draw("same"); 
+    hMissingPtTOF->SetFillColorAlpha(7, 0.2);
+    hMissingPtTOF->SetLineColor(28);
+    hMissingPtTOF->SetFillStyle(1001);
+    hMissingPtTOF->Draw("same"); 
+    hMissingPtQ0->SetFillColor(4);
+    hMissingPtQ0->SetLineColor(4);
+    hMissingPtQ0->SetFillStyle(1001);
+    hMissingPtQ0->Draw("same");
+    hMissingPtExc->SetFillColorAlpha(2, 0.3);
+    hMissingPtExc->SetLineColor(2);
+    hMissingPtExc->SetFillStyle(1001);
+    hMissingPtExc->Draw("same");
+
+    TLegend *leg1 = new TLegend(0.66,0.73,0.95,0.9);
+    leg1->SetFillStyle(0);
+    leg1->SetBorderSize(0);
+    leg1-> SetTextAlign(12);
+    leg1->SetTextSize(textSize);
+    leg1->SetTextFont(42);
+    leg1->SetMargin(0.1);
+    //leg1 -> AddEntry(hMissingPtTPC, "4 TPC tracks", "l");
+    leg1 -> AddEntry(hMissingPtTOF, "4 TPC-TOF tracks", "fl");
+    leg1 -> AddEntry(hMissingPtQ0, "Total charge 0", "fl");
+    leg1 -> AddEntry(hMissingPtExc, "Exclusive", "fl");
+    leg1->Draw("same");
+
+    TLine *left = new TLine(0.1,0,0.1,hMissingPtTOF->GetMaximum()*0.2);
+    left->SetLineStyle(10);
+    left->SetLineColor(1);
+    left->SetLineWidth(4);
+    left->Draw("same");
+
+    TPaveText *textPub = new TPaveText(0.34,0.9,0.95,0.95,"brNDC");
+    textPub -> SetTextSize(textSize);
+    textPub -> SetTextAlign(12);
+    textPub -> SetFillColor(0);
+    textPub -> SetTextFont(42);
+    textPub -> AddText("p + p #rightarrow p + #pi^{+}#pi^{+}#pi^{-}#pi^{-} + p      #sqrt{s} = 510 GeV");
+    //textPub -> AddText("#sqrt{s} = 510 GeV");
+    textPub -> Draw("same");
+
+    TPaveText *textSTAR = new TPaveText(0.13,0.9,0.25,0.95,"brNDC");
+    textSTAR -> SetTextSize(textSize);
+    textSTAR -> SetTextAlign(12);
+    textSTAR -> SetFillColor(0);
+    textSTAR -> SetTextFont(62);
+    textSTAR -> AddText("THIS THESIS");
+    textSTAR -> Draw("same");
+
+    fout->cd();
+    cCanvas->Update();
+    cCanvas-> Write("hMissingPt");
+    //cCanvas->SaveAs(output + "BasicPlots/cMissingPt.png");
     cCanvas->Close();
 
 
