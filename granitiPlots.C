@@ -631,7 +631,7 @@ void PlotDeltaPhi()
     for (int i = 0; i < nParticles +1; ++i)
     { 
         int comb = 0;
-        yLabel = yLabelDef + " / " nBins[i] + " deq";
+        yLabel = yLabelDef + " / " + nBins[i] + " deq";
 
         pad1->cd(); 
         hist = (TH1D*)hDeltaPhiCorr[i][0][comb]->Clone("hist");
@@ -704,6 +704,14 @@ void PlotDeltaPhi()
         legendPID -> AddEntry(hist, "Data", "p");
         legendPID -> AddEntry(histCompare, "Graniitti", "p");
         legendPID -> Draw("same");
+
+        textSTAR = new TPaveText(0.68,0.32,0.92,0.44,"brNDC"); 
+        textSTAR -> SetTextSize(30);
+        textSTAR -> SetFillColor(0);
+        textSTAR -> SetTextFont(43);
+        textSTAR -> AddText("Like-sign background");
+        textSTAR -> AddText("subtracted");
+        textSTAR -> Draw("same");
 
         if(comb != 0)
         {
@@ -817,13 +825,19 @@ void PlotRap()
     pad2->SetBottomMargin(0.3);
     pad2->Draw();
 
+
+
+
     TH1D *hist, *histCompare;
     TString name = "rapPlot";
-    TString yLabel = "Probability per event";
+    TString yLabelDef = "Probability per event";
+    TString yLabel;
+    Double_t nBins[4] = {0.1, 0.16, 0.2, 0.2};
     Double_t binning[4][2] =  {{-0.8, 0.8}, {-0.8, 0.8}, {-0.8, 0.8}, {-0.8, 0.8}};
     Double_t limits[4][2] = { {0.01, 2.4}, {0.01, 2.4}, {0.01, 2.4}, {0.01, 2.4}}; 
     for (int i = 0; i < nParticles +1; ++i)
     { 
+        yLabel = yLabelDef + " / " + nBins[i];
         int comb = 0;
         if(i == nParticles && comb > 0)
             continue;
@@ -899,6 +913,14 @@ void PlotRap()
         legendPID -> AddEntry(hist, "Data", "p");
         legendPID -> AddEntry(histCompare, "Graniitti", "p");
         legendPID -> Draw("same");
+
+        textSTAR = new TPaveText(0.68,0.32,0.92,0.44,"brNDC"); 
+        textSTAR -> SetTextSize(30);
+        textSTAR -> SetFillColor(0);
+        textSTAR -> SetTextFont(43);
+        textSTAR -> AddText("Like-sign background");
+        textSTAR -> AddText("subtracted");
+        textSTAR -> Draw("same");
 
         if(comb != 0)
         {
@@ -1015,11 +1037,14 @@ void PlotMassPlots()
 
     TH1D *hist, *histCompare;
     TString name = "massPlot";
-    TString yLabel = "Probability per event";
+    TString yLabelDef = "Probability per event";
+    TString yLabel;
+    Double_t nBins[4] = {50, 50, 100, 80};
     Double_t binning[4][2] =  {{0.3, 3.5},{0.8, 3}, {1.6, 4}, {0.5,4.5}};
     Double_t limits[4][2] = { {0.01, 2.4}, {0.01, 2.4}, {0.01, 2.4}, {0.01, 2.4}}; 
     for (int i = 0; i < nParticles +1; ++i)
     { 
+        yLabel = yLabelDef + " / " + nBins[i] + " MeV";
         for (int comb = 0; comb < nCombination; ++comb)
         { 
             if(i == nParticles && comb > 0)
@@ -1086,6 +1111,14 @@ void PlotMassPlots()
             textSTAR -> SetTextFont(43);
             textSTAR -> AddText("p + p #rightarrow p + " + stateLabel[i] +" + p");
             textSTAR -> AddText("#sqrt{s} = 510 GeV");
+            textSTAR -> Draw("same");
+
+            textSTAR = new TPaveText(0.68,0.32,0.92,0.44,"brNDC"); 
+            textSTAR -> SetTextSize(30);
+            textSTAR -> SetFillColor(0);
+            textSTAR -> SetTextFont(43);
+            textSTAR -> AddText("Like-sign background");
+            textSTAR -> AddText("subtracted");
             textSTAR -> Draw("same");
 
             TLegend *legendPID = new TLegend(0.68,0.45,0.92,0.62,"","brNDC");

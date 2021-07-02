@@ -57,6 +57,10 @@ enum PARTICLES {Pion = 0, Kaon = 1, Proton = 2, nParticles};
 enum COMBINATIONS {ElInel = 0, El = 1, Inel = 2, nCombination};
 enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
 
+const bool isGraniitti = false;
+const bool is4pi = false;
+
+
 TString particleLables[nParticles] = { TString("Pion"), TString("Kaon"), TString("Proton")};
 TString combinationLabel[nCombination] = { TString("Data"), TString("El"), TString("Inel")};
 TString sideLabel[nSides] = { TString("East"), TString("West")};
@@ -66,6 +70,7 @@ TFile* fout;
 TFile* graniitti;
 
 TTree* tree;
+TTree* goldenTree;
 TTree* treeBack;
 
  // 0 = pi- 1 = K- 2 = pbar
@@ -80,6 +85,18 @@ TH1D* hphiRP[nParticles][2][3];
 
 TH2D* hMomentum[nParticles];
 TH2D* hTransMomentum[nParticles];
+
+
+
+Double_t rpX[nSides];
+Double_t rpY[nSides];
+Double_t rpZ[nSides];
+Double_t thetaRp[nSides];
+Double_t pRp[nSides];
+Double_t ptRp[nSides];
+Double_t xCorrelationsRp[nSides];
+Double_t yCorrelationsRp[nSides];
+
 
 Double_t t[nSides];
 Double_t phiRP[nSides];
@@ -100,11 +117,13 @@ Double_t Phi[4];
 
 Bool_t fourPiState;
 Bool_t elastic;
+Bool_t IsPion, IsKaon, IsProton;
 
 Double_t radian = 57.2957795;
 
 void Init();
 void ConnectInput(TTree* tree);
+TFile *CreateOutputTree(const string& out);
 void Make(int signal);
 void PlotMoneyPlot();
 
@@ -124,8 +143,8 @@ int main(int argc, char** argv) {
 	//const string dataName = "StRP_production_0000.root";
 	const string& DataSet = argv[1];
 	TString dataName = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/" + DataSet + ".root";
-	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/" + DataSet + "/";
-	TString granInput = "/home/truhlar/Downloads/graniitti/output/Graniitti.root";
+	const string& output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/" + DataSet + "/StRP.root";
+    TString granInput = "/home/truhlar/Downloads/Graniitti_new/GRANIITTI/output/510.root";
 
 	TString cutsOption[] = {TString("!fourPiState"), TString("vertexZ<80 && vertexZ > -80"), 
             TString("NhitsFit1 >=25 && NhitsFit0 >= 25"), TString("NhitsDEdx1 >= 15 && NhitsDEdx0 >= 15"), TString("DcaZ1 < 1 && DcaZ1 > -1 && DcaZ0 < 1 && DcaZ0 > -1"), TString("DcaXY1 < 1.5 && DcaXY0 < 1.5"), 
@@ -171,15 +190,16 @@ int main(int argc, char** argv) {
         hTPCeff[i] = (TH3F*)TPCeff[i] -> Get("effRafal"); // hTPCEffiCD%i120" for dead sector 19 if using Rafal
     }
 
-
-    graniitti = TFile::Open(granInput, "read");
-    if (!graniitti){
-        cout<<"Error: cannot open: "<<granInput<<endl;
-        return 6;
+    if(isGraniitti)
+    {       
+        graniitti = TFile::Open(granInput, "read");
+        if (!graniitti){
+            cout<<"Error: cannot open: "<<granInput<<endl;
+            return 6;
+        }
     }
 
-
-	fout = new TFile(output +"StRP.root","RECREATE");
+    fout = CreateOutputTree(output); 
 
 	Plot tool;
 
@@ -189,29 +209,34 @@ int main(int argc, char** argv) {
 //////////////////////////////////////////////////////////////////////
 //					No cuts applied 
 //////////////////////////////////////////////////////////////////////
-/*
-    fout->mkdir("Graniitti")->cd();
-    Graniitti granPlots(data, graniitti, fout, output, showText);
-    granPlots.PlotHistogram();
-*/
+    if(isGraniitti)
+    {
+        fout->mkdir("Graniitti")->cd();
+        Graniitti granPlots(data, graniitti, fout, output, showText);
+        granPlots.PlotHistogram();
+    }
+
 //////////////////////////////////////////////////////////////////////
 //              4 pions state
 //////////////////////////////////////////////////////////////////////
- 
-    TDirectory* fourPiDir = fout->mkdir("4pions");
-    fourPiDir->cd();
-
     TString cuts = "";
-    int size = (sizeof(cutsOption4pi)/sizeof(*cutsOption4pi));
-    for (int i = 0; i < size; ++i)
-    {
-        cuts += cutsOption4pi[i];
-        if(i != size -1)
-            cuts += " && ";
+    int size;
+    if(is4pi)
+    {    
+        TDirectory* fourPiDir = fout->mkdir("4pions");
+        fourPiDir->cd();
+
+        size = (sizeof(cutsOption4pi)/sizeof(*cutsOption4pi));
+        for (int i = 0; i < size; ++i)
+        {
+            cuts += cutsOption4pi[i];
+            if(i != size -1)
+                cuts += " && ";
+        }
+        cout<<cuts<<endl;
+        FourPi fourPiPlots(data, fout, output, showText, cuts);
+        fourPiPlots.PlotHistogram();
     }
-    cout<<cuts<<endl;
-    FourPi fourPiPlots(data, fout, output, showText, cuts);
-    fourPiPlots.PlotHistogram();
     
 //////////////////////////////////////////////////////////////////////
 
@@ -219,7 +244,7 @@ int main(int argc, char** argv) {
     fout->mkdir("BasicPlots")->cd();
 	BasicPlots Plots(data, fout, output, showText);
 	Plots.PlotHistogram();
-/*
+
     TDirectory* curDir = fout->mkdir("El+Inel");
     curDir->cd();
     TString usedCuts = "";
@@ -249,7 +274,7 @@ int main(int argc, char** argv) {
         RPplots RPplotsWithCuts(data, fout, output, showCutsLine, usedCuts);
         RPplotsWithCuts.PlotHistogram();
     }
-*/
+
 //////////////////////////////////////////////////////////////////////
 //				All cuts applied
 //////////////////////////////////////////////////////////////////////
@@ -450,14 +475,18 @@ int main(int argc, char** argv) {
 //    }
 
     fout->cd();
-    for (int i = 0; i < 3; ++i)
-    {     
-        hIntMass4Pi[0][0][i]->Write("invMass4PiUncorrSig");
-        hIntMass4Pi[0][1][i]->Write("invMass4PiUncorrBcg");
-        hIntMass4Pi[1][0][i]->Write("invMass4PiCorrSig");
-        hIntMass4Pi[1][1][i]->Write("invMass4PiCorrBcg");
+    if(is4pi)
+    {
+        for (int i = 0; i < 3; ++i)
+        {     
+            hIntMass4Pi[0][0][i]->Write("invMass4PiUncorrSig");
+            hIntMass4Pi[0][1][i]->Write("invMass4PiUncorrBcg");
+            hIntMass4Pi[1][0][i]->Write("invMass4PiCorrSig");
+            hIntMass4Pi[1][1][i]->Write("invMass4PiCorrBcg");
+        }
     }
 
+    fout->Write();
 	fout->Close();
 	data->Close();
 
@@ -489,10 +518,13 @@ void Init()
         hInvMassUncorr[1][1][i]  = new TH1D("uncorrInvMass" + particleLables[1] + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + particleLables[1] + combinationLabel[i], 44, 0.8, 3);
         hInvMassUncorr[2][1][i]  = new TH1D("uncorrInvMass" + particleLables[2] + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + particleLables[2] + combinationLabel[i], 24, 1.6, 4);
     
-        hIntMass4Pi[0][0][i] = new  TH1D("uncorrInvMass4Pi" + combinationLabel[i] + "Sig", "Uncorrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
-        hIntMass4Pi[0][1][i] = new  TH1D("uncorrInvMass4Pi" + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
-        hIntMass4Pi[1][0][i] = new  TH1D("corrInvMass4Pi" + combinationLabel[i] + "Sig", "Corrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
-        hIntMass4Pi[1][1][i] = new  TH1D("corrInvMass4Pi" + combinationLabel[i] + "Bcg", "Corrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
+        if(is4pi)
+        {       
+            hIntMass4Pi[0][0][i] = new  TH1D("uncorrInvMass4Pi" + combinationLabel[i] + "Sig", "Uncorrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
+            hIntMass4Pi[0][1][i] = new  TH1D("uncorrInvMass4Pi" + combinationLabel[i] + "Bcg", "Uncorrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
+            hIntMass4Pi[1][0][i] = new  TH1D("corrInvMass4Pi" + combinationLabel[i] + "Sig", "Corrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
+            hIntMass4Pi[1][1][i] = new  TH1D("corrInvMass4Pi" + combinationLabel[i] + "Bcg", "Corrected inv. mass " + combinationLabel[i], 50, 0.5, 4.5);
+        }
 
         for (int iPart = 0; iPart < nParticles; ++iPart)
         {    
@@ -507,7 +539,7 @@ void Init()
         }
     }
 
-
+    fout->cd();
 }
 
 
@@ -534,6 +566,14 @@ void ConnectInput(TTree* tree)
     {
         tree->SetBranchAddress("t" + sideLabel[i], &t[i]);
         tree->SetBranchAddress("phiRp" + sideLabel[i], &phiRP[i]);
+        tree->SetBranchAddress("rpX" + sideLabel[i], &rpX[i]);
+        tree->SetBranchAddress("rpY" + sideLabel[i], &rpY[i]);
+        tree->SetBranchAddress("rpZ" + sideLabel[i], &rpZ[i]);
+        tree->SetBranchAddress("thetaRp" + sideLabel[i], &thetaRp[i]);
+        tree->SetBranchAddress("pRp" + sideLabel[i], &pRp[i]);
+        tree->SetBranchAddress("ptRp" + sideLabel[i], &ptRp[i]);
+        tree->SetBranchAddress("xCorrelationsRp" + sideLabel[i], &xCorrelationsRp[i]);
+        tree->SetBranchAddress("yCorrelationsRp" + sideLabel[i], &yCorrelationsRp[i]);
     }
 // Vertex info
     tree->SetBranchAddress("vertexZ", &vertexesZ[0]);
@@ -562,6 +602,7 @@ void Make(int signal)
 {
     double effTotal, effTPC, effTOF;
     unsigned int PID;
+    IsPion = IsKaon = IsProton = false;
    // cout<< vertexesZ[0] <<" "<< NhitsFit[0]<<" "<<NhitsFit[1] <<" "<< NhitsDEdx[0]<<" "<<NhitsDEdx[1] <<" "<<DcaZ[0] <<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1] <<" "<< !fourPiState<<endl; 
     if(vertexesZ[0] < 80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7 &&  t[0] < -0.12 && t[1] < -0.12 && t[0] > -1.0  && t[1] > -1.0 && !fourPiState)
     {
@@ -593,6 +634,7 @@ void Make(int signal)
             }
             if(transMomentum[0] > 0.4 && transMomentum[1] > 0.4 && (transMomentum[0] < 1.1 || transMomentum[1] < 1.1) )
             {
+                IsProton = true;
                 hInvMassUncorr[Proton][signal][0]->Fill(invMass[Proton]);
                 hInvMassUncorr[Proton][signal][combination]->Fill(invMass[Proton]);
                 hPairRap[Proton][signal][0]->Fill(pairRapidity);
@@ -627,6 +669,7 @@ void Make(int signal)
             }
             if(transMomentum[0] > 0.3 && transMomentum[1] > 0.3 && (transMomentum[0] < 0.7 || transMomentum[1] < 0.7) )
             {
+                IsKaon = true;
                 hInvMassUncorr[Kaon][signal][0]->Fill(invMass[Kaon]);
                 hInvMassUncorr[Kaon][signal][combination]->Fill(invMass[Kaon]);
                 hPairRap[Kaon][signal][0]->Fill(pairRapidity);
@@ -662,6 +705,7 @@ void Make(int signal)
             }
             if(transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
             {
+                IsPion = true;
                 hInvMassUncorr[Pion][signal][0]->Fill(invMass[Pion]);
                 hInvMassUncorr[Pion][signal][combination]->Fill(invMass[Pion]);
                 hPairRap[Pion][signal][0]->Fill(pairRapidity);
@@ -673,7 +717,7 @@ void Make(int signal)
             }
 
         }
-
+        goldenTree->Fill();
     }
 /*    if( vertexesZ[0] < 80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && 
     NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && 
@@ -975,123 +1019,128 @@ void PlotMoneyPlot()
         }
     }
 
-    name = "compPlot";
-    yLabel = "Normalized counts";
-    Double_t binning[3][2] =  {{0.3, 2.5},{0.8, 2.5}, {1.6, 3.5}};
-    for (int i = 0; i < nParticles; ++i)
-    { 
-        for (int comb = 0; comb < nCombination; ++comb)
+    if(isGraniitti)
+    {        
+        name = "compPlot";
+        yLabel = "Normalized counts";
+        Double_t binning[3][2] =  {{0.3, 2.5},{0.8, 2.5}, {1.6, 3.5}};
+        for (int i = 0; i < nParticles; ++i)
         { 
-            pad1->cd();
-            hist = (TH1D*)hInvMassCorr[i][0][comb]->Clone("hist");
-            hist -> Add(hInvMassCorr[i][1][comb], -1); 
-            varname = "Graniitti/" + combinationLabel[comb] + "/invMass" + particleLables[i]; 
-            histCompare = (TH1D*)fout -> Get(varname);
-            // Getting histogram created from TTree making warning when use Divide
-            if(!histCompare)
-            {
-                cout<<"Error: loading "<<varname<<endl;
-                continue;
+            for (int comb = 0; comb < nCombination; ++comb)
+            { 
+                pad1->cd();
+                hist = (TH1D*)hInvMassCorr[i][0][comb]->Clone("hist");
+                hist -> Add(hInvMassCorr[i][1][comb], -1); 
+                varname = "Graniitti/" + combinationLabel[comb] + "/invMass" + particleLables[i]; 
+                histCompare = (TH1D*)fout -> Get(varname);
+                // Getting histogram created from TTree making warning when use Divide
+                if(!histCompare)
+                {
+                    cout<<"Error: loading "<<varname<<endl;
+                    continue;
+                }
+                
+                tool.SetMarkerStyle(hist);
+                tool.SetMarkerStyle(histCompare,2,20,1,2,1,1);
+
+                hist->GetXaxis()->SetRangeUser(binning[i][0], binning[i][1]);
+                histCompare->GetXaxis()->SetRangeUser(binning[i][0], binning[i][1]);
+
+                hist->GetXaxis()->SetTitleFont(43);
+                hist->GetYaxis()->SetTitleFont(43);
+                hist->GetXaxis()->SetTitleSize(25);
+                hist->GetYaxis()->SetTitleSize(25);
+                hist->GetXaxis()->SetTitleOffset(0.9);
+                hist->GetYaxis()->SetTitleOffset(1.5);
+                hist->GetYaxis()->SetLabelFont(43);
+                hist->GetYaxis()->SetLabelSize(20);
+
+                Double_t scaleFactor =   1 /hist->Integral();
+                hist->Scale(scaleFactor);
+                scaleFactor =   1 /histCompare->Integral();
+                histCompare->Scale(scaleFactor);
+
+                hist->GetYaxis()->SetRangeUser(0.0001, max(hist->GetMaximum(),histCompare->GetMaximum())*1.1);
+
+                hist->SetTitle(" ; m(" + stateLabel[i] + ") [GeV/c^{2}] ; " + yLabel);
+                hist->Draw();              
+                histCompare->Draw("same");         
+
+                TPaveText *textSTAR = new TPaveText(0.75,0.89,0.85,0.95,"brNDC"); 
+                textSTAR -> SetTextSize(0.05);
+                textSTAR -> SetFillColor(0);
+                textSTAR -> SetTextFont(62);
+                textSTAR -> AddText("STAR Internal");
+                textSTAR -> Draw("same");
+
+                textSTAR = new TPaveText(0.75,0.74,0.85,0.88,"brNDC"); 
+                textSTAR -> SetTextSize(25);
+                textSTAR -> SetFillColor(0);
+                textSTAR -> SetTextFont(43);
+                textSTAR -> AddText("p + p #rightarrow p + " + stateLabel[i] +" + p");
+                textSTAR -> AddText("#sqrt{s} = 510 GeV");
+                textSTAR -> Draw("same");
+
+                TLegend *legendPID = new TLegend(0.68,0.58,0.92,0.73,"","brNDC");
+                tool.SetLegendStyle(legendPID);
+                legendPID -> SetTextSize(25);
+                legendPID -> SetTextFont(43);
+                legendPID -> AddEntry(hist, "Data", "p");
+                legendPID -> AddEntry(histCompare, "Graniitti", "p");
+                legendPID -> Draw("same");
+
+                pad2->cd();       
+
+                // Define the ratio plot
+                TH1D *h3 = (TH1D*)hist->Clone("h3");
+                h3->GetYaxis()->SetLabelSize(0.);
+                h3->SetMarkerColor(kBlack);
+                h3->SetMinimum(0.1);  // Define Y ..
+                h3->SetMaximum(2.7); // .. range
+                h3->Divide(histCompare);
+                h3->SetMarkerStyle(20);
+                h3->Draw("ep");       // Draw the ratio plot
+
+                // Ratio plot (h3) settings
+                h3->SetTitle(""); // Remove the ratio title
+
+                // Y axis ratio plot settings
+                h3->GetYaxis()->SetTitle("Ratio");
+                h3->GetYaxis()->SetNdivisions(505);
+                h3->GetYaxis()->SetTitleSize(25);
+                h3->GetYaxis()->SetTitleFont(43);
+                h3->GetYaxis()->SetTitleOffset(1.5);
+                h3->GetYaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+                h3->GetYaxis()->SetLabelSize(0.0);
+
+                // X axis ratio plot settings
+                h3->GetXaxis()->SetTitleSize(25);
+                h3->GetXaxis()->SetTitleFont(43);
+                h3->GetXaxis()->SetTitleOffset(3.2);
+                h3->GetXaxis()->SetLabelOffset(0.025);
+                h3->GetXaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+                h3->GetXaxis()->SetLabelSize(20);
+
+                TGaxis *axis = new TGaxis(binning[i][0], 0.1, binning[i][0], 2.7, 0.1, 2.7, 5, "");
+                axis->SetLabelFont(43); // Absolute font size in pixel (precision 3)
+                axis->SetLabelSize(20);
+                axis->Draw("same");
+
+                TLine *unity = new TLine(binning[i][0], 1., binning[i][1] , 1.);
+                unity->SetLineColor(kBlack);
+                unity->SetLineWidth(2);
+                unity->Draw();
+
+                newCanvas->Update();
+                newCanvas->Write(name + particleLables[i] + combinationLabel[comb]);
             }
-            
-            tool.SetMarkerStyle(hist);
-            tool.SetMarkerStyle(histCompare,2,20,1,2,1,1);
-
-            hist->GetXaxis()->SetRangeUser(binning[i][0], binning[i][1]);
-            histCompare->GetXaxis()->SetRangeUser(binning[i][0], binning[i][1]);
-
-            hist->GetXaxis()->SetTitleFont(43);
-            hist->GetYaxis()->SetTitleFont(43);
-            hist->GetXaxis()->SetTitleSize(25);
-            hist->GetYaxis()->SetTitleSize(25);
-            hist->GetXaxis()->SetTitleOffset(0.9);
-            hist->GetYaxis()->SetTitleOffset(1.5);
-            hist->GetYaxis()->SetLabelFont(43);
-            hist->GetYaxis()->SetLabelSize(20);
-
-            Double_t scaleFactor =   1 /hist->Integral();
-            hist->Scale(scaleFactor);
-            scaleFactor =   1 /histCompare->Integral();
-            histCompare->Scale(scaleFactor);
-
-            hist->GetYaxis()->SetRangeUser(0.0001, max(hist->GetMaximum(),histCompare->GetMaximum())*1.1);
-
-            hist->SetTitle(" ; m(" + stateLabel[i] + ") [GeV/c^{2}] ; " + yLabel);
-            hist->Draw();              
-            histCompare->Draw("same");         
-
-            TPaveText *textSTAR = new TPaveText(0.75,0.89,0.85,0.95,"brNDC"); 
-            textSTAR -> SetTextSize(0.05);
-            textSTAR -> SetFillColor(0);
-            textSTAR -> SetTextFont(62);
-            textSTAR -> AddText("STAR Internal");
-            textSTAR -> Draw("same");
-
-            textSTAR = new TPaveText(0.75,0.74,0.85,0.88,"brNDC"); 
-            textSTAR -> SetTextSize(25);
-            textSTAR -> SetFillColor(0);
-            textSTAR -> SetTextFont(43);
-            textSTAR -> AddText("p + p #rightarrow p + " + stateLabel[i] +" + p");
-            textSTAR -> AddText("#sqrt{s} = 510 GeV");
-            textSTAR -> Draw("same");
-
-            TLegend *legendPID = new TLegend(0.68,0.58,0.92,0.73,"","brNDC");
-            tool.SetLegendStyle(legendPID);
-            legendPID -> SetTextSize(25);
-            legendPID -> SetTextFont(43);
-            legendPID -> AddEntry(hist, "Data", "p");
-            legendPID -> AddEntry(histCompare, "Graniitti", "p");
-            legendPID -> Draw("same");
-
-            pad2->cd();       
-
-            // Define the ratio plot
-            TH1D *h3 = (TH1D*)hist->Clone("h3");
-            h3->GetYaxis()->SetLabelSize(0.);
-            h3->SetMarkerColor(kBlack);
-            h3->SetMinimum(0.1);  // Define Y ..
-            h3->SetMaximum(2.7); // .. range
-            h3->Divide(histCompare);
-            h3->SetMarkerStyle(20);
-            h3->Draw("ep");       // Draw the ratio plot
-
-            // Ratio plot (h3) settings
-            h3->SetTitle(""); // Remove the ratio title
-
-            // Y axis ratio plot settings
-            h3->GetYaxis()->SetTitle("Ratio");
-            h3->GetYaxis()->SetNdivisions(505);
-            h3->GetYaxis()->SetTitleSize(25);
-            h3->GetYaxis()->SetTitleFont(43);
-            h3->GetYaxis()->SetTitleOffset(1.5);
-            h3->GetYaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
-            h3->GetYaxis()->SetLabelSize(0.0);
-
-            // X axis ratio plot settings
-            h3->GetXaxis()->SetTitleSize(25);
-            h3->GetXaxis()->SetTitleFont(43);
-            h3->GetXaxis()->SetTitleOffset(3.2);
-            h3->GetXaxis()->SetLabelOffset(0.025);
-            h3->GetXaxis()->SetLabelFont(43); // Absolute font size in pixel (precision 3)
-            h3->GetXaxis()->SetLabelSize(20);
-
-            TGaxis *axis = new TGaxis(binning[i][0], 0.1, binning[i][0], 2.7, 0.1, 2.7, 5, "");
-            axis->SetLabelFont(43); // Absolute font size in pixel (precision 3)
-            axis->SetLabelSize(20);
-            axis->Draw("same");
-
-            TLine *unity = new TLine(binning[i][0], 1., binning[i][1] , 1.);
-            unity->SetLineColor(kBlack);
-            unity->SetLineWidth(2);
-            unity->Draw();
-
-            newCanvas->Update();
-            newCanvas->Write(name + particleLables[i] + combinationLabel[comb]);
-        }
-    } 
+        } 
+    }
 ////////////////////////////////
 //    4 PI 
 ////////////////////////////////
+    if(!is4pi)
+        return;
     name = "4pi";  
     pad1->Clear();
     pad2->Clear();  
@@ -1205,5 +1254,74 @@ void PlotMoneyPlot()
         newCanvas->Update();
         newCanvas->Write(name +combinationLabel[comb]);
     }
-
 }
+
+
+//_____________________________________________________________________________
+TFile *CreateOutputTree(const string& out) {
+
+    TFile *outputFile = TFile::Open(out.c_str(), "recreate");
+    if(!outputFile) 
+        return 0x0;
+
+    //standard reconstructed tree
+    goldenTree = new TTree("recTree", "recTree");
+
+    // PID and some quality event info
+    goldenTree->Branch("mSquared", &mSquared, "mSquared/D");
+    goldenTree->Branch("pairRapidity", &pairRapidity, "pairRapidity/D"); 
+    goldenTree->Branch("nSigTrk1Pion", &nSigmaTPC[Pion][0], "nSigTrk1Pion/D");
+    goldenTree->Branch("nSigTrk2Pion", &nSigmaTPC[Pion][1], "nSigTrk2Pion/D");
+    goldenTree->Branch("nSigTrk3Pion", &nSigmaTPC[Pion][2], "nSigTrk3Pion/D");
+    goldenTree->Branch("nSigTrk4Pion", &nSigmaTPC[Pion][3], "nSigTrk4Pion/D");
+    for (int iPart = 0; iPart < nParticles; ++iPart)
+    {
+        goldenTree->Branch("invMass" + particleLables[iPart], &invMass[iPart], "invMass"  + particleLables[iPart] + "/D");
+        goldenTree->Branch("chiPair" + particleLables[iPart], &chiPair[iPart], "chiPair"  + particleLables[iPart] + "/D");
+    }
+
+
+// Vertex info
+    goldenTree->Branch("vertexZ", &vertexesZ[0], "vertexZ/D");
+
+// Central track info
+    for (int i = 0; i < 4; ++i)
+    {
+        goldenTree->Branch(Form("momentum%i",i), &momentum[i], Form("momentum%i/D",i));
+        goldenTree->Branch(Form("transMomentum%i",i), &transMomentum[i], Form("transMomentum%i/D",i));
+        goldenTree->Branch(Form("charge%i",i), &charge[i], Form("charge%i/D",i));
+        goldenTree->Branch(Form("DcaXY%i",i), &DcaXY[i], Form("DcaXY%i/D",i));
+        goldenTree->Branch(Form("DcaZ%i",i), &DcaZ[i], Form("DcaZ%i/D",i));
+        goldenTree->Branch(Form("NhitsFit%i",i), &NhitsFit[i], Form("NhitsFit%i/D",i));
+        goldenTree->Branch(Form("NhitsDEdx%i",i), &NhitsDEdx[i], Form("NhitsDEdx%i/D",i));
+        goldenTree->Branch(Form("Eta%i",i), &Eta[i], Form("Eta%i/D",i));
+        goldenTree->Branch(Form("Phi%i",i), &Phi[i], Form("Phi%i/D",i));
+    }
+// RP track info  
+    for (int i = 0; i < nSides; ++i)
+    {
+        goldenTree->Branch("rpX" + sideLabel[i], &rpX[i], "rpX" + sideLabel[i] + "/D");
+        goldenTree->Branch("rpY" + sideLabel[i], &rpY[i], "rpY" + sideLabel[i] + "/D");
+        goldenTree->Branch("rpZ" + sideLabel[i], &rpZ[i], "rpZ" + sideLabel[i] + "/D");
+        goldenTree->Branch("thetaRp" + sideLabel[i], &thetaRp[i], "thetaRp" + sideLabel[i] + "/D");
+        goldenTree->Branch("phiRp" + sideLabel[i], &phiRP[i], "phiRp" + sideLabel[i] + "/D");
+        goldenTree->Branch("pRp" + sideLabel[i], &pRp[i], "p" + sideLabel[i] + "/D");
+        goldenTree->Branch("ptRp" + sideLabel[i], &ptRp[i], "pt" + sideLabel[i] + "/D");
+        goldenTree->Branch("xCorrelationsRp" + sideLabel[i], &xCorrelationsRp[i], "xCorrelations" + sideLabel[i] + "/D");
+        goldenTree->Branch("yCorrelationsRp" + sideLabel[i], &yCorrelationsRp[i], "yCorrelations" + sideLabel[i] + "/D");
+        goldenTree->Branch("t" + sideLabel[i], &t[i], "t" + sideLabel[i] + "/D");
+    }
+
+// event info
+    goldenTree->Branch("IsPion", &IsPion, "IsPion/O");
+    goldenTree->Branch("IsKaon", &IsKaon, "IsKaon/O");
+    goldenTree->Branch("IsProton", &IsProton, "IsProton/O");
+    goldenTree->Branch("elastic", &elastic, "elastic/O");
+    goldenTree->Branch("fourPiState", &fourPiState, "fourPiState/O");
+
+    return outputFile;
+
+}//CreateOutputTree
+
+
+

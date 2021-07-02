@@ -67,7 +67,7 @@ void trackQuality::PlotHistogram(){
 		cout<<"Error: cannot open output file"<<endl;
 		return;
     }
-
+ 
 	TCanvas *cCanvas = new TCanvas("cCanvas","cCanvas",800,700);
 	gPad->SetMargin(0.12,0.02,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
 	gPad->SetTickx();
@@ -85,7 +85,7 @@ void trackQuality::PlotHistogram(){
 	treeBack->Draw("vertexZ>>vertexZBcg",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive("vertexZBcg");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
-
+	
 	tree->Draw("vertexZ>>vertexZSig",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive("vertexZSig");
 	tmpHist->SetTitle(" ; Z_{vrtx} [cm]; Number of events");
@@ -96,7 +96,6 @@ void trackQuality::PlotHistogram(){
 	tool.DrawText(tmpHist,0,true,0.68, 0.75, 0.9, 0.88);
 	tool.DrawTextStar(tmpHist,2);
 	tmpHist2->Draw("ESAME");
-
 	TLegend* leg1 = new TLegend(0.15,0.83,0.28,0.93); 
 	tool.SetLegendStyle(leg1);
 	leg1->AddEntry(tmpHist,dataLabel + " (unlike-sign pairs)","p");
@@ -170,7 +169,6 @@ void trackQuality::PlotHistogram(){
 	tool.DrawText(tmpHist,0,false,0.68, 0.75, 0.9, 0.88);
 	tool.DrawTextStar(tmpHist,2);
 	tmpHist2->Draw("ESAME");
-
 	leg1 = new TLegend(0.6, 0.65, 0.78, 0.74);
 	tool.SetLegendStyle(leg1);
 	leg1->AddEntry(tmpHist,dataLabel + " (unlike-sign pairs)","p");
@@ -191,7 +189,6 @@ void trackQuality::PlotHistogram(){
 //////////////////////////////////////////
 	// Plot NhitsFit 
 	TString variable = "NhitsFit";
-
 	treeBack->Draw(variable +"1>>" + variable +"Bcg1(61,0,60)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Bcg1");
 	treeBack->Draw(variable +"0>>" + variable +"Bcg2(61,0,60)",cuts);

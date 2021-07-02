@@ -29,8 +29,10 @@ void Plot::SetGraphStyle(TH1* hist, Int_t markColor, Int_t markStyle, Int_t mark
 	hist->GetYaxis()->SetTitleFont(font);
 	hist->GetXaxis()->SetLabelFont(font);
 	hist->GetYaxis()->SetLabelFont(font);
-	hist->GetXaxis()->SetTitleSize(siz);
-	hist->GetYaxis()->SetTitleSize(siz);
+	hist->GetXaxis()->SetLabelSize(siz+0.005);
+	hist->GetYaxis()->SetLabelSize(siz+0.005);
+	hist->GetXaxis()->SetTitleSize(siz+0.005);
+	hist->GetYaxis()->SetTitleSize(siz+0.005);
 	hist->GetXaxis()->SetTitleOffset(xOffSet);
 	hist->GetYaxis()->SetTitleOffset(yOffSet);
 
@@ -88,7 +90,7 @@ void Plot::DrawText(TH1* hist, Int_t state, Int_t pair, Float_t xMin, Float_t yM
 		tileIdStrEl.Form("%i Excl. events",NentriesEl);
 	if(pair == 2)
 		tileIdStrEl.Form("%i Corrected excl. events",NentriesEl);
-	//textPub -> AddText(tileIdStrEl);
+	textPub -> AddText(tileIdStrEl);
 	textPub -> Draw("same");
 
 }

@@ -175,7 +175,7 @@ void zvertex()
     textSTAR -> SetTextSize(0.04);
     textSTAR -> SetFillColor(0);
     textSTAR -> SetTextFont(62);
-    textSTAR->AddText("STAR Internal");
+    textSTAR->AddText("THIS THESIS");
     textSTAR -> Draw("same");
 
     TLegend* leg1 = new TLegend(0.6, 0.65, 0.78, 0.74);
@@ -211,12 +211,19 @@ void zvertex()
 
     textSTAR -> Draw("same");
 
+    gPad->SetTickx();
+    gPad->SetTicky(); 
+    gStyle->SetLineWidth(2);      //axis line
+    gStyle->SetFrameLineWidth(2); //frame line
+
+
     leg1 = new TLegend(0.7, 0.65, 0.78, 0.74);
     leg1->SetFillStyle(0);
     leg1->SetBorderSize(0);
     leg1->SetTextSize(0.04);
     leg1->SetTextFont(42);
     leg1->AddEntry(histSignal,"Data","p");
+    leg1->AddEntry(f1,"Gaussian fit","l");
     leg1->Draw("same");
     cCanvas->Update();
 

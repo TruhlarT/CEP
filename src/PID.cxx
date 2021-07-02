@@ -147,13 +147,13 @@ void PID::PlotHistogram(){
 
 	tree->Draw(variable +">>" + variable + "Pion( 200, -0.5, 1.5)", "!(chiPairProton < 9 && chiPairKaon > 9 && chiPairPion > 9) && !(!(chiPairProton < 9 && chiPairKaon > 9 && chiPairPion > 9) && chiPairKaon < 9 && chiPairPion > 9 && chiPairProton > 9) && chiPairPion < 12 " + cutsWithPrefix);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable + "Pion");
-	tool.SetMarkerStyle(tmpHist2,2,20,1,3,1,1);
+	tool.SetMarkerStyle(tmpHist2,2,20,1,209,1,2);
 	tree->Draw(variable +">>" + variable + "Kaon( 200, -0.5, 1.5)", "!(chiPairProton < 9 && chiPairKaon > 9 && chiPairPion > 9) && chiPairKaon < 9 && chiPairPion > 9 && chiPairProton > 9 " + cutsWithPrefix);
 	tmpHist3 = (TH1F*)gPad->GetPrimitive(variable + "Kaon");
-	tool.SetMarkerStyle(tmpHist3,2,20,1,2,1,1);
+	tool.SetMarkerStyle(tmpHist3,2,20,1,2,1,2);
 	tree->Draw(variable +">>" + variable + "Proton( 200, -0.5, 1.5)", "chiPairProton < 9 && chiPairKaon > 9 && chiPairPion > 9" + cutsWithPrefix);
 	tmpHist4 = (TH1F*)gPad->GetPrimitive(variable + "Proton");
-	tool.SetMarkerStyle(tmpHist4,2,20,1,1,1,1);
+	tool.SetMarkerStyle(tmpHist4,2,20,1,1,1,2);
 
 	tree->Draw(variable +">>" + variable +"Sig( 200, -0.5, 1.5)",cuts);
 	tmpHist = (TH1F*)gPad->GetPrimitive(variable +"Sig");
@@ -176,13 +176,13 @@ void PID::PlotHistogram(){
 	tool.SetLineStyle(mLine,10,1,4);
     mLine->Draw("same");
 
-    tool.DrawTextStar(tmpHist,2);
-    TPaveText *textPub = new TPaveText(0.75,0.81,0.9,0.9,"brNDC");
+    //tool.DrawTextStar(tmpHist,2);
+    TPaveText *textPub = new TPaveText(0.7,0.85,0.88,0.95,"brNDC");
     tool.SetTextStyle(textPub);
-    textPub -> AddText("p + p #rightarrow p + X + p");
+    textPub -> AddText("p + p #rightarrow p + h^{+}h^{-} + p");
     textPub -> AddText("#sqrt{s} = 510 GeV");
     textPub -> Draw("same");
-	leg1 = new TLegend(0.72, 0.6, 0.9, 0.79);
+	leg1 = new TLegend(0.7, 0.63, 0.85, 0.82);
 	tool.SetLegendStyle(leg1);
 	leg1 -> AddEntry(tmpHist, "All pairs", "l");
     leg1 -> AddEntry(tmpHist2, "#pi^{+} #pi^{-} (dE/dx)", "fl");

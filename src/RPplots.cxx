@@ -252,7 +252,7 @@ void RPplots::PlotHistogram() {
     hist2DSignal->Draw("colz");
     tool.DrawText(hist2DSignal,0,true,0.61,0.75,0.76,0.9);
     tool.DrawTextStar(hist2DSignal, 1);
-    if(TEXT){
+    /*if(TEXT){
         const Int_t n = 200;
         Double_t x[n], y[n];
         Double_t tmp;
@@ -304,7 +304,7 @@ void RPplots::PlotHistogram() {
         TGraph* gr3 = new TGraph(n,x,y);
         gr3->SetLineWidth(4);
         gr3->Draw("same");
-    }
+    }*/
     cCanvas2D->Update();
     cCanvas2D->Write(variable + "VS" + variable2);
 //////////////////////////////////////////
@@ -328,7 +328,7 @@ void RPplots::PlotHistogram() {
     hist2DSignal->Draw("colz");
     tool.DrawText(hist2DSignal,0,true,0.61,0.75,0.76,0.9);
     tool.DrawTextStar(hist2DSignal, 1);
-    if(TEXT){
+    /*if(TEXT){
         const Int_t n = 200;
         Double_t x[n], y[n];
         Double_t tmp;
@@ -380,7 +380,7 @@ void RPplots::PlotHistogram() {
         TGraph* gr3 = new TGraph(n,x,y);
         gr3->SetLineWidth(4);
         gr3->Draw("same");
-    }
+    }*/
     cCanvas2D->Update();
     cCanvas2D->Write(variable + "VS" + variable2);
 //////////////////////////////////////////
