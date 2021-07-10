@@ -59,6 +59,7 @@ enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
 
 const bool isGraniitti = false;
 const bool is4pi = false;
+const bool UPC2 = true;
 
 
 TString particleLables[nParticles] = { TString("Pion"), TString("Kaon"), TString("Proton")};
@@ -112,6 +113,7 @@ Double_t DcaXY[4];
 Double_t DcaZ[4];
 Double_t NhitsFit[4];
 Double_t NhitsDEdx[4];
+Double_t NhitsPoss[4];
 Double_t Eta[4];
 Double_t Phi[4];
 
@@ -588,6 +590,8 @@ void ConnectInput(TTree* tree)
         tree->SetBranchAddress(Form("DcaZ%i",i), &DcaZ[i]);
         tree->SetBranchAddress(Form("NhitsFit%i",i), &NhitsFit[i]);
         tree->SetBranchAddress(Form("NhitsDEdx%i",i), &NhitsDEdx[i]);
+        if(UPC2)
+            tree->SetBranchAddress(Form("NhitsPoss%i",i), &NhitsPoss[i]);      
         tree->SetBranchAddress(Form("Eta%i",i), &Eta[i]);
         tree->SetBranchAddress(Form("Phi%i",i), &Phi[i]);
 
@@ -1294,6 +1298,8 @@ TFile *CreateOutputTree(const string& out) {
         goldenTree->Branch(Form("DcaZ%i",i), &DcaZ[i], Form("DcaZ%i/D",i));
         goldenTree->Branch(Form("NhitsFit%i",i), &NhitsFit[i], Form("NhitsFit%i/D",i));
         goldenTree->Branch(Form("NhitsDEdx%i",i), &NhitsDEdx[i], Form("NhitsDEdx%i/D",i));
+        if(UPC2)
+            goldenTree->Branch(Form("NhitsPoss%i",i), &NhitsPoss[i], Form("NhitsPoss%i/D",i));
         goldenTree->Branch(Form("Eta%i",i), &Eta[i], Form("Eta%i/D",i));
         goldenTree->Branch(Form("Phi%i",i), &Phi[i], Form("Phi%i/D",i));
     }

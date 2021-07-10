@@ -49,6 +49,8 @@ const double pionMass = 0.13957; // GeV /c^2
 const double protonMass = 0.93827; // GeV /c^2
 const double convertToDegree = 57.2957795;
 
+TString label = "Preliminary";
+
 enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
 enum PARTICLES {Pion = 0, Kaon = 1, Proton = 2, nParticles};
 enum COMBINATIONS {ElInel = 0, El = 1, Inel = 2, nCombination};
@@ -148,13 +150,22 @@ void PlotProtonsPlot();
 bool ProtonFiducial();
 void RunGraniitti();
 
+void SetGraphStyle(TH1* hist);
+void SetTextStyle(TPaveText* text);
+void SetLegendStyle(TLegend* leg1);
+void SetMarkerStyle(TH1* hist);
+void SetLineStyle(TLine* line);
+
+
 int protonsInside, protonsTotal;
 
-void preliminaryPlots()
+void Graniitti()
 {
 
-    TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/InternalPlot.root";
-    TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/P20ic.root";
+    //TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/graniitti.root";
+    TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/ToBeShown.root"; 
+    TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/ppRun17.root";
+    //TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/P20ic.root";
     //TString graniitti_input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Graniitti/2pi_100k_1.root";
     TString graniitti_input = "/home/truhlar/Desktop/STAR/Graniitti_new/GRANIITTI/output/RootFiles/510/510.root";
 
@@ -218,13 +229,16 @@ void preliminaryPlots()
     }
 
     RunGraniitti();
-    //PlotRPPlot();
+    PlotRPPlot();
 
     PlotPionsPlot();
     PlotKaonsPlot();
-    PlotProtonsPlot();
+    //PlotProtonsPlot();
 
     PlotCutsFlow();
+
+    int a;
+    cin>>a;
 
     fout->Write();
     fout->Close();
@@ -469,26 +483,19 @@ void PlotRPPlot()
 
 
     TPaveText *textPub = new TPaveText(0.12,0.9,0.32,0.95,"brNDC");
-    textPub -> SetTextSize(textSize);
-    textPub -> SetFillColor(0);
-    textPub -> SetTextFont(42);
+    SetTextStyle(textPub);
     textPub -> SetTextAlign(12);
     textPub -> AddText("p+p #rightarrow p+h^{+}h^{-}+p");
     textPub -> Draw("same");
     textPub = new TPaveText(0.62,0.9,0.79,0.95,"brNDC");
-    textPub -> SetTextSize(textSize);
-    textPub -> SetFillColor(0);
-    textPub -> SetTextFont(42);
+    SetTextStyle(textPub);
     textPub -> SetTextAlign(12);
     textPub -> AddText("#sqrt{s}=510 GeV");
     textPub -> Draw("same");
 
 
     TLegend* leg1 = new TLegend(0.15, 0.52, 0.7, 0.57);
-    leg1->SetFillStyle(0);
-    leg1->SetBorderSize(0);
-    leg1->SetTextSize(textSize);
-    leg1->SetTextFont(42);
+    SetLegendStyle(leg1);
     leg1->SetMargin(0.05);
     leg1->AddEntry(hPxPy[2], "Forward proton fiducial region","l");
     leg1->Draw("same");
@@ -508,41 +515,29 @@ void PlotRPPlot()
 
 
     TLine *left02 = new TLine(-0.27,-0.4,0.445,-0.4);
-    left02->SetLineStyle(1);
-    left02->SetLineColor(1);
-    left02->SetLineWidth(4);
+    SetLineStyle(left02);
     left02->Draw("same");
 
 
     TLine *left01 = new TLine(-0.27,-0.8,-0.27,-0.4);
-    left01->SetLineStyle(1);
-    left01->SetLineColor(1);
-    left01->SetLineWidth(4);
+    SetLineStyle(left01);
     left01->Draw("same");
 
     left01 = new TLine(-0.27,-0.8,0.185,-0.8);
-    left01->SetLineStyle(1);
-    left01->SetLineColor(1);
-    left01->SetLineWidth(4);
+    SetLineStyle(left01);
     left01->Draw("same");          
 // UP
     left02 = new TLine(-0.27,0.4,0.445,0.4);
-    left02->SetLineStyle(1);
-    left02->SetLineColor(1);
-    left02->SetLineWidth(4);
+    SetLineStyle(left02);
     left02->Draw("same");
 
 
     left01 = new TLine(-0.27,0.4,-0.27,0.8);
-    left01->SetLineStyle(1);
-    left01->SetLineColor(1);
-    left01->SetLineWidth(4);
+    SetLineStyle(left01);
     left01->Draw("same");
 
     left01 = new TLine(-0.27,0.8,0.185,0.8);
-    left01->SetLineStyle(1);
-    left01->SetLineColor(1);
-    left01->SetLineWidth(4);
+    SetLineStyle(left01);
     left01->Draw("same");
 
     for(int i = 0; i < n; ++i){
@@ -562,7 +557,7 @@ void PlotRPPlot()
 
 void PlotPionsPlot()
 {
-    TCanvas* newCanvas = new TCanvas("newCanvas","newCanvas",800,700);
+    TCanvas* newCanvas = new TCanvas("pions","pions",800,700);
     gPad->SetMargin(0.13,0.03,0.105,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
     gPad->SetTickx();
     gPad->SetTicky(); 
@@ -576,76 +571,62 @@ void PlotPionsPlot()
 
     hist = (TH1D*)hInvMassCorr[Pion][0][ElInel]->Clone("hist"); 
     histCompare = (TH1D*)hInvMassCorr[Pion][1][ElInel]->Clone("histCompare");
-    histGraniitti = (TH1D*)hInvMassGran[ElInel][Pion]->Clone("histGraniitti");
-    cout<<"Here histGraniitti with "<< hInvMassGran[ElInel][Pion]->GetEntries()<<endl;
+
+
+    TH1D* histGraniittiEl, *histGraniittiInel;
+    histGraniittiInel = (TH1D*)hInvMassGran[Inel][Pion]->Clone("histGraniittiInel");
+    histGraniittiEl = (TH1D*)hInvMassGran[El][Pion]->Clone("histGraniittiEl");
+
+    Double_t inel = hInvMassCorr[Pion][0][Inel]->Integral(); 
+    Double_t el = hInvMassCorr[Pion][0][El]->Integral();
+    //cout<<"Elastic / inelastic = "<< el<< " / "<< inel << "\n";
+    histGraniittiInel->Scale(inel/((el+inel)*histGraniittiInel->Integral()));
+    histGraniittiEl->Scale(el/((el+inel)*histGraniittiEl->Integral()));
+    //cout<<"Scaled Elastic / inelastic = "<< histGraniittiEl->Integral() << " / "<< histGraniittiInel->Integral() << "\n";
+    
+    histGraniitti = (TH1D*)histGraniittiInel->Clone("histGraniitti");
+    histGraniitti->Add(histGraniittiEl, 1.0);
+    //cout<<"Sum: "<< histGraniitti->Integral() << "\n";
+
     Double_t scaleFactor; 
     scaleFactor =   1 /hist->Integral();
     hist->Scale(scaleFactor);
     histCompare->Scale(scaleFactor);
-    //cout<<"Normalizing to "<<hist->Integral(12,64)<<endl;
-    scaleFactor =   1 /histGraniitti->Integral();
-    histGraniitti->Scale(scaleFactor);
+    cout<<"Graniitti integral: "<<histGraniitti->Integral()<<endl;
 
     hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
-    hist->SetStats(false);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetLabelFont(fontStyle);
-    hist->GetYaxis()->SetLabelFont(fontStyle);
-    hist->GetXaxis()->SetLabelSize(labelSize);
-    hist->GetYaxis()->SetLabelSize(labelSize);
-    hist->GetXaxis()->SetTitleSize(labelSize);
-    hist->GetYaxis()->SetTitleSize(labelSize);
-    hist->GetXaxis()->SetTitleOffset(0.9);
-    hist->GetYaxis()->SetTitleOffset(1.3);
-    hist->GetYaxis()->SetRangeUser(0, 0.082);   
-    hist->SetMarkerColor(1);
-    hist->SetMarkerSize(1);
-    hist->SetMarkerStyle(20);
-    hist->SetLineColor(1);
-    hist->SetLineStyle(1);
-    hist->SetLineWidth(1);
+    SetGraphStyle(hist);          
+    hist->GetYaxis()->SetRangeUser(0, 0.092);   
     hist->Draw("hist E");
 
     gStyle->SetOptStat("");
     gStyle->SetPalette(1);
 
+    SetMarkerStyle(histCompare);
     histCompare->SetMarkerColor(2);
-    histCompare->SetMarkerSize(1);
     histCompare->SetMarkerStyle(22);
     histCompare->SetLineColor(2);
-    histCompare->SetLineStyle(1);
-    histCompare->SetLineWidth(1);
     histCompare->Draw("same hist E");
 
-    histGraniitti->SetMarkerColor(4);
-    histGraniitti->SetMarkerSize(1);
-    histGraniitti->SetMarkerStyle(22);
-    histGraniitti->SetLineColor(4);
-    histGraniitti->SetLineStyle(1);
-    histGraniitti->SetLineWidth(1);
+    SetMarkerStyle(histGraniitti);
     histGraniitti->Draw("same hist E");
 
 
     TPaveText *textSTAR;
     textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
+    SetTextStyle(textSTAR);
     textSTAR -> SetTextSize(textSize+0.02);
-    textSTAR -> SetFillColor(0);
     textSTAR -> SetTextFont(72);
     textSTAR -> AddText("STAR");
     textSTAR -> Draw("same");
     textSTAR = new TPaveText(0.17,0.84,0.33,0.89,"brNDC");
-    textSTAR -> SetTextSize(textSize);
+    SetTextStyle(textSTAR);
     textSTAR -> SetTextFont(52);
-    textSTAR -> SetFillColor(0);
-    textSTAR -> AddText("Internal");
+    textSTAR -> AddText(label);
     textSTAR -> Draw("same");
 
     TPaveText *textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
-    textPub -> SetTextSize(textSize);
-    textPub -> SetTextAlign(22);
-    textPub -> SetFillColor(0);
-    textPub -> SetTextFont(42);
+    SetTextStyle(textPub);
     textPub -> SetTextAlign(12);
     textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
     //textPub -> AddText("#sqrt{s} = 510 GeV");
@@ -654,19 +635,14 @@ void PlotPionsPlot()
 
     TPaveText *text;
     text = new TPaveText(0.27,0.69,0.52,0.84,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
-    text -> SetTextAlign(32);
+    SetTextStyle(text);
     text -> AddText("#pi^{+}, #pi^{-} kinematics:");   
     text -> AddText("p_{T} > 0.2 GeV");
     text -> AddText("|#eta| < 0.7");
     text -> Draw("same");
 
     text = new TPaveText(0.54,0.63,0.88,0.84,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
+    SetTextStyle(text);
     text -> SetTextAlign(12);
     text -> AddText("Forward proton kinematics:");
     text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
@@ -676,31 +652,29 @@ void PlotPionsPlot()
 
 
     TLegend *leg1 = new TLegend(0.54, 0.44, 0.87, 0.59);
-    leg1->SetFillStyle(0);
-    leg1->SetBorderSize(0);
-    leg1->SetTextSize(textSize);
-    leg1->SetTextFont(42);
-    leg1->SetMargin(0.1);
+    SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
     leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
     leg1->AddEntry(histGraniitti, "Graniitti","ple");
     leg1->Draw("same");
 
-    text = new TPaveText(0.51,0.22,0.93,0.39,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
-    text -> SetTextAlign(22);
+    text = new TPaveText(0.51,0.17,0.93,0.39,"brNDC");
+    SetTextStyle(text);
     text -> AddText("Statistical errors only");
     text -> AddText("Acceptance corrected");
+    text -> AddText("Not efficiency corrected");
     text -> AddText("Not background subtracted");
     text -> Draw("same");
 
     newCanvas->Update();
     newCanvas->Write("pions");
-   // newCanvas->Close(); 
+    //newCanvas->Close(); 
 /////////////   El + Inel /////////////////////////////////////
-    TH1D* histGraniittiEl;
+    newCanvas = new TCanvas("pionsInel","pionsInel",800,700);
+    gPad->SetMargin(0.13,0.03,0.105,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+    gPad->SetTickx();
+    gPad->SetTicky(); 
+    gPad->SetLogy(0);
     hist = (TH1D*)hInvMassCorr[Pion][0][Inel]->Clone("hist"); 
     histCompare = (TH1D*)hInvMassCorr[Pion][0][El]->Clone("histCompare");
     histGraniitti = (TH1D*)hInvMassGran[Inel][Pion]->Clone("histGraniittiInel");
@@ -721,185 +695,41 @@ void PlotPionsPlot()
     scaleFactor =   1 /histGraniittiEl->Integral();
     histGraniittiEl->Scale(scaleFactor);
 
-    hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
-    hist->SetStats(false);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetLabelFont(fontStyle);
-    hist->GetYaxis()->SetLabelFont(fontStyle);
-    hist->GetXaxis()->SetLabelSize(labelSize);
-    hist->GetYaxis()->SetLabelSize(labelSize);
-    hist->GetXaxis()->SetTitleSize(labelSize);
-    hist->GetYaxis()->SetTitleSize(labelSize);
-    hist->GetXaxis()->SetTitleOffset(0.9);
-    hist->GetYaxis()->SetTitleOffset(1.3);
-    hist->GetYaxis()->SetRangeUser(0, 0.12);   
-    hist->SetMarkerColor(4);
-    hist->SetMarkerSize(1);
-    hist->SetMarkerStyle(20);
-    hist->SetLineColor(4);
-    hist->SetLineStyle(1);
-    hist->SetLineWidth(1);
-    hist->Draw("hist E");
-
-    gStyle->SetOptStat("");
-    gStyle->SetPalette(1);
-
-    histCompare->SetMarkerColor(1);
-    histCompare->SetMarkerSize(1);
-    histCompare->SetMarkerStyle(21);
-    histCompare->SetLineColor(1);
-    histCompare->SetLineStyle(1);
-    histCompare->SetLineWidth(1);
-    histCompare->Draw("SAME hist E");
-
-    histGraniitti->SetMarkerColor(2);
-    histGraniitti->SetMarkerSize(1);
-    histGraniitti->SetMarkerStyle(21);
-    histGraniitti->SetLineColor(2);
-    histGraniitti->SetLineStyle(1);
-    histGraniitti->SetLineWidth(1);
-    histGraniitti->Draw("SAME hist E");
-
-    histGraniittiEl->SetMarkerColor(6);
-    histGraniittiEl->SetMarkerSize(1);
-    histGraniittiEl->SetMarkerStyle(21);
-    histGraniittiEl->SetLineColor(6);
-    histGraniittiEl->SetLineStyle(1);
-    histGraniittiEl->SetLineWidth(1);
-    histGraniittiEl->Draw("SAME hist E");
-
-    textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
-    textSTAR -> SetTextSize(textSize+0.02);
-    textSTAR -> SetFillColor(0);
-    textSTAR -> SetTextFont(72);
-    textSTAR -> AddText("STAR");
-    textSTAR -> Draw("same");
-    textSTAR = new TPaveText(0.17,0.84,0.33,0.89,"brNDC");
-    textSTAR -> SetTextSize(textSize);
-    textSTAR -> SetTextFont(52);
-    textSTAR -> SetFillColor(0);
-    textSTAR -> AddText("Internal");
-    textSTAR -> Draw("same");
-
-    textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
-    textPub -> SetTextSize(textSize);
-    textPub -> SetTextAlign(22);
-    textPub -> SetFillColor(0);
-    textPub -> SetTextFont(42);
-    textPub -> SetTextAlign(12);
-    textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
-    //textPub -> AddText("#sqrt{s} = 510 GeV");
-    textPub -> Draw("same");
-
-    text = new TPaveText(0.27,0.68,0.52,0.83,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
-    text -> SetTextAlign(32);
-    text -> AddText("#pi^{+}, #pi^{-} kinematics:");   
-    text -> AddText("p_{T} > 0.2 GeV");
-    text -> AddText("|#eta| < 0.7");
-    text -> Draw("same");
-
-    text = new TPaveText(0.54,0.62,0.88,0.83,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
-    text -> SetTextAlign(12);
-    text -> AddText("Forward proton kinematics:");
-    text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
-    text -> AddText("0.4 GeV < |p_{y}| < 0.8 GeV");
-    text -> AddText("p_{x} > -0.27 GeV");
-    text -> Draw("same");
-
-
-    leg1 = new TLegend(0.45, 0.38, 0.78, 0.58);
-    leg1->SetFillStyle(0);
-    leg1->SetBorderSize(0);
-    leg1->SetTextSize(textSize);
-    leg1->SetTextFont(42);
-    leg1->SetMargin(0.1);
-    leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histCompare, "Data, #Delta#varphi > 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "Graniitti, #Delta#varphi < 90^{#circ}","ple");
-    leg1->AddEntry(histGraniittiEl, "Graniitti, #Delta#varphi > 90^{#circ}","ple");
-    leg1->Draw("same");
-
-    text = new TPaveText(0.71,0.27,0.88,0.44,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
-    text -> SetTextAlign(22);
-    text -> AddText("Statistical errors only");
-    text -> AddText("Acceptance corrected");
-    text -> AddText("Not background subtracted");
-    text -> Draw("same");
-
-    newCanvas->Update();
-    newCanvas->Write("pionsEl+Inel");
 ///////////////////////////// Inelastic ///////////////////////////////////////////
     hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
-    hist->SetStats(false);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetLabelFont(fontStyle);
-    hist->GetYaxis()->SetLabelFont(fontStyle);
-    hist->GetXaxis()->SetLabelSize(labelSize);
-    hist->GetYaxis()->SetLabelSize(labelSize);
-    hist->GetXaxis()->SetTitleSize(labelSize);
-    hist->GetYaxis()->SetTitleSize(labelSize);
-    hist->GetXaxis()->SetTitleOffset(0.9);
-    hist->GetYaxis()->SetTitleOffset(1.3);
-    hist->GetYaxis()->SetRangeUser(0, 0.12);   
-    hist->SetMarkerColor(4);
-    hist->SetMarkerSize(1);
-    hist->SetMarkerStyle(20);
-    hist->SetLineColor(4);
-    hist->SetLineStyle(1);
-    hist->SetLineWidth(1);
+    SetGraphStyle(hist);
+    hist->GetYaxis()->SetRangeUser(0, 0.17);   
     hist->Draw("hist E");
 
     gStyle->SetOptStat("");
     gStyle->SetPalette(1);
 
 
-    histGraniitti->SetMarkerColor(2);
-    histGraniitti->SetMarkerSize(1);
-    histGraniitti->SetMarkerStyle(21);
-    histGraniitti->SetLineColor(2);
-    histGraniitti->SetLineStyle(1);
-    histGraniitti->SetLineWidth(1);
+    SetMarkerStyle(histGraniitti);
     histGraniitti->Draw("SAME hist E");
 
 
     textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
+    SetTextStyle(textSTAR);
     textSTAR -> SetTextSize(textSize+0.02);
-    textSTAR -> SetFillColor(0);
     textSTAR -> SetTextFont(72);
     textSTAR -> AddText("STAR");
     textSTAR -> Draw("same");
     textSTAR = new TPaveText(0.17,0.84,0.33,0.89,"brNDC");
-    textSTAR -> SetTextSize(textSize);
+    SetTextStyle(textSTAR);
     textSTAR -> SetTextFont(52);
-    textSTAR -> SetFillColor(0);
-    textSTAR -> AddText("Internal");
+    textSTAR -> AddText(label);
     textSTAR -> Draw("same");
 
     textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
-    textPub -> SetTextSize(textSize);
-    textPub -> SetTextAlign(22);
-    textPub -> SetFillColor(0);
-    textPub -> SetTextFont(42);
+    SetTextStyle(textPub);
     textPub -> SetTextAlign(12);
     textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
     //textPub -> AddText("#sqrt{s} = 510 GeV");
     textPub -> Draw("same");
 
     text = new TPaveText(0.27,0.68,0.52,0.83,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
+    SetTextStyle(text);
     text -> SetTextAlign(32);
     text -> AddText("#pi^{+}, #pi^{-} kinematics:");   
     text -> AddText("p_{T} > 0.2 GeV");
@@ -907,9 +737,7 @@ void PlotPionsPlot()
     text -> Draw("same");
 
     text = new TPaveText(0.54,0.62,0.88,0.83,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
+    SetTextStyle(text);
     text -> SetTextAlign(12);
     text -> AddText("Forward proton kinematics:");
     text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
@@ -918,91 +746,56 @@ void PlotPionsPlot()
     text -> Draw("same");
 
 
-    leg1 = new TLegend(0.45, 0.38, 0.78, 0.58);
-    leg1->SetFillStyle(0);
-    leg1->SetBorderSize(0);
-    leg1->SetTextSize(textSize);
-    leg1->SetTextFont(42);
-    leg1->SetMargin(0.1);
+    leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
+    SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
     leg1->AddEntry(histGraniitti, "Graniitti, #Delta#varphi < 90^{#circ}","ple");
     leg1->Draw("same");
 
-    text = new TPaveText(0.71,0.27,0.88,0.44,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
-    text -> SetTextAlign(22);
+    text = new TPaveText(0.6,0.22,0.88,0.44,"brNDC");
+    SetTextStyle(text);
     text -> AddText("Statistical errors only");
     text -> AddText("Acceptance corrected");
+    text -> AddText("Not efficiency corrected");
     text -> AddText("Not background subtracted");
     text -> Draw("same");
 
     newCanvas->Update();
     newCanvas->Write("pionsInel");
+    //newCanvas->Close();
 //////////////////////////////////////////// Elastic ///////////////////////////////
-
+    newCanvas = new TCanvas("pionsEl","pionsEl",800,700);
     histCompare->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
-    histCompare->SetStats(false);
-    histCompare->GetXaxis()->SetTitleFont(fontStyle);
-    histCompare->GetXaxis()->SetTitleFont(fontStyle);
-    histCompare->GetXaxis()->SetLabelFont(fontStyle);
-    histCompare->GetYaxis()->SetLabelFont(fontStyle);
-    histCompare->GetXaxis()->SetLabelSize(labelSize);
-    histCompare->GetYaxis()->SetLabelSize(labelSize);
-    histCompare->GetXaxis()->SetTitleSize(labelSize);
-    histCompare->GetYaxis()->SetTitleSize(labelSize);
-    histCompare->GetXaxis()->SetTitleOffset(0.9);
-    histCompare->GetYaxis()->SetTitleOffset(1.3);
+    SetGraphStyle(histCompare);
     histCompare->GetYaxis()->SetRangeUser(0, 0.12);   
-    histCompare->SetMarkerColor(1);
-    histCompare->SetMarkerSize(1);
-    histCompare->SetMarkerStyle(21);
-    histCompare->SetLineColor(1);
-    histCompare->SetLineStyle(1);
-    histCompare->SetLineWidth(1);
     histCompare->Draw("hist E");
-    histCompare->Draw("SAME hist E");
     gStyle->SetOptStat("");
     gStyle->SetPalette(1);
 
-
-
-    histGraniittiEl->SetMarkerColor(6);
-    histGraniittiEl->SetMarkerSize(1);
-    histGraniittiEl->SetMarkerStyle(21);
-    histGraniittiEl->SetLineColor(6);
-    histGraniittiEl->SetLineStyle(1);
-    histGraniittiEl->SetLineWidth(1);
+    SetMarkerStyle(histGraniittiEl);
     histGraniittiEl->Draw("SAME hist E");
 
     textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
+    SetTextStyle(textSTAR);
     textSTAR -> SetTextSize(textSize+0.02);
-    textSTAR -> SetFillColor(0);
     textSTAR -> SetTextFont(72);
     textSTAR -> AddText("STAR");
     textSTAR -> Draw("same");
     textSTAR = new TPaveText(0.17,0.84,0.33,0.89,"brNDC");
-    textSTAR -> SetTextSize(textSize);
+    SetTextStyle(textSTAR);
     textSTAR -> SetTextFont(52);
-    textSTAR -> SetFillColor(0);
-    textSTAR -> AddText("Internal");
+    textSTAR -> AddText(label);
     textSTAR -> Draw("same");
 
     textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
-    textPub -> SetTextSize(textSize);
-    textPub -> SetTextAlign(22);
-    textPub -> SetFillColor(0);
-    textPub -> SetTextFont(42);
+    SetTextStyle(textPub);
     textPub -> SetTextAlign(12);
     textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
     //textPub -> AddText("#sqrt{s} = 510 GeV");
     textPub -> Draw("same");
 
     text = new TPaveText(0.27,0.68,0.52,0.83,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
+    SetTextStyle(text);
     text -> SetTextAlign(32);
     text -> AddText("#pi^{+}, #pi^{-} kinematics:");   
     text -> AddText("p_{T} > 0.2 GeV");
@@ -1010,9 +803,7 @@ void PlotPionsPlot()
     text -> Draw("same");
 
     text = new TPaveText(0.54,0.62,0.88,0.83,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
+    SetTextStyle(text);
     text -> SetTextAlign(12);
     text -> AddText("Forward proton kinematics:");
     text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
@@ -1021,33 +812,28 @@ void PlotPionsPlot()
     text -> Draw("same");
 
 
-    leg1 = new TLegend(0.45, 0.38, 0.78, 0.58);
-    leg1->SetFillStyle(0);
-    leg1->SetBorderSize(0);
-    leg1->SetTextSize(textSize);
-    leg1->SetTextFont(42);
-    leg1->SetMargin(0.1);
+    leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
+    SetLegendStyle(leg1);
     leg1->AddEntry(histCompare, "Data, #Delta#varphi > 90^{#circ} (unlike-sign pairs)","ple");
     leg1->AddEntry(histGraniittiEl, "Graniitti, #Delta#varphi > 90^{#circ}","ple");
     leg1->Draw("same");
 
-    text = new TPaveText(0.71,0.27,0.88,0.44,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
-    text -> SetTextAlign(22);
+    text = new TPaveText(0.6,0.22,0.88,0.44,"brNDC");
+    SetTextStyle(text);
     text -> AddText("Statistical errors only");
     text -> AddText("Acceptance corrected");
+    text -> AddText("Not efficiency corrected");
     text -> AddText("Not background subtracted");
     text -> Draw("same");
 
     newCanvas->Update();
     newCanvas->Write("pionsEl");
+    //newCanvas->Close();
 }
 
 void PlotKaonsPlot()
 {
-    TCanvas* newCanvas = new TCanvas("newCanvas","newCanvas",800,700);
+    TCanvas* newCanvas = new TCanvas("kaons","kaons",800,700);
     gPad->SetMargin(0.13,0.02,0.105,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
     gPad->SetTickx();
     gPad->SetTicky(); 
@@ -1058,66 +844,60 @@ void PlotKaonsPlot()
     TH1D *hist, *histCompare;
     TString yLabel = "Probability per event / 50 MeV";
 
-
     hist = (TH1D*)hInvMassCorr[Kaon][0][ElInel]->Clone("hist"); 
     histCompare = (TH1D*)hInvMassCorr[Kaon][1][ElInel]->Clone("histCompare");
-    
+
+    TH1D* histGraniittiEl, *histGraniittiInel, *histGraniitti;
+    histGraniittiInel = (TH1D*)hInvMassGran[Inel][Kaon]->Clone("histGraniittiInel");
+    histGraniittiEl = (TH1D*)hInvMassGran[El][Kaon]->Clone("histGraniittiEl");
+
+    Double_t inel = hInvMassCorr[Kaon][0][Inel]->Integral(); 
+    Double_t el = hInvMassCorr[Kaon][0][El]->Integral();
+
+    histGraniittiInel->Scale(inel/((el+inel)*histGraniittiInel->Integral()));
+    histGraniittiEl->Scale(el/((el+inel)*histGraniittiEl->Integral()));
+
+    histGraniitti = (TH1D*)histGraniittiInel->Clone("histGraniitti");
+    histGraniitti->Add(histGraniittiEl, 1.0);
+
+ 
     Double_t scaleFactor; 
     scaleFactor =   1 /hist->Integral();
     hist->Scale(scaleFactor);
     histCompare->Scale(scaleFactor);
 
     hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
-    hist->SetStats(false);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetLabelFont(fontStyle);
-    hist->GetYaxis()->SetLabelFont(fontStyle);
-    hist->GetXaxis()->SetLabelSize(labelSize);
-    hist->GetYaxis()->SetLabelSize(labelSize);
-    hist->GetXaxis()->SetTitleSize(labelSize);
-    hist->GetYaxis()->SetTitleSize(labelSize);
-    hist->GetXaxis()->SetTitleOffset(0.9);
-    hist->GetYaxis()->SetTitleOffset(1.3);
-    hist->GetYaxis()->SetRangeUser(0, 0.235);   
-    hist->SetMarkerColor(1);
-    hist->SetMarkerSize(1);
-    hist->SetMarkerStyle(20);
-    hist->SetLineColor(1);
-    hist->SetLineStyle(1);
-    hist->SetLineWidth(1);
+    SetGraphStyle(hist);
+    hist->GetYaxis()->SetRangeUser(0, 0.355);   
     hist->Draw("hist E");
 
     gStyle->SetOptStat("");
     gStyle->SetPalette(1);
 
+    SetMarkerStyle(histCompare);
     histCompare->SetMarkerColor(2);
-    histCompare->SetMarkerSize(1);
     histCompare->SetMarkerStyle(22);
     histCompare->SetLineColor(2);
-    histCompare->SetLineStyle(1);
-    histCompare->SetLineWidth(1);
     histCompare->Draw("SAME hist E");
+
+    SetMarkerStyle(histGraniitti);
+    histGraniitti->Draw("same hist E");
 
     TPaveText *textSTAR;
     textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
+    SetTextStyle(textSTAR);
     textSTAR -> SetTextSize(textSize+0.02);
-    textSTAR -> SetFillColor(0);
     textSTAR -> SetTextFont(72);
     textSTAR -> AddText("STAR");
     textSTAR -> Draw("same");
     textSTAR = new TPaveText(0.17,0.84,0.33,0.89,"brNDC");
-    textSTAR -> SetTextSize(textSize);
+    SetTextStyle(textSTAR);
     textSTAR -> SetTextFont(52);
-    textSTAR -> SetFillColor(0);
-    textSTAR -> AddText("Internal");
+    textSTAR -> AddText(label);
     textSTAR -> Draw("same");
 
     TPaveText *textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
-    textPub -> SetTextSize(textSize);
-    textPub -> SetTextAlign(22);
-    textPub -> SetFillColor(0);
-    textPub -> SetTextFont(42);
+    SetTextStyle(textPub);
     textPub -> SetTextAlign(12);
     textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
     //textPub -> AddText("#sqrt{s} = 510 GeV");
@@ -1126,9 +906,7 @@ void PlotKaonsPlot()
 
     TPaveText *text;
     text = new TPaveText(0.26,0.62,0.55,0.81,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
+    SetTextStyle(text);
     text -> SetTextAlign(31);
     text -> AddText("K^{+}, K^{-} kinematics:");
     text -> AddText("min(p_{T}^{+},p_{T}^{-}) < 0.7 GeV");   
@@ -1137,9 +915,7 @@ void PlotKaonsPlot()
     text -> Draw("same");
 
     text = new TPaveText(0.55,0.62,0.89,0.81,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
+    SetTextStyle(text);
     text -> SetTextAlign(11);
     text -> AddText("Forward proton kinematics:");
     text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
@@ -1148,35 +924,182 @@ void PlotKaonsPlot()
     text -> Draw("same");
 
 
-    TLegend* leg1 = new TLegend(0.54, 0.48, 0.87, 0.58);
-    leg1->SetFillStyle(0);
-    leg1->SetBorderSize(0);
-    leg1->SetTextSize(textSize);
-    leg1->SetTextFont(42);
-    leg1->SetMargin(0.1);
+    TLegend* leg1 = new TLegend(0.54, 0.44, 0.87, 0.59);
+    SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
     leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
+    leg1->AddEntry(histGraniitti, "Graniitti","ple");
     leg1->Draw("same");
 
-    text = new TPaveText(0.51,0.27,0.93,0.44,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
-    text -> SetTextAlign(22);
+    text = new TPaveText(0.51,0.18,0.93,0.40,"brNDC");
+    SetTextStyle(text);
     text -> AddText("Statistical errors only");
     text -> AddText("Acceptance corrected");
+    text -> AddText("Not efficiency corrected");
     text -> AddText("Not background subtracted");
     text -> Draw("same");
 
     newCanvas->Update();
     newCanvas->Write("kaons");
-   // newCanvas->Close(); 
+    //newCanvas->Close(); 
+///////////////////////////// Inelastic ///////////////////////////////////////////
+    newCanvas = new TCanvas("kaonsInel","kaonsInel",800,700);
+    hist = (TH1D*)hInvMassCorr[Kaon][0][Inel]->Clone("hist"); 
+    histCompare = (TH1D*)hInvMassCorr[Kaon][0][El]->Clone("histCompare");
+    histGraniitti = (TH1D*)hInvMassGran[Inel][Kaon]->Clone("histGraniittiInel");
+    histGraniittiEl = (TH1D*)hInvMassGran[El][Kaon]->Clone("histGraniittiEl");
 
+    scaleFactor =   1 /hist->Integral();
+    hist->Scale(scaleFactor);
+    scaleFactor =   1 /histCompare->Integral();
+    histCompare->Scale(scaleFactor);
+    scaleFactor =   1 /histGraniitti->Integral();
+    histGraniitti->Scale(scaleFactor);
+    scaleFactor =   1 /histGraniittiEl->Integral();
+    histGraniittiEl->Scale(scaleFactor);
+
+    hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    SetGraphStyle(hist);
+    hist->GetYaxis()->SetRangeUser(0, 0.615);   
+    hist->Draw("hist E");
+
+    gStyle->SetOptStat("");
+    gStyle->SetPalette(1);
+
+
+    SetMarkerStyle(histGraniitti);
+    histGraniitti->Draw("SAME hist E");
+
+
+    textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
+    SetTextStyle(textSTAR);
+    textSTAR -> SetTextSize(textSize+0.02);
+    textSTAR -> SetTextFont(72);
+    textSTAR -> AddText("STAR");
+    textSTAR -> Draw("same");
+    textSTAR = new TPaveText(0.17,0.84,0.33,0.89,"brNDC");
+    SetTextStyle(textSTAR);
+    textSTAR -> SetTextFont(52);
+    textSTAR -> AddText(label);
+    textSTAR -> Draw("same");
+
+    textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
+    SetTextStyle(textPub);
+    textPub -> SetTextAlign(12);
+    textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
+    //textPub -> AddText("#sqrt{s} = 510 GeV");
+    textPub -> Draw("same");
+
+    text = new TPaveText(0.26,0.62,0.55,0.81,"brNDC");
+    SetTextStyle(text);
+    text -> SetTextAlign(31);
+    text -> AddText("K^{+}, K^{-} kinematics:");
+    text -> AddText("min(p_{T}^{+},p_{T}^{-}) < 0.7 GeV");   
+    text -> AddText("p_{T} > 0.3 GeV");
+    text -> AddText("|#eta| < 0.7");
+    text -> Draw("same");
+
+    text = new TPaveText(0.54,0.62,0.88,0.83,"brNDC");
+    SetTextStyle(text);
+    text -> SetTextAlign(12);
+    text -> AddText("Forward proton kinematics:");
+    text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
+    text -> AddText("0.4 GeV < |p_{y}| < 0.8 GeV");
+    text -> AddText("p_{x} > -0.27 GeV");
+    text -> Draw("same");
+
+
+    leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
+    SetLegendStyle(leg1);
+    leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
+    leg1->AddEntry(histGraniitti, "Graniitti, #Delta#varphi < 90^{#circ}","ple");
+    leg1->Draw("same");
+
+    text = new TPaveText(0.51,0.18,0.93,0.40,"brNDC");
+    SetTextStyle(text);
+    text -> AddText("Statistical errors only");
+    text -> AddText("Acceptance corrected");
+    text -> AddText("Not efficiency corrected");
+    text -> AddText("Not background subtracted");
+    text -> Draw("same");
+
+    newCanvas->Update();
+    newCanvas->Write("kaonsInel");
+    //newCanvas->Close();
+//////////////////////////////////////////// Elastic ///////////////////////////////
+    newCanvas = new TCanvas("kaonsEl","kaonsEl",800,700);
+    histCompare->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    SetGraphStyle(histCompare);
+    histCompare->GetYaxis()->SetRangeUser(0, 0.315);   
+    histCompare->Draw("hist E");
+
+    gStyle->SetOptStat("");
+    gStyle->SetPalette(1);
+
+
+    SetMarkerStyle(histGraniittiEl);
+    histGraniittiEl->Draw("SAME hist E");
+
+    textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
+    SetTextStyle(textSTAR);
+    textSTAR -> SetTextSize(textSize+0.02);
+    textSTAR -> SetTextFont(72);
+    textSTAR -> AddText("STAR");
+    textSTAR -> Draw("same");
+    textSTAR = new TPaveText(0.17,0.84,0.33,0.89,"brNDC");
+    SetTextStyle(textSTAR);
+    textSTAR -> SetTextSize(textSize);
+    textSTAR -> SetTextFont(52);
+    textSTAR -> AddText(label);
+    textSTAR -> Draw("same");
+
+    textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
+    SetTextStyle(textPub);
+    textPub -> SetTextAlign(12);
+    textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
+    textPub -> Draw("same");
+
+    text = new TPaveText(0.16,0.64,0.45,0.83,"brNDC");
+    SetTextStyle(text);
+    text -> SetTextAlign(12);
+    text -> AddText("K^{+}, K^{-} kinematics:");
+    text -> AddText("min(p_{T}^{+},p_{T}^{-}) < 0.7 GeV");   
+    text -> AddText("p_{T} > 0.3 GeV");
+    text -> AddText("|#eta| < 0.7");
+    text -> Draw("same");
+
+    text = new TPaveText(0.54,0.62,0.88,0.83,"brNDC");
+    SetTextStyle(text);
+    text -> SetTextAlign(12);
+    text -> AddText("Forward proton kinematics:");
+    text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
+    text -> AddText("0.4 GeV < |p_{y}| < 0.8 GeV");
+    text -> AddText("p_{x} > -0.27 GeV");
+    text -> Draw("same");
+
+
+    leg1 = new TLegend(0.45, 0.5, 0.78, 0.6);
+    SetLegendStyle(leg1);
+    leg1->AddEntry(histCompare, "Data, #Delta#varphi > 90^{#circ} (unlike-sign pairs)","ple");
+    leg1->AddEntry(histGraniittiEl, "Graniitti, #Delta#varphi > 90^{#circ}","ple");
+    leg1->Draw("same");
+
+    text = new TPaveText(0.61,0.2,0.88,0.44,"brNDC");
+    SetTextStyle(text);
+    text -> AddText("Statistical errors only");
+    text -> AddText("Acceptance corrected");
+    text -> AddText("Not efficiency corrected");
+    text -> AddText("Not background subtracted");
+    text -> Draw("same");
+
+    newCanvas->Update();
+    newCanvas->Write("kaonsEl");
+    //newCanvas->Close();
 }
 
 void PlotProtonsPlot()
 {
-    TCanvas* newCanvas = new TCanvas("newCanvas","newCanvas",800,700);
+    TCanvas* newCanvas = new TCanvas("protons","protons",800,700);
     gPad->SetMargin(0.13,0.02,0.105,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
     gPad->SetTickx();
     gPad->SetTicky(); 
@@ -1191,63 +1114,64 @@ void PlotProtonsPlot()
     hist = (TH1D*)hInvMassCorr[Proton][0][ElInel]->Clone("hist"); 
     histCompare = (TH1D*)hInvMassCorr[Proton][1][ElInel]->Clone("histCompare");
     
+    TH1D* histGraniittiEl, *histGraniittiInel, *histGraniitti;
+    histGraniittiInel = (TH1D*)hInvMassGran[Inel][Proton]->Clone("histGraniittiInel");
+    histGraniittiEl = (TH1D*)hInvMassGran[El][Proton]->Clone("histGraniittiEl");
+
+    Double_t inel = hInvMassCorr[Proton][0][Inel]->Integral(); 
+    Double_t el = hInvMassCorr[Proton][0][El]->Integral();
+    //cout<<"Elastic / inelastic = "<< el<< " / "<< inel << "\n";
+    histGraniittiInel->Scale(inel/((el+inel)*histGraniittiInel->Integral()));
+    histGraniittiEl->Scale(el/((el+inel)*histGraniittiEl->Integral()));
+    //cout<<"Scaled Elastic / inelastic = "<< histGraniittiEl->Integral() << " / "<< histGraniittiInel->Integral() << "\n";
+    
+    histGraniitti = (TH1D*)histGraniittiInel->Clone("histGraniitti");
+    histGraniitti->Add(histGraniittiEl, 1.0);
+    //cout<<"Sum: "<< histGraniitti->Integral() << "\n";
+
     Double_t scaleFactor; 
     scaleFactor =   1 /hist->Integral();
     hist->Scale(scaleFactor);
     histCompare->Scale(scaleFactor);
 
     hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
-    hist->SetStats(false);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetLabelFont(fontStyle);
-    hist->GetYaxis()->SetLabelFont(fontStyle);
-    hist->GetXaxis()->SetLabelSize(labelSize);
-    hist->GetYaxis()->SetLabelSize(labelSize);
-    hist->GetXaxis()->SetTitleSize(labelSize);
-    hist->GetYaxis()->SetTitleSize(labelSize);
-    hist->GetXaxis()->SetTitleOffset(0.9);
-    hist->GetYaxis()->SetTitleOffset(1.3);
+    SetGraphStyle(hist);
     hist->GetXaxis()->SetRangeUser(1.8, 4.2); 
     hist->GetYaxis()->SetRangeUser(0, 0.35);   
-    hist->SetMarkerColor(1);
-    hist->SetMarkerSize(1);
-    hist->SetMarkerStyle(20);
-    hist->SetLineColor(1);
-    hist->SetLineStyle(1);
-    hist->SetLineWidth(1);
     hist->Draw("hist E");
 
     gStyle->SetOptStat("");
     gStyle->SetPalette(1);
 
+    SetMarkerStyle(histCompare);
     histCompare->SetMarkerColor(2);
-    histCompare->SetMarkerSize(1);
     histCompare->SetMarkerStyle(22);
     histCompare->SetLineColor(2);
-    histCompare->SetLineStyle(1);
-    histCompare->SetLineWidth(1);
     histCompare->Draw("SAME hist E");
+
+    SetMarkerStyle(histGraniitti);
+    histGraniitti->SetMarkerColor(4);
+    histGraniitti->SetMarkerStyle(22);
+    histGraniitti->SetLineColor(4);
+    histGraniitti->Draw("same hist E");
+
 
     TPaveText *textSTAR;
     textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
+    SetTextStyle(textSTAR);
     textSTAR -> SetTextSize(textSize+0.02);
-    textSTAR -> SetFillColor(0);
     textSTAR -> SetTextFont(72);
     textSTAR -> AddText("STAR");
     textSTAR -> Draw("same");
     textSTAR = new TPaveText(0.17,0.84,0.33,0.89,"brNDC");
+    SetTextStyle(textSTAR);
     textSTAR -> SetTextSize(textSize);
     textSTAR -> SetTextFont(52);
-    textSTAR -> SetFillColor(0);
-    textSTAR -> AddText("Internal");
+    textSTAR -> AddText(label);
     textSTAR -> Draw("same");
 
     TPaveText *textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
-    textPub -> SetTextSize(textSize);
-    textPub -> SetTextAlign(22);
-    textPub -> SetFillColor(0);
-    textPub -> SetTextFont(42);
+    SetTextStyle(textPub);
     textPub -> SetTextAlign(12);
     textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
     //textPub -> AddText("#sqrt{s} = 510 GeV");
@@ -1256,9 +1180,7 @@ void PlotProtonsPlot()
 
     TPaveText *text;
     text = new TPaveText(0.48,0.66,0.88,0.86,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
+    SetTextStyle(text);
     text -> SetTextAlign(11);
     text -> AddText("Forward proton kinematics:");
     text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
@@ -1267,9 +1189,7 @@ void PlotProtonsPlot()
     text -> Draw("same");
 
     text = new TPaveText(0.56,0.46,0.88,0.65,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
+    SetTextStyle(text);
     text -> SetTextAlign(11);
     text -> AddText("p, #bar{p} kinematics:");   
     text -> AddText("min(p_{T}^{+},p_{T}^{-}) < 1.1 GeV");   
@@ -1278,28 +1198,179 @@ void PlotProtonsPlot()
     text -> Draw("same");
 
     TLegend* leg1 = new TLegend(0.56, 0.35, 0.78, 0.45);
-    leg1->SetFillStyle(0);
-    leg1->SetBorderSize(0);
-    leg1->SetTextSize(textSize);
-    leg1->SetTextFont(42);
+    SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
     leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
+    leg1->AddEntry(histGraniitti, "Graniitti","ple");
     leg1->Draw("same");
 
-    text = new TPaveText(0.55,0.17,0.93,0.34,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
+    text = new TPaveText(0.55,0.12,0.93,0.34,"brNDC");
+    SetTextStyle(text);
     text -> SetTextAlign(23);
     text -> AddText("Statistical errors only");
     text -> AddText("Acceptance corrected");
+    text -> AddText("Not efficiency corrected");
     text -> AddText("Not background subtracted");
     text -> Draw("same");
 
     newCanvas->Update();
     newCanvas->Write("protons");
-    newCanvas->Close(); 
+    //newCanvas->Close();
 
+///////////////////////////// Inelastic ///////////////////////////////////////////
+    newCanvas = new TCanvas("protonsInel","protonsInel",800,700);   
+ 
+    hist = (TH1D*)hInvMassCorr[Proton][0][Inel]->Clone("hist"); 
+    histCompare = (TH1D*)hInvMassCorr[Proton][0][El]->Clone("histCompare");
+    histGraniitti = (TH1D*)hInvMassGran[Inel][Proton]->Clone("histGraniittiInel");
+    histGraniittiEl = (TH1D*)hInvMassGran[El][Proton]->Clone("histGraniittiEl");
+
+    scaleFactor =   1 /hist->Integral();
+    hist->Scale(scaleFactor);
+    scaleFactor =   1 /histCompare->Integral();
+    histCompare->Scale(scaleFactor);
+    scaleFactor =   1 /histGraniitti->Integral();
+    histGraniitti->Scale(scaleFactor);
+    scaleFactor =   1 /histGraniittiEl->Integral();
+    histGraniittiEl->Scale(scaleFactor);
+
+    hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    SetGraphStyle(hist);
+    hist->GetYaxis()->SetRangeUser(0, 0.12);   
+    hist->Draw("hist E");
+
+    gStyle->SetOptStat("");
+    gStyle->SetPalette(1);
+
+
+    SetMarkerStyle(histGraniitti);
+    histGraniitti->Draw("SAME hist E");
+
+
+    textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
+    SetTextStyle(textSTAR);
+    textSTAR -> SetTextSize(textSize+0.02);
+    textSTAR -> SetTextFont(72);
+    textSTAR -> AddText("STAR");
+    textSTAR -> Draw("same");
+    textSTAR = new TPaveText(0.17,0.84,0.33,0.89,"brNDC");
+    SetTextStyle(textSTAR);
+    textSTAR -> SetTextFont(52);
+    textSTAR -> SetFillColor(0);
+    textSTAR -> AddText(label);
+    textSTAR -> Draw("same");
+
+    textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
+    SetTextStyle(text);
+    textPub -> SetTextAlign(12);
+    textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
+    //textPub -> AddText("#sqrt{s} = 510 GeV");
+    textPub -> Draw("same");
+
+    text = new TPaveText(0.56,0.46,0.88,0.65,"brNDC");
+    SetTextStyle(text);
+    text -> SetTextAlign(11);
+    text -> AddText("p, #bar{p} kinematics:");   
+    text -> AddText("min(p_{T}^{+},p_{T}^{-}) < 1.1 GeV");   
+    text -> AddText("p_{T} > 0.4 GeV");
+    text -> AddText("|#eta| < 0.7");
+    text -> Draw("same");
+
+    text = new TPaveText(0.54,0.62,0.88,0.83,"brNDC");
+    SetTextStyle(text);  
+    text -> SetTextAlign(12);
+    text -> AddText("Forward proton kinematics:");
+    text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
+    text -> AddText("0.4 GeV < |p_{y}| < 0.8 GeV");
+    text -> AddText("p_{x} > -0.27 GeV");
+    text -> Draw("same");
+
+
+    leg1 = new TLegend(0.45, 0.38, 0.78, 0.58);
+    SetLegendStyle(leg1);
+    leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
+    leg1->AddEntry(histGraniitti, "Graniitti, #Delta#varphi < 90^{#circ}","ple");
+    leg1->Draw("same");
+
+    text = new TPaveText(0.71,0.22,0.88,0.44,"brNDC");
+    SetTextStyle(text);
+    text -> AddText("Statistical errors only");
+    text -> AddText("Acceptance corrected");
+    text -> AddText("Not efficiency corrected");
+    text -> AddText("Not background subtracted");
+    text -> Draw("same");
+
+    newCanvas->Update();
+    newCanvas->Write("protonsInel");
+    //newCanvas->Close();
+//////////////////////////////////////////// Elastic ///////////////////////////////
+    newCanvas = new TCanvas("protonsEl","protonsEl",800,700);
+    histCompare->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    SetGraphStyle(histCompare);
+    histCompare->GetYaxis()->SetRangeUser(0, 0.12);   
+    histCompare->Draw("hist E");
+    gStyle->SetOptStat("");
+    gStyle->SetPalette(1);
+
+    SetMarkerStyle(histGraniittiEl);
+    histGraniittiEl->Draw("SAME hist E");
+
+    textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
+    SetTextStyle(textSTAR);
+    textSTAR -> SetTextSize(textSize+0.02);
+    textSTAR -> SetTextFont(72);
+    textSTAR -> AddText("STAR");
+    textSTAR -> Draw("same");
+
+    textSTAR = new TPaveText(0.17,0.84,0.33,0.89,"brNDC");
+    SetTextStyle(textSTAR);
+    textSTAR -> SetTextFont(52);
+    textSTAR -> AddText(label);
+    textSTAR -> Draw("same");
+
+    textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
+    SetTextStyle(text);
+    textPub -> SetTextAlign(12);
+    textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
+    //textPub -> AddText("#sqrt{s} = 510 GeV");
+    textPub -> Draw("same");
+
+    text = new TPaveText(0.56,0.46,0.88,0.65,"brNDC");
+    SetTextStyle(text);
+    text -> SetTextAlign(11);
+    text -> AddText("p, #bar{p} kinematics:");   
+    text -> AddText("min(p_{T}^{+},p_{T}^{-}) < 1.1 GeV");   
+    text -> AddText("p_{T} > 0.4 GeV");
+    text -> AddText("|#eta| < 0.7");
+    text -> Draw("same");
+    
+    text = new TPaveText(0.54,0.62,0.88,0.83,"brNDC");
+    SetTextStyle(text);
+    text -> SetTextAlign(12);
+    text -> AddText("Forward proton kinematics:");
+    text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
+    text -> AddText("0.4 GeV < |p_{y}| < 0.8 GeV");
+    text -> AddText("p_{x} > -0.27 GeV");
+    text -> Draw("same");
+
+
+    leg1 = new TLegend(0.45, 0.38, 0.78, 0.58);
+    SetLegendStyle(leg1);
+    leg1->AddEntry(histCompare, "Data, #Delta#varphi > 90^{#circ} (unlike-sign pairs)","ple");
+    leg1->AddEntry(histGraniittiEl, "Graniitti, #Delta#varphi > 90^{#circ}","ple");
+    leg1->Draw("same");
+
+    text = new TPaveText(0.71,0.22,0.88,0.44,"brNDC");
+    SetTextStyle(text);
+    text -> AddText("Statistical errors only");
+    text -> AddText("Acceptance corrected");
+    text -> AddText("Not efficiency corrected");
+    text -> AddText("Not background subtracted");
+    text -> Draw("same");
+
+    newCanvas->Update();
+    newCanvas->Write("protonsEl");
+    //newCanvas->Close();
 }
 
 
@@ -1338,10 +1409,6 @@ void PlotCutsFlow()
                       //TString("-1.0 GeV^{2} < t < - 0.12 GeV^{2}")
     //gPad->SetMargin(0.9,0.02,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
     TCanvas* newCanvas = new TCanvas("newCanvas","newCanvas",950,600);
-    gPad->SetMargin(0.08,0.03,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
-    gPad->SetTickx();
-    gPad->SetTicky(); 
-    gPad->SetLogy();
 
     for(int iBin = 1; iBin < hCuts->GetNbinsX(); ++iBin)
     {
@@ -1357,391 +1424,32 @@ void PlotCutsFlow()
     hCuts->GetXaxis()->SetBinLabel(hCuts->GetNbinsX(), Labels[hCuts->GetNbinsX()-1]);
 
     hCuts->SetTitle("; ; Number of events");
-    hCuts->SetStats(false);
-    hCuts->GetXaxis()->SetTitleFont(fontStyle);
-    hCuts->GetXaxis()->SetTitleFont(fontStyle);
+    SetGraphStyle(hCuts);
     hCuts->GetXaxis()->SetLabelFont(62);
-    hCuts->GetYaxis()->SetLabelFont(fontStyle);
     hCuts->GetXaxis()->SetLabelSize(labelSize-0.01);
-    hCuts->GetYaxis()->SetLabelSize(labelSize);
-    hCuts->GetXaxis()->SetTitleSize(labelSize);
-    hCuts->GetYaxis()->SetTitleSize(labelSize);
-    hCuts->GetXaxis()->SetTitleOffset(0.9);
+    hCuts->SetMarkerSize(1.5);
+    hCuts->SetLineWidth(2);    
+    gPad->SetMargin(0.08,0.03,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+    gPad->SetTickx();
+    gPad->SetTicky(); 
+    gPad->SetLogy();
     hCuts->GetYaxis()->SetTitleOffset(0.85); 
     hCuts->GetYaxis()->SetRangeUser(4000, 3000000000); 
-    hCuts->SetMarkerColor(1);
-    hCuts->SetMarkerSize(1.5);
-    hCuts->SetMarkerStyle(20);
-    hCuts->SetLineColor(1);
-    hCuts->SetLineStyle(1);
-    hCuts->SetLineWidth(2);
     hCuts->LabelsOption("d");
     hCuts->Draw("");
     gStyle->SetPaintTextFormat("1.2g");
     hCuts->Draw("TEXT15 same");
 
     TPaveText *textPub = new TPaveText(0.4,0.85,0.7,0.95,"brNDC");
-    textPub -> SetTextSize(textSize+0.01);
-    textPub -> SetTextAlign(22);
-    textPub -> SetFillColor(0);
-    textPub -> SetTextFont(42);
-    textPub -> SetTextAlign(12);
+    SetTextStyle(textPub);
     textPub -> AddText("p + p #rightarrow p + h^{+}h^{-} + p       #sqrt{s} = 510 GeV");
     textPub -> Draw("same");
 
     fout->cd();
     newCanvas->Update();
     newCanvas->Write("CutsFlow");
-    newCanvas->Close();
+    //newCanvas->Close();
 }
-
-
-/*
-void PlotRPPlot()
-{
-    TCanvas *cCanvas2D = new TCanvas("cCanvas2D","cCanvas2D",800,700);
-    gPad->SetMargin(0.09,0.13,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
-    gStyle->SetPalette(1);
-    gPad->SetTickx();
-    gPad->SetTicky();
-    gPad->SetLogz(); 
-
-    for (int i = 0; i < nSides; ++i)
-    {
-        hPxPy[i]->SetTitle(" ; p_{x} [GeV/c]; p_{y} [GeV/c]");;
-        hPxPy[i]->Draw("colz");
-
-        if(i == East)
-        {
-            // Down....
-            const Int_t n = 300;
-            Double_t x[n], y[n];
-            Double_t tmp;
-            for(int i = 0; i < n; ++i){
-                x[i] = 0.153 + (0.3*i)/n;
-                tmp = (x[i] -1.424)*(x[i]-1.424) - 0.88*0.88;
-                y[i] = -sqrt(abs(tmp));
-            }
-            TGraph* gr = new TGraph(n,x,y);
-            gr->SetLineWidth(4);
-            gr->Draw("same");
-
-
-            TLine *left02 = new TLine(-0.28,-0.413,0.453,-0.413);
-            left02->SetLineStyle(1);
-            left02->SetLineColor(1);
-            left02->SetLineWidth(4);
-            left02->Draw("same");
-
-
-            TLine *left01 = new TLine(-0.28,-0.9,-0.28,-0.413);
-            left01->SetLineStyle(1);
-            left01->SetLineColor(1);
-            left01->SetLineWidth(4);
-            left01->Draw("same");
-
-            left01 = new TLine(-0.28,-0.917,0.153,-0.917);
-            left01->SetLineStyle(1);
-            left01->SetLineColor(1);
-            left01->SetLineWidth(4);
-            left01->Draw("same");
-
-    // Up....
-
-            left02 = new TLine(-0.3,0.36,0.5,0.36);
-            left02->SetLineStyle(1);
-            left02->SetLineColor(1);
-            left02->SetLineWidth(4);
-            left02->Draw("same");
-
-
-            left01 = new TLine(-0.3,0.36,-0.3,0.84);
-            left01->SetLineStyle(1);
-            left01->SetLineColor(1);
-            left01->SetLineWidth(4);
-            left01->Draw("same");
-
-            left01 = new TLine(-0.3,0.84,0.2,0.84);
-            left01->SetLineStyle(1);
-            left01->SetLineColor(1);
-            left01->SetLineWidth(4);
-            left01->Draw("same");
-
-            for(int i = 0; i < n; ++i){
-                x[i] = 0.2 + (0.3*i)/n;
-                tmp = (x[i] -1.31)*(x[i]-1.31) - 0.725*0.725;
-                y[i] = sqrt(abs(tmp));
-            }
-            gr = new TGraph(n,x,y);
-            gr->SetLineWidth(4);
-            gr->Draw("same");
-        }else if(i == West)
-        {
-            // Down....
-            const Int_t n = 300;
-            Double_t x[n], y[n];
-            Double_t tmp;
-            for(int i = 0; i < n; ++i){
-                x[i] = 0.15 + (0.4*i)/n;
-                tmp = (x[i] -1.163)*(x[i]-1.163) - 0.464*0.464;
-                y[i] = -sqrt(abs(tmp));
-            }
-            TGraph* gr = new TGraph(n,x,y);
-            gr->SetLineWidth(4);
-            gr->Draw("same");
-
-
-            TLine *left02 = new TLine(-0.25,-0.4,0.55,-0.4);
-            left02->SetLineStyle(1);
-            left02->SetLineColor(1);
-            left02->SetLineWidth(4);
-            left02->Draw("same");
-
-
-            TLine *left01 = new TLine(-0.25,-0.9,-0.25,-0.4);
-            left01->SetLineStyle(1);
-            left01->SetLineColor(1);
-            left01->SetLineWidth(4);
-            left01->Draw("same");
-
-            left01 = new TLine(-0.25,-0.9,0.15,-0.9);
-            left01->SetLineStyle(1);
-            left01->SetLineColor(1);
-            left01->SetLineWidth(4);
-            left01->Draw("same");
-
-    // Up....
-
-            left02 = new TLine(-0.22,0.37,0.44,0.37);
-            left02->SetLineStyle(1);
-            left02->SetLineColor(1);
-            left02->SetLineWidth(4);
-            left02->Draw("same");
-
-
-            left01 = new TLine(-0.22,0.37,-0.22,0.8);
-            left01->SetLineStyle(1);
-            left01->SetLineColor(1);
-            left01->SetLineWidth(4);
-            left01->Draw("same");
-
-            left01 = new TLine(-0.22,0.8,0.2,0.8);
-            left01->SetLineStyle(1);
-            left01->SetLineColor(1);
-            left01->SetLineWidth(4);
-            left01->Draw("same");
-
-            for(int i = 0; i < n; ++i){
-                x[i] = 0.2 + (0.24*i)/n;
-                tmp = (x[i] -1.368)*(x[i]-1.368) - 0.851*0.851;
-                y[i] = sqrt(abs(tmp));
-            }
-            gr = new TGraph(n,x,y);
-            gr->SetLineWidth(4);
-            gr->Draw("same");            
-        }
-
-        cCanvas2D->Update();
-        cCanvas2D->Write("hPxPy"+sideLabel[i]);
-    }
-
-    hPxPy[2]->SetTitle(" ; p_{x} [GeV/c]; p_{y} [GeV/c]");;
-    hPxPy[2]->Draw("colz");
-
-    const Int_t n = 300;
-    Double_t x[n], y[n];
-    Double_t tmp;
-    for(int i = 0; i < n; ++i){
-        x[i] = 0.15 + (0.4*i)/n;
-        //tmp = (x[i] -1.163)*(x[i]-1.163) - 0.464*0.464;
-        tmp = (x[i] +0.6)*(x[i]+0.6) - 1.2*1.2;
-        y[i] = -sqrt(abs(tmp));
-    }
-    TGraph* gr = new TGraph(n,x,y);
-    gr->SetLineWidth(4);
-    gr->Draw("same");
-
-
-    TLine *left02 = new TLine(-0.28,-0.4,0.55,-0.4);
-    left02->SetLineStyle(1);
-    left02->SetLineColor(1);
-    left02->SetLineWidth(4);
-    left02->Draw("same");
-
-
-    TLine *left01 = new TLine(-0.28,-0.9,-0.28,-0.4);
-    left01->SetLineStyle(1);
-    left01->SetLineColor(1);
-    left01->SetLineWidth(4);
-    left01->Draw("same");
-
-    left01 = new TLine(-0.28,-0.9,0.15,-0.9);
-    left01->SetLineStyle(1);
-    left01->SetLineColor(1);
-    left01->SetLineWidth(4);
-    left01->Draw("same");          
-// UP
-    left02 = new TLine(-0.3,0.36,0.5,0.36);
-    left02->SetLineStyle(1);
-    left02->SetLineColor(1);
-    left02->SetLineWidth(4);
-    left02->Draw("same");
-
-
-    left01 = new TLine(-0.3,0.36,-0.3,0.84);
-    left01->SetLineStyle(1);
-    left01->SetLineColor(1);
-    left01->SetLineWidth(4);
-    left01->Draw("same");
-
-    left01 = new TLine(-0.3,0.84,0.2,0.84);
-    left01->SetLineStyle(1);
-    left01->SetLineColor(1);
-    left01->SetLineWidth(4);
-    left01->Draw("same");
-
-    for(int i = 0; i < n; ++i){
-        x[i] = 0.2 + (0.3*i)/n;
-        //tmp = (x[i] -1.31)*(x[i]-1.31) - 0.725*0.725;
-        tmp = (x[i] +0.6)*(x[i]+0.6) - 1.2*1.2;
-        y[i] = sqrt(abs(tmp));
-    }
-    gr = new TGraph(n,x,y);
-    gr->SetLineWidth(4);
-    gr->Draw("same");
-
-    cCanvas2D->Update();
-    cCanvas2D->Write("hPxPyEast+West");
-
-
-    cCanvas2D->Close();
-} */
-
-
-/*
-void PlotPionsPlot()
-{
-    TCanvas* newCanvas = new TCanvas("newCanvas","newCanvas",800,700);
-    gPad->SetMargin(0.13,0.03,0.105,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
-    gPad->SetTickx();
-    gPad->SetTicky(); 
-    gPad->SetLogy(0);
-
-    TString stateLabel = "#pi^{+}#pi^{-}";
-
-    TH1D *hist, *histCompare;
-    TString yLabel = "Probability per event / 50 MeV";
-
-
-    hist = (TH1D*)hInvMassCorr[Pion][0][ElInel]->Clone("hist"); 
-    histCompare = (TH1D*)hInvMassCorr[Pion][1][ElInel]->Clone("histCompare");
-    
-    Double_t scaleFactor; 
-    scaleFactor =   1 /hist->Integral();
-    hist->Scale(scaleFactor);
-    histCompare->Scale(scaleFactor);
-
-    hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
-    hist->SetStats(false);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetLabelFont(fontStyle);
-    hist->GetYaxis()->SetLabelFont(fontStyle);
-    hist->GetXaxis()->SetLabelSize(labelSize);
-    hist->GetYaxis()->SetLabelSize(labelSize);
-    hist->GetXaxis()->SetTitleSize(labelSize);
-    hist->GetYaxis()->SetTitleSize(labelSize);
-    hist->GetXaxis()->SetTitleOffset(0.9);
-    hist->GetYaxis()->SetTitleOffset(1.3);
-    hist->GetYaxis()->SetRangeUser(0, 0.082);   
-    hist->SetMarkerColor(1);
-    hist->SetMarkerSize(1);
-    hist->SetMarkerStyle(20);
-    hist->SetLineColor(1);
-    hist->SetLineStyle(1);
-    hist->SetLineWidth(1);
-    hist->Draw("E");
-
-    gStyle->SetOptStat("");
-    gStyle->SetPalette(1);
-
-    histCompare->SetMarkerColor(2);
-    histCompare->SetMarkerSize(1);
-    histCompare->SetMarkerStyle(22);
-    histCompare->SetLineColor(2);
-    histCompare->SetLineStyle(1);
-    histCompare->SetLineWidth(1);
-    histCompare->Draw("ESAME");
-
-    TPaveText *textSTAR;
-    textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
-    textSTAR -> SetTextSize(textSize+0.02);
-    textSTAR -> SetFillColor(0);
-    textSTAR -> SetTextFont(72);
-    textSTAR -> AddText("STAR");
-    textSTAR -> Draw("same");
-    textSTAR = new TPaveText(0.17,0.84,0.33,0.89,"brNDC");
-    textSTAR -> SetTextSize(textSize);
-    textSTAR -> SetTextFont(52);
-    textSTAR -> SetFillColor(0);
-    textSTAR -> AddText("Internal");
-    textSTAR -> Draw("same");
-
-    TPaveText *textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
-    textPub -> SetTextSize(textSize);
-    textPub -> SetTextAlign(22);
-    textPub -> SetFillColor(0);
-    textPub -> SetTextFont(42);
-    textPub -> SetTextAlign(12);
-    textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
-    //textPub -> AddText("#sqrt{s} = 510 GeV");
-    textPub -> Draw("same");
-
-
-    TPaveText *text;
-    text = new TPaveText(0.48,0.7,0.88,0.86,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
-    text -> SetTextAlign(12);
-    text -> AddText("p:   (p_{x} + 0.6)^{2} + p_{y}^{2} < 1.44 GeV^{2}");
-    text -> AddText("      0.35 GeV < |p_{y}| < 0.9 GeV");
-    text -> AddText("      p_{x} > -0.3 GeV");
-    text -> Draw("same");
-
-    text = new TPaveText(0.56,0.52,0.88,0.62,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
-    text -> SetTextAlign(12);
-    text -> AddText("#pi^{+}, #pi^{-}:   p_{T} > 0.2 GeV");
-    text -> AddText("            |#eta| < 0.7");
-    text -> Draw("same");
-
-    TLegend* leg1 = new TLegend(0.56, 0.38, 0.78, 0.48);
-    leg1->SetFillStyle(0);
-    leg1->SetBorderSize(0);
-    leg1->SetTextSize(textSize);
-    leg1->SetTextFont(42);
-    leg1->AddEntry(hist, "Data (unlike-sign pairs)","pe");
-    leg1->AddEntry(histCompare, "Data (like-sign pairs)","pe");
-    leg1->Draw("same");
-
-    text = new TPaveText(0.63,0.24,0.88,0.34,"brNDC");
-    text -> SetTextSize(textSize);
-    text -> SetFillColor(0);
-    text -> SetTextFont(42);
-    //text -> SetTextAlign(12);
-    text -> AddText("non-exclusive background");
-    text -> AddText("not-subtracted");
-    text -> Draw("same");
-
-    newCanvas->Update();
-    newCanvas->Write("pions");
-   // newCanvas->Close(); 
-
-}
-*/
 
 void RunGraniitti()
 {
@@ -1749,11 +1457,11 @@ void RunGraniitti()
 
     TTree* tree[nParticles]; // 3 = 4PI state
     tree[Pion] = dynamic_cast<TTree*>( graniitti->Get("pionTree") );
-//    tree[Kaon] = dynamic_cast<TTree*>( graniitti->Get("kaonTree") );
+    tree[Kaon] = dynamic_cast<TTree*>( graniitti->Get("kaonTree") );
 //    tree[Proton] = dynamic_cast<TTree*>( graniitti->Get("protonTree") );
 //    tree[FourPions] = dynamic_cast<TTree*>( graniitti->Get("4pionTree") );
 
-    if (!tree[Pion] ){//|| !tree[Kaon] || !tree[Proton]){
+    if (!tree[Pion] || !tree[Kaon]){// || !tree[Proton]){
         cout<<"Error: cannot open one of the TTree in Graniitti"<<endl;
         return;
     }
@@ -1780,7 +1488,7 @@ void RunGraniitti()
     for (int iComb = 0; iComb < nCombination; ++iComb)
     {
         usedCuts= graniittiCuts + combCuts[iComb];
-        for (int iPart = 0; iPart < 1; ++iPart) // nParticles; ++iPart)
+        for (int iPart = 0; iPart < 2; ++iPart) // nParticles; ++iPart)
         {
             usedCuts+= " && " + partCuts[iPart];    
             variable = "invMass_state";
@@ -1795,3 +1503,68 @@ void RunGraniitti()
     }
 
 }
+
+
+void SetGraphStyle(TH1* hist)
+{
+    gPad->SetMargin(0.13,0.03,0.105,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+    gPad->SetTickx();
+    gPad->SetTicky(); 
+    gPad->SetLogy(0);
+    hist->SetStats(false);
+    hist->GetXaxis()->SetTitleFont(fontStyle);
+    hist->GetXaxis()->SetTitleFont(fontStyle);
+    hist->GetXaxis()->SetLabelFont(fontStyle);
+    hist->GetYaxis()->SetLabelFont(fontStyle);
+    hist->GetXaxis()->SetLabelSize(labelSize);
+    hist->GetYaxis()->SetLabelSize(labelSize);
+    hist->GetXaxis()->SetTitleSize(labelSize);
+    hist->GetYaxis()->SetTitleSize(labelSize);
+    hist->GetXaxis()->SetTitleOffset(0.9);
+    hist->GetYaxis()->SetTitleOffset(1.3);
+    hist->SetMarkerColor(1);
+    hist->SetMarkerSize(1.5);
+    hist->SetMarkerStyle(29);
+    hist->SetLineColor(1);
+    hist->SetLineStyle(1);
+    hist->SetLineWidth(1);
+
+}//SetGraphStyle
+
+void SetTextStyle(TPaveText* text)
+{
+    text -> SetTextSize(textSize);
+    text -> SetTextAlign(22);
+    text -> SetFillColor(0);
+    text -> SetFillStyle(0);
+    text -> SetTextFont(fontStyle);
+    text -> SetBorderSize(0);
+}//SetTextStyle
+
+void SetLegendStyle(TLegend* leg1)
+{
+    leg1->SetFillStyle(0);
+    leg1->SetBorderSize(0);
+    leg1->SetTextSize(textSize);
+    leg1->SetTextFont(fontStyle);
+    leg1->SetMargin(0.1);
+}//SetLegendStyle
+
+void SetMarkerStyle(TH1* hist)
+{
+    hist->SetMarkerColor(4);
+    hist->SetMarkerSize(1);
+    hist->SetMarkerStyle(20);
+    hist->SetLineColor(4);
+    hist->SetLineStyle(1);
+    hist->SetLineWidth(1);
+
+}//SetMarkerStyle
+
+ 
+void SetLineStyle(TLine* line)
+{
+    line->SetLineStyle(1);
+    line->SetLineColor(1);
+    line->SetLineWidth(4);
+}//SetLineStyle
