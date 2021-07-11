@@ -49,7 +49,8 @@ const double pionMass = 0.13957; // GeV /c^2
 const double protonMass = 0.93827; // GeV /c^2
 const double convertToDegree = 57.2957795;
 
-TString label = "Preliminary";
+const bool OldProduction = false;
+TString label;
 
 enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
 enum PARTICLES {Pion = 0, Kaon = 1, Proton = 2, nParticles};
@@ -161,12 +162,18 @@ int protonsInside, protonsTotal;
 
 void Graniitti()
 {
+    TString output;
+    TString input;
+    if(OldProduction){
+        label = "Preliminary";
+        output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/ToBeShown.root"; 
+        input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/ppRun17.root";
+    }else{
+        label = "Internal";
+        output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/graniitti.root";
+        input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/P20ic.root";
+    }
 
-    //TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/graniitti.root";
-    TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/ToBeShown.root"; 
-    TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/ppRun17.root";
-    //TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/P20ic.root";
-    //TString graniitti_input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Graniitti/2pi_100k_1.root";
     TString graniitti_input = "/home/truhlar/Desktop/STAR/Graniitti_new/GRANIITTI/output/RootFiles/510/510.root";
 
     TString TPCeffInput[6];
@@ -233,7 +240,7 @@ void Graniitti()
 
     PlotPionsPlot();
     PlotKaonsPlot();
-    //PlotProtonsPlot();
+    PlotProtonsPlot();
 
     PlotCutsFlow();
 
@@ -1137,7 +1144,7 @@ void PlotProtonsPlot()
     hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(hist);
     hist->GetXaxis()->SetRangeUser(1.8, 4.2); 
-    hist->GetYaxis()->SetRangeUser(0, 0.35);   
+    hist->GetYaxis()->SetRangeUser(0, 0.4);   
     hist->Draw("hist E");
 
     gStyle->SetOptStat("");
@@ -1147,12 +1154,9 @@ void PlotProtonsPlot()
     histCompare->SetMarkerColor(2);
     histCompare->SetMarkerStyle(22);
     histCompare->SetLineColor(2);
-    histCompare->Draw("SAME hist E");
+    histCompare->Draw("same hist E");
 
     SetMarkerStyle(histGraniitti);
-    histGraniitti->SetMarkerColor(4);
-    histGraniitti->SetMarkerStyle(22);
-    histGraniitti->SetLineColor(4);
     histGraniitti->Draw("same hist E");
 
 
@@ -1179,39 +1183,38 @@ void PlotProtonsPlot()
 
 
     TPaveText *text;
-    text = new TPaveText(0.48,0.66,0.88,0.86,"brNDC");
+    text = new TPaveText(0.26,0.64,0.55,0.85,"brNDC");
     SetTextStyle(text);
-    text -> SetTextAlign(11);
-    text -> AddText("Forward proton kinematics:");
-    text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
-    text -> AddText("0.4 GeV < |p_{y}| < 0.8 GeV");
-    text -> AddText("p_{x} > -0.27 GeV");
-    text -> Draw("same");
-
-    text = new TPaveText(0.56,0.46,0.88,0.65,"brNDC");
-    SetTextStyle(text);
-    text -> SetTextAlign(11);
+    text -> SetTextAlign(32);
     text -> AddText("p, #bar{p} kinematics:");   
     text -> AddText("min(p_{T}^{+},p_{T}^{-}) < 1.1 GeV");   
     text -> AddText("p_{T} > 0.4 GeV");
     text -> AddText("|#eta| < 0.7");
     text -> Draw("same");
 
-    TLegend* leg1 = new TLegend(0.56, 0.35, 0.78, 0.45);
-    SetLegendStyle(leg1);
-    leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
-    leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "Graniitti","ple");
-    leg1->Draw("same");
-
-    text = new TPaveText(0.55,0.12,0.93,0.34,"brNDC");
+    text = new TPaveText(0.54,0.64,0.88,0.85,"brNDC");
     SetTextStyle(text);
-    text -> SetTextAlign(23);
+    text -> SetTextAlign(12);
+    text -> AddText("Forward proton kinematics:");
+    text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
+    text -> AddText("0.4 GeV < |p_{y}| < 0.8 GeV");
+    text -> AddText("p_{x} > -0.27 GeV");
+    text -> Draw("same");
+
+    text = new TPaveText(0.51,0.22,0.93,0.44,"brNDC");
+    SetTextStyle(text);
     text -> AddText("Statistical errors only");
     text -> AddText("Acceptance corrected");
     text -> AddText("Not efficiency corrected");
     text -> AddText("Not background subtracted");
     text -> Draw("same");
+
+    TLegend* leg1 = new TLegend(0.54, 0.48, 0.87, 0.63);
+    SetLegendStyle(leg1);
+    leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
+    leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
+    leg1->AddEntry(histGraniitti, "Graniitti","ple");
+    leg1->Draw("same");
 
     newCanvas->Update();
     newCanvas->Write("protons");
@@ -1236,7 +1239,8 @@ void PlotProtonsPlot()
 
     hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(hist);
-    hist->GetYaxis()->SetRangeUser(0, 0.12);   
+    hist->GetXaxis()->SetRangeUser(1.8, 4.2); 
+    hist->GetYaxis()->SetRangeUser(0, 0.37);   
     hist->Draw("hist E");
 
     gStyle->SetOptStat("");
@@ -1245,7 +1249,6 @@ void PlotProtonsPlot()
 
     SetMarkerStyle(histGraniitti);
     histGraniitti->Draw("SAME hist E");
-
 
     textSTAR = new TPaveText(0.17,0.89,0.33,0.95,"brNDC");
     SetTextStyle(textSTAR);
@@ -1261,23 +1264,23 @@ void PlotProtonsPlot()
     textSTAR -> Draw("same");
 
     textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
-    SetTextStyle(text);
+    SetTextStyle(textPub);
     textPub -> SetTextAlign(12);
     textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
     //textPub -> AddText("#sqrt{s} = 510 GeV");
     textPub -> Draw("same");
 
-    text = new TPaveText(0.56,0.46,0.88,0.65,"brNDC");
+    text = new TPaveText(0.26,0.64,0.55,0.85,"brNDC");
     SetTextStyle(text);
-    text -> SetTextAlign(11);
+    text -> SetTextAlign(32);
     text -> AddText("p, #bar{p} kinematics:");   
     text -> AddText("min(p_{T}^{+},p_{T}^{-}) < 1.1 GeV");   
     text -> AddText("p_{T} > 0.4 GeV");
     text -> AddText("|#eta| < 0.7");
     text -> Draw("same");
 
-    text = new TPaveText(0.54,0.62,0.88,0.83,"brNDC");
-    SetTextStyle(text);  
+    text = new TPaveText(0.54,0.64,0.88,0.85,"brNDC");
+    SetTextStyle(text);
     text -> SetTextAlign(12);
     text -> AddText("Forward proton kinematics:");
     text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
@@ -1286,13 +1289,13 @@ void PlotProtonsPlot()
     text -> Draw("same");
 
 
-    leg1 = new TLegend(0.45, 0.38, 0.78, 0.58);
+    leg1 = new TLegend(0.45, 0.51, 0.78, 0.61);
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
     leg1->AddEntry(histGraniitti, "Graniitti, #Delta#varphi < 90^{#circ}","ple");
     leg1->Draw("same");
 
-    text = new TPaveText(0.71,0.22,0.88,0.44,"brNDC");
+    text = new TPaveText(0.51,0.21,0.93,0.43,"brNDC");
     SetTextStyle(text);
     text -> AddText("Statistical errors only");
     text -> AddText("Acceptance corrected");
@@ -1307,7 +1310,8 @@ void PlotProtonsPlot()
     newCanvas = new TCanvas("protonsEl","protonsEl",800,700);
     histCompare->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(histCompare);
-    histCompare->GetYaxis()->SetRangeUser(0, 0.12);   
+    histCompare->GetXaxis()->SetRangeUser(1.8, 4.2); 
+    histCompare->GetYaxis()->SetRangeUser(0, 0.44);   
     histCompare->Draw("hist E");
     gStyle->SetOptStat("");
     gStyle->SetPalette(1);
@@ -1329,38 +1333,38 @@ void PlotProtonsPlot()
     textSTAR -> Draw("same");
 
     textPub = new TPaveText(0.35,0.88,0.88,0.95,"brNDC");
-    SetTextStyle(text);
+    SetTextStyle(textPub);
     textPub -> SetTextAlign(12);
     textPub -> AddText("p + p #rightarrow p + " + stateLabel + " + p       #sqrt{s} = 510 GeV");
     //textPub -> AddText("#sqrt{s} = 510 GeV");
     textPub -> Draw("same");
 
-    text = new TPaveText(0.56,0.46,0.88,0.65,"brNDC");
+    text = new TPaveText(0.26,0.64,0.55,0.85,"brNDC");
     SetTextStyle(text);
-    text -> SetTextAlign(11);
+    text -> SetTextAlign(32);
     text -> AddText("p, #bar{p} kinematics:");   
     text -> AddText("min(p_{T}^{+},p_{T}^{-}) < 1.1 GeV");   
     text -> AddText("p_{T} > 0.4 GeV");
     text -> AddText("|#eta| < 0.7");
     text -> Draw("same");
-    
-    text = new TPaveText(0.54,0.62,0.88,0.83,"brNDC");
+
+    text = new TPaveText(0.54,0.64,0.88,0.85,"brNDC");
     SetTextStyle(text);
     text -> SetTextAlign(12);
     text -> AddText("Forward proton kinematics:");
     text -> AddText("(p_{x} + 0.6)^{2} + p_{y}^{2} < 1.25 GeV^{2}");
     text -> AddText("0.4 GeV < |p_{y}| < 0.8 GeV");
     text -> AddText("p_{x} > -0.27 GeV");
-    text -> Draw("same");
+    text -> Draw("same");;
 
 
-    leg1 = new TLegend(0.45, 0.38, 0.78, 0.58);
+    leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
     SetLegendStyle(leg1);
-    leg1->AddEntry(histCompare, "Data, #Delta#varphi > 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniittiEl, "Graniitti, #Delta#varphi > 90^{#circ}","ple");
+    leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
+    leg1->AddEntry(histGraniitti, "Graniitti, #Delta#varphi < 90^{#circ}","ple");
     leg1->Draw("same");
 
-    text = new TPaveText(0.71,0.22,0.88,0.44,"brNDC");
+    text = new TPaveText(0.51,0.18,0.93,0.40,"brNDC");
     SetTextStyle(text);
     text -> AddText("Statistical errors only");
     text -> AddText("Acceptance corrected");
@@ -1458,10 +1462,10 @@ void RunGraniitti()
     TTree* tree[nParticles]; // 3 = 4PI state
     tree[Pion] = dynamic_cast<TTree*>( graniitti->Get("pionTree") );
     tree[Kaon] = dynamic_cast<TTree*>( graniitti->Get("kaonTree") );
-//    tree[Proton] = dynamic_cast<TTree*>( graniitti->Get("protonTree") );
+    tree[Proton] = dynamic_cast<TTree*>( graniitti->Get("protonTree") );
 //    tree[FourPions] = dynamic_cast<TTree*>( graniitti->Get("4pionTree") );
 
-    if (!tree[Pion] || !tree[Kaon]){// || !tree[Proton]){
+    if (!tree[Pion] || !tree[Kaon] || !tree[Proton]){
         cout<<"Error: cannot open one of the TTree in Graniitti"<<endl;
         return;
     }
@@ -1488,15 +1492,14 @@ void RunGraniitti()
     for (int iComb = 0; iComb < nCombination; ++iComb)
     {
         usedCuts= graniittiCuts + combCuts[iComb];
-        for (int iPart = 0; iPart < 2; ++iPart) // nParticles; ++iPart)
+        for (int iPart = 0; iPart < 3; ++iPart) // nParticles; ++iPart)
         {
             usedCuts+= " && " + partCuts[iPart];    
             variable = "invMass_state";
             nBins = binning[iPart][0];
             min = binning[iPart][1];
             max = binning[iPart][2];
-
-            tree[iPart]->Draw(variable +">>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",usedCuts);
+            tree[iPart]->Draw(variable +">>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",usedCuts);   
             hInvMassGran[iComb][iPart] = (TH1D*)gPad->GetPrimitive(variable +"Sig1")->Clone(Form("granInvMass_%i_%i",iComb, iPart)); 
             cout<<"Combination: "<<iComb<<" Particle: "<<iPart<<" Entries: "<< hInvMassGran[iComb][iPart]->GetEntries()<< endl;  
         }
