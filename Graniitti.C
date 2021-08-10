@@ -49,7 +49,7 @@ const double pionMass = 0.13957; // GeV /c^2
 const double protonMass = 0.93827; // GeV /c^2
 const double convertToDegree = 57.2957795;
 
-const bool OldProduction = false;
+const bool OldProduction = true;
 TString label;
 
 enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
@@ -159,11 +159,11 @@ void SetLineStyle(TLine* line);
 
 
 int protonsInside, protonsTotal;
+TString output;
+TString input;
 
 void Graniitti()
 {
-    TString output;
-    TString input;
     if(OldProduction){
         label = "Preliminary";
         output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/ToBeShown.root"; 
@@ -171,7 +171,8 @@ void Graniitti()
     }else{
         label = "Internal";
         output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/graniitti.root";
-        input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/P20ic.root";
+        input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/P20icWprotons.root";
+        //input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/P20ic.root";
     }
 
     TString graniitti_input = "/home/truhlar/Desktop/STAR/Graniitti_new/GRANIITTI/output/RootFiles/510/510.root";
@@ -242,7 +243,7 @@ void Graniitti()
     PlotKaonsPlot();
     PlotProtonsPlot();
 
-    PlotCutsFlow();
+    //PlotCutsFlow();
 
     int a;
     cin>>a;
@@ -662,7 +663,7 @@ void PlotPionsPlot()
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
     leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "Graniitti","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.17,0.93,0.39,"brNDC");
@@ -756,7 +757,7 @@ void PlotPionsPlot()
     leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "Graniitti, #Delta#varphi < 90^{#circ}","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI, #Delta#varphi < 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.6,0.22,0.88,0.44,"brNDC");
@@ -822,7 +823,7 @@ void PlotPionsPlot()
     leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
     SetLegendStyle(leg1);
     leg1->AddEntry(histCompare, "Data, #Delta#varphi > 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniittiEl, "Graniitti, #Delta#varphi > 90^{#circ}","ple");
+    leg1->AddEntry(histGraniittiEl, "GRANIITTI, #Delta#varphi > 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.6,0.22,0.88,0.44,"brNDC");
@@ -935,7 +936,7 @@ void PlotKaonsPlot()
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
     leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "Graniitti","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.18,0.93,0.40,"brNDC");
@@ -1019,7 +1020,7 @@ void PlotKaonsPlot()
     leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "Graniitti, #Delta#varphi < 90^{#circ}","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI, #Delta#varphi < 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.18,0.93,0.40,"brNDC");
@@ -1088,7 +1089,7 @@ void PlotKaonsPlot()
     leg1 = new TLegend(0.45, 0.5, 0.78, 0.6);
     SetLegendStyle(leg1);
     leg1->AddEntry(histCompare, "Data, #Delta#varphi > 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniittiEl, "Graniitti, #Delta#varphi > 90^{#circ}","ple");
+    leg1->AddEntry(histGraniittiEl, "GRANIITTI, #Delta#varphi > 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.61,0.2,0.88,0.44,"brNDC");
@@ -1213,7 +1214,7 @@ void PlotProtonsPlot()
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
     leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "Graniitti","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI","ple");
     leg1->Draw("same");
 
     newCanvas->Update();
@@ -1292,7 +1293,7 @@ void PlotProtonsPlot()
     leg1 = new TLegend(0.45, 0.51, 0.78, 0.61);
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "Graniitti, #Delta#varphi < 90^{#circ}","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI, #Delta#varphi < 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.21,0.93,0.43,"brNDC");
@@ -1361,7 +1362,7 @@ void PlotProtonsPlot()
     leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "Graniitti, #Delta#varphi < 90^{#circ}","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI, #Delta#varphi < 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.18,0.93,0.40,"brNDC");
@@ -1395,12 +1396,12 @@ bool ProtonFiducial()
         return true;
     else
         return false;
-}
+}//ProtonFiducial
 
 void PlotCutsFlow()
 {
     
-    TFile* anaData = TFile::Open("/home/truhlar/Desktop/STAR/CEP/Analysis/Data/anaFlow2.root", "read");
+    TFile* anaData = TFile::Open(input, "read");
     TH1I* hCutsData = (TH1I*)anaData -> Get("AnalFlow");
     TH1I* hCuts = new TH1I("AnalysisFlow", "CutsFlow", 16, 1, 17);
 // //////////////////////////////////////////////////////////

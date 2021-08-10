@@ -59,7 +59,7 @@ enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
 
 const bool isGraniitti = false;
 const bool is4pi = false;
-const bool UPC2 = true;
+const bool UPC2 = false;
 
 
 TString particleLables[nParticles] = { TString("Pion"), TString("Kaon"), TString("Proton")};
@@ -128,6 +128,7 @@ void ConnectInput(TTree* tree);
 TFile *CreateOutputTree(const string& out);
 void Make(int signal);
 void PlotMoneyPlot();
+bool ProtonFiducial();
 
 //_____________________________________________________________________________
 int main(int argc, char** argv) {
@@ -607,6 +608,8 @@ void Make(int signal)
     double effTotal, effTPC, effTOF;
     unsigned int PID;
     IsPion = IsKaon = IsProton = false;
+    if(!ProtonFiducial())
+        return;
    // cout<< vertexesZ[0] <<" "<< NhitsFit[0]<<" "<<NhitsFit[1] <<" "<< NhitsDEdx[0]<<" "<<NhitsDEdx[1] <<" "<<DcaZ[0] <<" "<<DcaZ[1] <<" "<<DcaXY[0] <<" "<<DcaXY[1] <<" "<<Eta[0] <<" "<<Eta[1] <<" "<< !fourPiState<<endl; 
     if(vertexesZ[0] < 80 && vertexesZ[0] > -80 && NhitsFit[0] >=25 && NhitsFit[1] >= 25 && NhitsDEdx[0] >= 15 && NhitsDEdx[1] >= 15 && DcaZ[0] < 1 && DcaZ[0] > -1 && DcaZ[1] < 1 && DcaZ[1] > -1 && DcaXY[0] < 1.5 && DcaXY[1] < 1.5 && Eta[0] > -0.7 && Eta[0] < 0.7 && Eta[1] > -0.7 && Eta[1] < 0.7 &&  t[0] < -0.12 && t[1] < -0.12 && t[0] > -1.0  && t[1] > -1.0 && !fourPiState)
     {
@@ -1331,3 +1334,20 @@ TFile *CreateOutputTree(const string& out) {
 
 
 
+bool ProtonFiducial()
+{
+    double x,y;
+    bool protonInRange[nSides] = {false, false};
+    for (int i = 0; i < nSides; ++i)
+    {
+        x = xCorrelationsRp[i];
+        y = yCorrelationsRp[i];
+        if( abs(y) < 0.8 && abs(y) > 0.4 && x > -0.27 && (x + 0.6)*(x + 0.6) + y*y < 1.25 )
+            protonInRange[i] = true;
+    }
+
+    if(protonInRange[0] && protonInRange[1])
+        return true;
+    else
+        return false;
+}//ProtonFiducial

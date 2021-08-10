@@ -683,7 +683,7 @@ void PlotPionsPlot()
     leg1->SetMargin(0.1);
     leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
     leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "Graniitti","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.22,0.93,0.39,"brNDC");
