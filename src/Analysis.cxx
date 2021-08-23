@@ -86,6 +86,7 @@ TH1D* hphiRP[nParticles][2][3];
 
 TH2D* hMomentum[nParticles];
 TH2D* hTransMomentum[nParticles];
+TH2D* hInvMassVsPtMiss[nParticles];
 
 
 
@@ -103,7 +104,7 @@ Double_t t[nSides];
 Double_t phiRP[nSides];
 Double_t chiPair[nParticles]; 
 Double_t invMass[nParticles];
-Double_t mSquared, pairRapidity;
+Double_t missingPt, mSquared, pairRapidity;
 Double_t momentum[4];
 Double_t transMomentum[4];
 Double_t charge[4];
@@ -504,6 +505,7 @@ void Init()
     {
         hMomentum[i] = new TH2D("momentumCorr" + particleLables[i], "momentumCorr" + particleLables[i], 100,0,3,100,0,3);
         hTransMomentum[i] = new TH2D("transMomentumCorr" + particleLables[i], "transMomentumCorr" + particleLables[i], 100,0,3,100,0,3);
+        hInvMassVsPtMiss[i] = new TH2D("InvMassVsPtMiss" + particleLables[i], "InvMassVsPtMiss" + particleLables[i], 64, 0.3, 3.5,100,0,0.2);
     }
     for (int i = 0; i < 3; ++i)
     {     
@@ -550,7 +552,7 @@ void ConnectInput(TTree* tree)
 {
 
 // PID and some quality event info
-    tree->SetBranchAddress("mSquared", &mSquared);
+    tree->SetBranchAddress("missingPt", &missingPt);
     tree->SetBranchAddress("elastic", &elastic);
     tree->SetBranchAddress("nSigTrk1Pion", &nSigmaTPC[Pion][0]);
     tree->SetBranchAddress("nSigTrk2Pion", &nSigmaTPC[Pion][1]);
@@ -642,6 +644,7 @@ void Make(int signal)
             if(transMomentum[0] > 0.4 && transMomentum[1] > 0.4 && (transMomentum[0] < 1.1 || transMomentum[1] < 1.1) )
             {
                 IsProton = true;
+                hInvMassVsPtMiss[Proton]->Fill(invMass[Proton],missingPt);
                 hInvMassUncorr[Proton][signal][0]->Fill(invMass[Proton]);
                 hInvMassUncorr[Proton][signal][combination]->Fill(invMass[Proton]);
                 hPairRap[Proton][signal][0]->Fill(pairRapidity);
@@ -677,6 +680,7 @@ void Make(int signal)
             if(transMomentum[0] > 0.3 && transMomentum[1] > 0.3 && (transMomentum[0] < 0.7 || transMomentum[1] < 0.7) )
             {
                 IsKaon = true;
+                hInvMassVsPtMiss[Kaon]->Fill(invMass[Kaon],missingPt);
                 hInvMassUncorr[Kaon][signal][0]->Fill(invMass[Kaon]);
                 hInvMassUncorr[Kaon][signal][combination]->Fill(invMass[Kaon]);
                 hPairRap[Kaon][signal][0]->Fill(pairRapidity);
@@ -713,6 +717,7 @@ void Make(int signal)
             if(transMomentum[0] > 0.2 && transMomentum[1] > 0.2)
             {
                 IsPion = true;
+                hInvMassVsPtMiss[Pion]->Fill(invMass[Pion],missingPt);
                 hInvMassUncorr[Pion][signal][0]->Fill(invMass[Pion]);
                 hInvMassUncorr[Pion][signal][combination]->Fill(invMass[Pion]);
                 hPairRap[Pion][signal][0]->Fill(pairRapidity);
@@ -785,6 +790,7 @@ void PlotMoneyPlot()
     Plot tool;
 
     TH1D *hist, *histCompare;
+    TH2D *hist2D;
     TString yLabel, name, varname;
     yLabel = "Number of events";
     name = "uncorrInvMass";
@@ -793,6 +799,15 @@ void PlotMoneyPlot()
     TDirectory* moneyDir = fout->mkdir("MoneyPlots");
     moneyDir->cd();
     moneyDir->mkdir("Uncorrected")->cd();
+    name="InvMassVsPtMiss";
+    for (int i = 0; i < nParticles; ++i)
+    {
+        hist2D = (TH2D*)hInvMassVsPtMiss[i]->Clone("hist"); 
+        hist2D->Draw("colz");
+        newCanvas->Update();
+        newCanvas->Write(name + particleLables[i]);
+    }
+    
 
     for (int corrIndex = 0; corrIndex < 2; ++corrIndex) // 0 - uncorrected, 1 - corrected
     {

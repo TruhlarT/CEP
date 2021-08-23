@@ -49,7 +49,7 @@ const double pionMass = 0.13957; // GeV /c^2
 const double protonMass = 0.93827; // GeV /c^2
 const double convertToDegree = 57.2957795;
 
-const bool OldProduction = true;
+const bool OldProduction = false;
 TString label;
 
 enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
@@ -176,6 +176,8 @@ void Graniitti()
     }
 
     TString graniitti_input = "/home/truhlar/Desktop/STAR/Graniitti_new/GRANIITTI/output/RootFiles/510/510.root";
+    //TString graniitti_input = "/home/truhlar/Desktop/STAR/Graniitti_new/GRANIITTI/output/RootFiles/test.root";
+
 
     TString TPCeffInput[6];
     TPCeffInput[0] = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/NewEff/effPionsM.root";
@@ -243,7 +245,7 @@ void Graniitti()
     PlotKaonsPlot();
     PlotProtonsPlot();
 
-    //PlotCutsFlow();
+    PlotCutsFlow();
 
     int a;
     cin>>a;
@@ -663,7 +665,7 @@ void PlotPionsPlot()
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
     leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "GRANIITTI","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI 1.080","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.17,0.93,0.39,"brNDC");
@@ -757,7 +759,7 @@ void PlotPionsPlot()
     leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "GRANIITTI, #Delta#varphi < 90^{#circ}","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI 1.080, #Delta#varphi < 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.6,0.22,0.88,0.44,"brNDC");
@@ -823,7 +825,7 @@ void PlotPionsPlot()
     leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
     SetLegendStyle(leg1);
     leg1->AddEntry(histCompare, "Data, #Delta#varphi > 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniittiEl, "GRANIITTI, #Delta#varphi > 90^{#circ}","ple");
+    leg1->AddEntry(histGraniittiEl, "GRANIITTI 1.080, #Delta#varphi > 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.6,0.22,0.88,0.44,"brNDC");
@@ -936,7 +938,7 @@ void PlotKaonsPlot()
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
     leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "GRANIITTI","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI 1.080","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.18,0.93,0.40,"brNDC");
@@ -1020,7 +1022,7 @@ void PlotKaonsPlot()
     leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "GRANIITTI, #Delta#varphi < 90^{#circ}","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI 1.080, #Delta#varphi < 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.18,0.93,0.40,"brNDC");
@@ -1089,7 +1091,7 @@ void PlotKaonsPlot()
     leg1 = new TLegend(0.45, 0.5, 0.78, 0.6);
     SetLegendStyle(leg1);
     leg1->AddEntry(histCompare, "Data, #Delta#varphi > 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniittiEl, "GRANIITTI, #Delta#varphi > 90^{#circ}","ple");
+    leg1->AddEntry(histGraniittiEl, "GRANIITTI 1.080, #Delta#varphi > 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.61,0.2,0.88,0.44,"brNDC");
@@ -1214,7 +1216,7 @@ void PlotProtonsPlot()
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data (unlike-sign pairs)","ple");
     leg1->AddEntry(histCompare, "Data (like-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "GRANIITTI","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI 1.080","ple");
     leg1->Draw("same");
 
     newCanvas->Update();
@@ -1293,7 +1295,7 @@ void PlotProtonsPlot()
     leg1 = new TLegend(0.45, 0.51, 0.78, 0.61);
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "GRANIITTI, #Delta#varphi < 90^{#circ}","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI 1.080, #Delta#varphi < 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.21,0.93,0.43,"brNDC");
@@ -1362,7 +1364,7 @@ void PlotProtonsPlot()
     leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
     SetLegendStyle(leg1);
     leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "GRANIITTI, #Delta#varphi < 90^{#circ}","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI 1.080, #Delta#varphi < 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.18,0.93,0.40,"brNDC");
