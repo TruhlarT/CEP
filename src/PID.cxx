@@ -197,7 +197,7 @@ void PID::PlotHistogram(){
 	gPad->SetLogy(0);
 //////////////////////////////////////////
 	// Plot deltaTOF Kaon
-	variable = "deltaTOFExpectedKaon";
+	/*variable = "deltaTOFExpectedKaon";
 	tree->Draw(variable +">>" + variable +"Assump(200, -10, 10)",cuts);
 	tmpHist2 = (TH1F*)gPad->GetPrimitive(variable+"Assump");
 	tool.SetMarkerStyle(tmpHist2,2,20,1,2,1,1);
@@ -296,6 +296,7 @@ void PID::PlotHistogram(){
 	//cCanvas->SaveAs( output + "PID/" + variable + ".png");
 	cCanvas->Write(variable);
 	gPad->SetLogy(0);
+*/
 //////////////////////////////////////////
 	TString particleID[] = {"Pion","Kaon","Proton"};
 	TString particleSign[] = {"#pi#pi","KK","p#bar{p}"};

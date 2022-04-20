@@ -189,44 +189,7 @@ void BasicPlots::PlotHistogram() {
 
 
 
-/*#include "BasicPlots.h"
-#include "Plot.h"
-
-
-//_____________________________________________________________________________
-BasicPlots::BasicPlots(TFile* dataInput, TFile* fileOut, TString outnam, bool text, TString inputCuts)
-{
-	//constructor
-	TEXT = text;
-	bcground = true;
-
-	output = outnam;
-	cuts = inputCuts;
-	if(inputCuts != "")
-		cutsWithPrefix = " && " + inputCuts;
-	else
-		cutsWithPrefix="";
-
-	data = dataInput;
-	fout = fileOut;
-
-	siz = 0.045;
-	font = 42;
-
-	cout << "BasicPlots::BasicPlots() called" << endl;
-
-}//BasicPlots
-
-//_____________________________________________________________________________
-BasicPlots::~BasicPlots()
-{
-  //destructor
-
-  cout << "BasicPlots::~BasicPlots() destructor called" << endl;
-
-}//~BasicPlots
-
-
+/*
 //_____________________________________________________________________________
 void BasicPlots::PlotHistogram() {
 

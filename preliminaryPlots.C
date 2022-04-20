@@ -152,9 +152,13 @@ int protonsInside, protonsTotal;
 
 void preliminaryPlots()
 {
+    //TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/Ana0501.root";
+    //TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/Ana0501.root";
+    
+    TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/Preliminary11012022.root";
+    TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/ppRun17.root";
+    //TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/P20ic.root";
 
-    TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/InternalPlot.root";
-    TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/P20ic.root";
     //TString graniitti_input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Graniitti/2pi_100k_1.root";
     TString graniitti_input = "/home/truhlar/Desktop/STAR/Graniitti_new/GRANIITTI/output/RootFiles/510/510.root";
 
@@ -218,7 +222,7 @@ void preliminaryPlots()
     }
 
     RunGraniitti();
-    //PlotRPPlot();
+    PlotRPPlot();
 
     PlotPionsPlot();
     PlotKaonsPlot();
@@ -571,7 +575,7 @@ void PlotPionsPlot()
     TString stateLabel = "#pi^{+}#pi^{-}";
 
     TH1D *hist, *histCompare, *histGraniitti;
-    TString yLabel = "Probability per event / 50 MeV";
+    TString yLabel = "Probability per event";// / 50 MeV";
 
 
     hist = (TH1D*)hInvMassCorr[Pion][0][ElInel]->Clone("hist"); 
@@ -1056,7 +1060,7 @@ void PlotKaonsPlot()
     TString stateLabel = "K^{+}K^{-}";
 
     TH1D *hist, *histCompare;
-    TString yLabel = "Probability per event / 50 MeV";
+    TString yLabel = "Probability per event";// / 50 MeV";
 
 
     hist = (TH1D*)hInvMassCorr[Kaon][0][ElInel]->Clone("hist"); 
@@ -1185,7 +1189,7 @@ void PlotProtonsPlot()
     TString stateLabel = "p#bar{p}";
 
     TH1D *hist, *histCompare;
-    TString yLabel = "Probability per event / 100 MeV";
+    TString yLabel = "Probability per event";// / 100 MeV";
 
 
     hist = (TH1D*)hInvMassCorr[Proton][0][ElInel]->Clone("hist"); 
@@ -1330,7 +1334,7 @@ void PlotCutsFlow()
     TH1I* hCuts = new TH1I("AnalysisFlow", "CutsFlow", 16, 1, 17);
 // //////////////////////////////////////////////////////////
 // Plot Cuts Flow
-    TString Labels[] = { TString("All"), TString("CEP trigger"), TString("2 RP tracks"), TString("Fiducial RP cut"), 
+    TString Labels[] = { TString("All"), TString("CP trigger"), TString("2 RP tracks"), TString("Fiducial RP cut"), 
                       TString("2 TPC-TOF tracks"), TString("1 vertex"), TString("Tot. charge 0"), 
                       TString("|z_{vrtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"),
                       TString("|DCA(z)| < 1 cm"), TString("DCA(xy) < 1.5 cm"), TString("|#eta| < 0.7"), 

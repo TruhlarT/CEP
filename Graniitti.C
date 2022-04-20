@@ -73,6 +73,7 @@ TH1D* hInvMassGran[nCombination][nParticles];
 TH1F* hInvMass[4];
 TH1D* hDeltaPhi[3];
 TH2D* hPxPy[3];
+TH2D* hRPxy;
 
  // 0 = pi- 1 = K- 2 = pbar
 TH3F* hTPCeff[6]; // 3 = pi+ 4 = K+ 5 = p
@@ -108,7 +109,8 @@ Double_t ptRp[nSides];
 Double_t etaRp[nSides];
 Double_t rpX[nSides];
 Double_t rpZ[nSides];
-Double_t rpY[nSides];
+Double_t rpY[nSides]; 
+Double_t rpYinner[nSides];
 Double_t t[nSides];
 Double_t xi[nSides];
 
@@ -171,12 +173,13 @@ void Graniitti()
     }else{
         label = "Internal";
         output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/graniitti.root";
-        input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/P20icWprotons.root";
-        //input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/P20ic.root";
+        //input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/tmp.root";
+        input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/noPxPyCut.root"; // no proton px/py cuts
+        //input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/Ana1102.root";
     }
 
     TString graniitti_input = "/home/truhlar/Desktop/STAR/Graniitti_new/GRANIITTI/output/RootFiles/510/510.root";
-    //TString graniitti_input = "/home/truhlar/Desktop/STAR/Graniitti_new/GRANIITTI/output/RootFiles/test.root";
+    //TString graniitti_input = "/home/truhlar/Desktop/STAR/Graniitti_new/GRANIITTI/output/else/510no980andphi.root";
 
 
     TString TPCeffInput[6];
@@ -269,8 +272,8 @@ void Make(int signal)
     {
         for (int i = 0; i < nSides; ++i)
         {
-            hPxPy[i]->Fill(xCorrelationsRp[i], yCorrelationsRp[i]);
-            hPxPy[2]->Fill(xCorrelationsRp[i], yCorrelationsRp[i]);
+            hPxPy[i]->Fill(xCorrelationsRp[i], yCorrelationsRp[i]); // East or West
+            hPxPy[2]->Fill(xCorrelationsRp[i], yCorrelationsRp[i]); // East + West
             //cout<<xCorrelationsRp[i] <<" : "<< yCorrelationsRp[i]<<endl;
         }   
 
@@ -286,9 +289,13 @@ void Make(int signal)
             hDeltaPhi[2]->Fill(deltaPhi);
 
         protonsTotal++;
-        if(!ProtonFiducial())
-            return;
+        //if(!ProtonFiducial())
+        //    return;
         protonsInside++;
+
+        for (int i = 0; i < nSides; ++i)
+            hRPxy->Fill(rpX[i],rpYinner[i]);
+
         int combination = 2;
         //if(elastic)
         if(deltaPhi > 90)
@@ -402,6 +409,8 @@ void Init(){
     for (int i = 0; i < nSides; ++i)
         hPxPy[i] = new TH2D("pxpy" + sideLabel[i], "px py on " + sideLabel[i], 220, -1.1, 1.1, 220, -1.1, 1.1);
     hPxPy[2] = new TH2D("pxpyEast+West", "px py on East+West", 220, -1.1, 1.1, 220, -1.1, 1.1);
+
+    hRPxy = new TH2D("RPxy", "RP x and y on East+West", 80, -0.03, 0.05, 100, -0.05, 0.05);
        
     hDeltaPhi[0] = new TH1D("deltaPhi", "deltaPhi", 180, -0.5, 179.5);
     hDeltaPhi[1] = new TH1D("deltaPhiEl", "deltaPhiEl", 180, -0.5, 179.5);
@@ -432,6 +441,9 @@ void ConnectInput(TTree* tree)
         tree->SetBranchAddress("phiRp" + sideLabel[i], &phiRp[i]);
         tree->SetBranchAddress("xCorrelationsRp" + sideLabel[i], &xCorrelationsRp[i]);
         tree->SetBranchAddress("yCorrelationsRp" + sideLabel[i], &yCorrelationsRp[i]);
+        tree->SetBranchAddress("rpX" + sideLabel[i], &rpX[i]);
+        tree->SetBranchAddress("rpY" + sideLabel[i], &rpY[i]);
+        tree->SetBranchAddress("rpYinner" + sideLabel[i], &rpYinner[i]);
     }
 // Vertex info
     tree->SetBranchAddress("vertexZ", &vertexesZ[0]);
@@ -468,9 +480,9 @@ void PlotRPPlot()
     gStyle->SetOptStat("");
     gStyle->SetPalette(1);
 
-    hPxPy[2]->SetTitle(" ; p_{x} [GeV]; p_{y} [GeV]; Events / (10 MeV #times 10 MeV)");
+    hPxPy[2]->SetTitle("; p_{x} [GeV]; p_{y} [GeV]; Events / (10 MeV #times 10 MeV)");
     hPxPy[2]->GetXaxis()->SetTitleFont(fontStyle);
-    hPxPy[2]->GetXaxis()->SetTitleFont(fontStyle);
+    hPxPy[2]->GetYaxis()->SetTitleFont(fontStyle);
     hPxPy[2]->GetZaxis()->SetTitleFont(42);
     hPxPy[2]->GetXaxis()->SetLabelFont(fontStyle);
     hPxPy[2]->GetYaxis()->SetLabelFont(fontStyle);
@@ -562,7 +574,41 @@ void PlotRPPlot()
 
     cCanvas2D->Update();
     cCanvas2D->Write("hPxPyEast+West");
-    cCanvas2D->Close();
+
+    gPad->SetMargin(0.11,0.16,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
+    hRPxy->SetTitle("; x [m]; y [m]; Events / (1 mm #times 1 mm)");
+    hRPxy->GetXaxis()->SetTitleFont(fontStyle);
+    hRPxy->GetYaxis()->SetTitleFont(fontStyle);
+    hRPxy->GetZaxis()->SetTitleFont(42);
+    hRPxy->GetXaxis()->SetLabelFont(fontStyle);
+    hRPxy->GetYaxis()->SetLabelFont(fontStyle);
+    hRPxy->GetZaxis()->SetLabelFont(42);
+    hRPxy->GetXaxis()->SetLabelSize(labelSize-0.01);
+    hRPxy->GetYaxis()->SetLabelSize(labelSize-0.01);
+    hRPxy->GetZaxis()->SetLabelSize(labelSize-0.01);
+    hRPxy->GetXaxis()->SetTitleSize(labelSize-0.01);
+    hRPxy->GetYaxis()->SetTitleSize(labelSize-0.01);
+    hRPxy->GetZaxis()->SetTitleSize(labelSize-0.01);
+    hRPxy->GetXaxis()->SetTitleOffset(1.0);
+    hRPxy->GetYaxis()->SetTitleOffset(1.4);
+    hRPxy->GetZaxis()->SetTitleOffset(1.1);
+    hRPxy->SetStats(false);
+    hRPxy->SetLineColor(1);
+    hRPxy->SetLineWidth(4);
+    hRPxy->Draw("colz");
+    hRPxy->Write("hRPxy")
+    cCanvas2D->Update();
+    cCanvas2D->Write("hRPxy");
+
+    TH1D* hProjX = hRPxy->ProjectionX();
+    hProjX->Draw("");
+    cCanvas2D->Update();
+    cCanvas2D->Write("hRPxy_projection_x");
+    TH1D* hProjY = hRPxy->ProjectionX();
+    hProjX->Draw("");
+    cCanvas2D->Update();
+    cCanvas2D->Write("hRPxy_projection_Y");
+    //cCanvas2D->Close();
 }
 
 void PlotPionsPlot()
@@ -576,7 +622,7 @@ void PlotPionsPlot()
     TString stateLabel = "#pi^{+}#pi^{-}";
 
     TH1D *hist, *histCompare, *histGraniitti;
-    TString yLabel = "Probability per event / 50 MeV";
+    TString yLabel = "Probability per event";// / 50 MeV";
 
 
     hist = (TH1D*)hInvMassCorr[Pion][0][ElInel]->Clone("hist"); 
@@ -599,13 +645,13 @@ void PlotPionsPlot()
     //cout<<"Sum: "<< histGraniitti->Integral() << "\n";
 
     Double_t scaleFactor; 
-    scaleFactor =   1 /hist->Integral();
+    scaleFactor =   1 /hist->Integral();    
     hist->Scale(scaleFactor);
     histCompare->Scale(scaleFactor);
     cout<<"Graniitti integral: "<<histGraniitti->Integral()<<endl;
-
-    hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    hist->SetTitle("; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(hist);          
+    gPad->SetLogy(0);   
     hist->GetYaxis()->SetRangeUser(0, 0.092);   
     hist->Draw("hist E");
 
@@ -642,8 +688,9 @@ void PlotPionsPlot()
     //textPub -> AddText("#sqrt{s} = 510 GeV");
     textPub -> Draw("same");
 
-
     TPaveText *text;
+    //TLegend *leg1 = new TLegend(0.54, 0.44, 0.87, 0.59);
+
     text = new TPaveText(0.27,0.69,0.52,0.84,"brNDC");
     SetTextStyle(text);
     text -> AddText("#pi^{+}, #pi^{-} kinematics:");   
@@ -706,7 +753,7 @@ void PlotPionsPlot()
     histGraniittiEl->Scale(scaleFactor);
 
 ///////////////////////////// Inelastic ///////////////////////////////////////////
-    hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    hist->SetTitle("; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(hist);
     hist->GetYaxis()->SetRangeUser(0, 0.17);   
     hist->Draw("hist E");
@@ -775,7 +822,7 @@ void PlotPionsPlot()
     //newCanvas->Close();
 //////////////////////////////////////////// Elastic ///////////////////////////////
     newCanvas = new TCanvas("pionsEl","pionsEl",800,700);
-    histCompare->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    histCompare->SetTitle("; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(histCompare);
     histCompare->GetYaxis()->SetRangeUser(0, 0.12);   
     histCompare->Draw("hist E");
@@ -852,7 +899,7 @@ void PlotKaonsPlot()
     TString stateLabel = "K^{+}K^{-}";
 
     TH1D *hist, *histCompare;
-    TString yLabel = "Probability per event / 50 MeV";
+    TString yLabel = "Probability per event";// / 50 MeV";
 
     hist = (TH1D*)hInvMassCorr[Kaon][0][ElInel]->Clone("hist"); 
     histCompare = (TH1D*)hInvMassCorr[Kaon][1][ElInel]->Clone("histCompare");
@@ -876,7 +923,7 @@ void PlotKaonsPlot()
     hist->Scale(scaleFactor);
     histCompare->Scale(scaleFactor);
 
-    hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    hist->SetTitle("; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(hist);
     hist->GetYaxis()->SetRangeUser(0, 0.355);   
     hist->Draw("hist E");
@@ -968,7 +1015,7 @@ void PlotKaonsPlot()
     scaleFactor =   1 /histGraniittiEl->Integral();
     histGraniittiEl->Scale(scaleFactor);
 
-    hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    hist->SetTitle("; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(hist);
     hist->GetYaxis()->SetRangeUser(0, 0.615);   
     hist->Draw("hist E");
@@ -1038,7 +1085,7 @@ void PlotKaonsPlot()
     //newCanvas->Close();
 //////////////////////////////////////////// Elastic ///////////////////////////////
     newCanvas = new TCanvas("kaonsEl","kaonsEl",800,700);
-    histCompare->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    histCompare->SetTitle("; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(histCompare);
     histCompare->GetYaxis()->SetRangeUser(0, 0.315);   
     histCompare->Draw("hist E");
@@ -1118,7 +1165,7 @@ void PlotProtonsPlot()
     TString stateLabel = "p#bar{p}";
 
     TH1D *hist, *histCompare;
-    TString yLabel = "Probability per event / 100 MeV";
+    TString yLabel = "Probability per event";// / 100 MeV";
 
 
     hist = (TH1D*)hInvMassCorr[Proton][0][ElInel]->Clone("hist"); 
@@ -1144,7 +1191,7 @@ void PlotProtonsPlot()
     hist->Scale(scaleFactor);
     histCompare->Scale(scaleFactor);
 
-    hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    hist->SetTitle("; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(hist);
     hist->GetXaxis()->SetRangeUser(1.8, 4.2); 
     hist->GetYaxis()->SetRangeUser(0, 0.4);   
@@ -1240,7 +1287,7 @@ void PlotProtonsPlot()
     scaleFactor =   1 /histGraniittiEl->Integral();
     histGraniittiEl->Scale(scaleFactor);
 
-    hist->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    hist->SetTitle("; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(hist);
     hist->GetXaxis()->SetRangeUser(1.8, 4.2); 
     hist->GetYaxis()->SetRangeUser(0, 0.37);   
@@ -1311,7 +1358,7 @@ void PlotProtonsPlot()
     //newCanvas->Close();
 //////////////////////////////////////////// Elastic ///////////////////////////////
     newCanvas = new TCanvas("protonsEl","protonsEl",800,700);
-    histCompare->SetTitle(" ; m(" + stateLabel + ") [GeV]; " + yLabel);
+    histCompare->SetTitle("; m(" + stateLabel + ") [GeV]; " + yLabel);
     SetGraphStyle(histCompare);
     histCompare->GetXaxis()->SetRangeUser(1.8, 4.2); 
     histCompare->GetYaxis()->SetRangeUser(0, 0.44);   
@@ -1363,8 +1410,8 @@ void PlotProtonsPlot()
 
     leg1 = new TLegend(0.45, 0.48, 0.78, 0.58);
     SetLegendStyle(leg1);
-    leg1->AddEntry(hist, "Data, #Delta#varphi < 90^{#circ} (unlike-sign pairs)","ple");
-    leg1->AddEntry(histGraniitti, "GRANIITTI 1.080, #Delta#varphi < 90^{#circ}","ple");
+    leg1->AddEntry(hist, "Data, #Delta#varphi > 90^{#circ} (unlike-sign pairs)","ple");
+    leg1->AddEntry(histGraniitti, "GRANIITTI 1.080, #Delta#varphi > 90^{#circ}","ple");
     leg1->Draw("same");
 
     text = new TPaveText(0.51,0.18,0.93,0.40,"brNDC");
@@ -1404,20 +1451,19 @@ void PlotCutsFlow()
 {
     
     TFile* anaData = TFile::Open(input, "read");
-    TH1I* hCutsData = (TH1I*)anaData -> Get("AnalFlow");
-    TH1I* hCuts = new TH1I("AnalysisFlow", "CutsFlow", 16, 1, 17);
+    TH1I* hCutsData = (TH1I*)anaData -> Get("AnalysisFlow");
+    TH1I* hCuts = new TH1I("AnaFlow", "CutsFlow", 10, 1, 11);
 // //////////////////////////////////////////////////////////
 // Plot Cuts Flow
-    TString Labels[] = { TString("All"), TString("CEP trigger"), TString("2 RP tracks"), TString("Fiducial RP cut"), 
-                      TString("2 TPC-TOF tracks"), TString("1 vertex"), TString("Tot. charge 0"), 
-                      TString("|z_{vrtx}| < 80 cm"), TString("N_{hits}^{fit} #geq 25"), TString("N_{hits}^{dE/dx} #geq 15"),
-                      TString("|DCA(z)| < 1 cm"), TString("DCA(xy) < 1.5 cm"), TString("|#eta| < 0.7"), 
-                      TString("0.12< -t < 1.0 GeV^{2}"), TString("p_{T}^{miss} < 0.1 GeV"), TString("PID")};
+    TString Labels[] = { TString("All"), TString("CP trigger"), TString("2 RP tracks"), TString("Fiducial RP cut"), 
+                      TString("1 vertex"), TString("2 good TPC-TOF tracks"), TString("|z_{vrtx}| < 80 cm"), 
+                      TString("Tot. charge 0"), TString("p_{T}^{miss} < 0.1 GeV"), TString("PID")};
+
                       //TString("-1.0 GeV^{2} < t < - 0.12 GeV^{2}")
     //gPad->SetMargin(0.9,0.02,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
     TCanvas* newCanvas = new TCanvas("newCanvas","newCanvas",950,600);
 
-    for(int iBin = 1; iBin < hCuts->GetNbinsX(); ++iBin)
+    for(int iBin = 1; iBin <= hCuts->GetNbinsX(); ++iBin)
     {
         hCuts->SetBinContent(iBin,hCutsData->GetBinContent(iBin));
         hCuts->GetXaxis()->SetBinLabel(iBin, Labels[iBin-1]);
@@ -1427,14 +1473,16 @@ void PlotCutsFlow()
     for (int i = 0; i < nParticles; ++i)
         PIDbinVal += hInvMassUncorr[i][0][0]->GetEntries();
 
-    hCuts->SetBinContent(hCuts->GetNbinsX(),PIDbinVal);
-    hCuts->GetXaxis()->SetBinLabel(hCuts->GetNbinsX(), Labels[hCuts->GetNbinsX()-1]);
+    if(PIDbinVal != hCutsData->GetBinContent(10) )
+        cout<<"ERROR: Consistency test failed: "<<PIDbinVal<<" =? "<<hCutsData->GetBinContent(10)<<endl;
+    //hCuts->SetBinContent(hCuts->GetNbinsX(),PIDbinVal);
+    //hCuts->GetXaxis()->SetBinLabel(hCuts->GetNbinsX(), Labels[hCuts->GetNbinsX()-1]);
 
     hCuts->SetTitle("; ; Number of events");
     SetGraphStyle(hCuts);
     hCuts->GetXaxis()->SetLabelFont(62);
-    hCuts->GetXaxis()->SetLabelSize(labelSize-0.01);
-    hCuts->SetMarkerSize(1.5);
+    hCuts->GetXaxis()->SetLabelSize(labelSize);
+    hCuts->SetMarkerSize(1.0);
     hCuts->SetLineWidth(2);    
     gPad->SetMargin(0.08,0.03,0.1,0.02); // (Float_t left, Float_t right, Float_t bottom, Float_t top)
     gPad->SetTickx();
@@ -1444,11 +1492,14 @@ void PlotCutsFlow()
     hCuts->GetYaxis()->SetRangeUser(4000, 3000000000); 
     hCuts->LabelsOption("d");
     hCuts->Draw("");
-    gStyle->SetPaintTextFormat("1.2g");
+    gStyle->SetPaintTextFormat("1.3g");
+    hCuts->SetMarkerSize(1.8); // Make text on bins larger
     hCuts->Draw("TEXT15 same");
 
     TPaveText *textPub = new TPaveText(0.4,0.85,0.7,0.95,"brNDC");
     SetTextStyle(textPub);
+    textPub -> SetTextSize(textSize+0.01);
+    textPub -> SetTextFont(62);
     textPub -> AddText("p + p #rightarrow p + h^{+}h^{-} + p       #sqrt{s} = 510 GeV");
     textPub -> Draw("same");
 
@@ -1495,7 +1546,7 @@ void RunGraniitti()
     for (int iComb = 0; iComb < nCombination; ++iComb)
     {
         usedCuts= graniittiCuts + combCuts[iComb];
-        for (int iPart = 0; iPart < 3; ++iPart) // nParticles; ++iPart)
+        for (int iPart = 0; iPart < nParticles; ++iPart)
         {
             usedCuts+= " && " + partCuts[iPart];    
             variable = "invMass_state";
@@ -1503,6 +1554,7 @@ void RunGraniitti()
             min = binning[iPart][1];
             max = binning[iPart][2];
             tree[iPart]->Draw(variable +">>" + variable +"Sig1(" + nBins + "," + min + "," + max + ")",usedCuts);   
+            cout<<usedCuts<<endl;
             hInvMassGran[iComb][iPart] = (TH1D*)gPad->GetPrimitive(variable +"Sig1")->Clone(Form("granInvMass_%i_%i",iComb, iPart)); 
             cout<<"Combination: "<<iComb<<" Particle: "<<iPart<<" Entries: "<< hInvMassGran[iComb][iPart]->GetEntries()<< endl;  
         }
@@ -1519,7 +1571,7 @@ void SetGraphStyle(TH1* hist)
     gPad->SetLogy(0);
     hist->SetStats(false);
     hist->GetXaxis()->SetTitleFont(fontStyle);
-    hist->GetXaxis()->SetTitleFont(fontStyle);
+    hist->GetYaxis()->SetTitleFont(fontStyle);
     hist->GetXaxis()->SetLabelFont(fontStyle);
     hist->GetYaxis()->SetLabelFont(fontStyle);
     hist->GetXaxis()->SetLabelSize(labelSize);
@@ -1529,8 +1581,8 @@ void SetGraphStyle(TH1* hist)
     hist->GetXaxis()->SetTitleOffset(0.9);
     hist->GetYaxis()->SetTitleOffset(1.3);
     hist->SetMarkerColor(1);
-    hist->SetMarkerSize(1.5);
-    hist->SetMarkerStyle(29);
+    hist->SetMarkerSize(1.0);
+    hist->SetMarkerStyle(21);
     hist->SetLineColor(1);
     hist->SetLineStyle(1);
     hist->SetLineWidth(1);

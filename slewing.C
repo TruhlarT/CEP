@@ -1,4 +1,4 @@
- // c++ headers
+// c++ headers
 #include <iostream>
 #include <utility>
 #include <sstream> 
@@ -66,7 +66,7 @@ TFile* fout;
 TH1D* hCorrection[16];
 
 
-const int nIterations = 4;
+const int nIterations = 14;
 TH2D* hDeltaTac[8][nIterations];
 double tacAvrg[8][100][nIterations];
 /// meaning of 8:    0 - channel1 EU  2 - channel1 ED ....
@@ -91,20 +91,20 @@ double tac(int iter,int station,int channel);
 
 void slewing()
 {
-	TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/slewingElastic.root";
-	TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/Slew.root";
+    TString input = "/home/truhlar/Desktop/STAR/CEP/Analysis/Data/Old/slewingElastic.root";
+    TString output = "/home/truhlar/Desktop/STAR/CEP/Analysis/Outputs/SlewOld-New.root";
 
-	data = TFile::Open(input, "read");
-	if (!data)
-	{
-		cout<<"Error: cannot open "<<input<<endl;
-		return;
-	}
+    data = TFile::Open(input, "read");
+    if (!data)
+    {
+        cout<<"Error: cannot open "<<input<<endl;
+        return;
+    }
 
 
-	fout = new TFile(output,"RECREATE");
-	Init(); // Preparing histograms 
-	ConnectInput(); // Connecting input
+    fout = new TFile(output,"RECREATE");
+    Init(); // Preparing histograms 
+    ConnectInput(); // Connecting input
 
     for (int iCh = 0; iCh < 8; ++iCh)
         for (int i = 0; i < 100; ++i)
@@ -115,7 +115,7 @@ void slewing()
     {
         counter[i] = 0;
     }
-	////////////// Making histograms
+    ////////////// Making histograms
 
     double average, norm;
     for (int iter = 0; iter < nIterations; ++iter)
@@ -171,8 +171,8 @@ void slewing()
 
 
     fout->cd();
-	fout->Write();
-	fout->Close();
+    fout->Write();
+    fout->Close();
     
 }
 
@@ -260,5 +260,3 @@ void ConnectInput(){
         }
     }
 }
-
-

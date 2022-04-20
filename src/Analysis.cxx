@@ -54,7 +54,8 @@
 using namespace std;
 
 enum PARTICLES {Pion = 0, Kaon = 1, Proton = 2, nParticles};
-enum COMBINATIONS {ElInel = 0, El = 1, Inel = 2, nCombination};
+//enum COMBINATIONS {ElInel = 0, El = 1, Inel = 2, nCombination};
+enum COMBINATIONS {ElInel = 0, nCombination};
 enum SIDE {E = 0, East = 0, W = 1, West = 1, nSides};
 
 const bool isGraniitti = false;
@@ -63,7 +64,7 @@ const bool UPC2 = false;
 
 
 TString particleLables[nParticles] = { TString("Pion"), TString("Kaon"), TString("Proton")};
-TString combinationLabel[nCombination] = { TString("Data"), TString("El"), TString("Inel")};
+TString combinationLabel[nCombination] = { TString("Data")};//, TString("El"), TString("Inel")};
 TString sideLabel[nSides] = { TString("East"), TString("West")};
 
 TFile* TPCeff[6];
@@ -76,13 +77,13 @@ TTree* treeBack;
 
  // 0 = pi- 1 = K- 2 = pbar
 TH3F* hTPCeff[6]; // 3 = pi+ 4 = K+ 5 = p
-TH1D* hInvMassCorr[nParticles][2][3]; // 0 - signal, 1 - Background
+TH1D* hInvMassCorr[nParticles][2][nCombination]; // 0 - signal, 1 - Background
                                     //  - El + Inel, 1 - El, 2 - Inel 
-TH1D* hInvMassUncorr[nParticles][2][3]; // 0 - signal, 1 - Background
-TH1D* hIntMass4Pi[2][2][3]; // un/corr, signal/Background, combination
-TH1D* hPairRap[nParticles][2][3];
-TH1D* htSum[nParticles][2][3];
-TH1D* hphiRP[nParticles][2][3];
+TH1D* hInvMassUncorr[nParticles][2][nCombination]; // 0 - signal, 1 - Background
+TH1D* hIntMass4Pi[2][2][nCombination]; // un/corr, signal/Background, combination
+TH1D* hPairRap[nParticles][2][nCombination];
+TH1D* htSum[nParticles][2][nCombination];
+TH1D* hphiRP[nParticles][2][nCombination];
 
 TH2D* hMomentum[nParticles];
 TH2D* hTransMomentum[nParticles];
@@ -245,16 +246,17 @@ int main(int argc, char** argv) {
 //////////////////////////////////////////////////////////////////////
 
 	
-    fout->mkdir("BasicPlots")->cd();
+    /*fout->mkdir("BasicPlots")->cd();
 	BasicPlots Plots(data, fout, output, showText);
-	Plots.PlotHistogram();
-
+	cout<<"kuk A"<<endl;
+    Plots.PlotHistogram();
+    cout<<"kuk"<<endl;*/
     TDirectory* curDir = fout->mkdir("El+Inel");
     curDir->cd();
     TString usedCuts = "";
     for (int i = 0; i < nCombination; ++i)
     {
-        if(i == El)
+       /* if(i == El)
         {
             curDir = fout->mkdir("El");
             curDir->cd();
@@ -264,7 +266,7 @@ int main(int argc, char** argv) {
             curDir = fout->mkdir("Inel");
             curDir->cd();
             usedCuts = "!elastic";
-        }
+        }*/
 
         curDir->mkdir("PID")->cd();
         PID PIDPlotsWithCuts(data, fout, output, showCutsLine, usedCuts);
@@ -553,6 +555,66 @@ void ConnectInput(TTree* tree)
 
 // PID and some quality event info
     tree->SetBranchAddress("missingPt", &missingPt);
+    tree->SetBranchAddress("mSquared", &mSquared);
+    //tree->SetBranchAddress("thetaState", &thetaState);
+    //tree->SetBranchAddress("phiState", &phiState);
+    //tree->SetBranchAddress("pState", &pState);
+    //tree->SetBranchAddress("ptState", &ptState);
+    tree->SetBranchAddress("pairRapidity", &pairRapidity);
+    for (int iPart = 0; iPart < nParticles; ++iPart)
+    {
+        tree->SetBranchAddress("invMass" + particleLables[iPart], &invMass[iPart]);
+        tree->SetBranchAddress("chiPair" + particleLables[iPart], &chiPair[iPart]);
+    }
+    tree->SetBranchAddress("nSigTrk1" + particleLables[Pion], &nSigmaTPC[Pion][0]);
+    tree->SetBranchAddress("nSigTrk2" + particleLables[Pion], &nSigmaTPC[Pion][1]);
+
+// Vertex info
+    tree->SetBranchAddress("vertexZ", &vertexesZ);
+
+// Central track info
+    for (int i = 0; i < 2; ++i)
+    {
+        //tree->SetBranchAddress(Form("dEdx%i",i), &dEdx[i]);
+        tree->SetBranchAddress(Form("momentum%i",i), &momentum[i]);
+        tree->SetBranchAddress(Form("transMomentum%i",i), &transMomentum[i]);
+        //tree->SetBranchAddress(Form("charge%i",i), &charge[i]);
+        //tree->SetBranchAddress(Form("TOFtime%i",i), &TOFtime[i]);
+        //tree->SetBranchAddress(Form("TOFlength%i",i), &TOFlength[i]);
+        tree->SetBranchAddress(Form("DcaXY%i",i), &DcaXY[i]);
+        tree->SetBranchAddress(Form("DcaZ%i",i), &DcaZ[i]);
+        tree->SetBranchAddress(Form("NhitsFit%i",i), &NhitsFit[i]);
+        tree->SetBranchAddress(Form("NhitsDEdx%i",i), &NhitsDEdx[i]);
+        tree->SetBranchAddress(Form("Eta%i",i), &Eta[i]);
+        tree->SetBranchAddress(Form("Phi%i",i), &Phi[i]);
+        if(UPC2)
+            tree->SetBranchAddress(Form("NhitsPoss%i",i), &NhitsPoss[i]);      
+    }
+
+// RP track info  
+    for (int i = 0; i < nSides; ++i)
+    {
+        //tree->SetBranchAddress("timeRp" + sideLabel[i], &timeRp[i]);
+        //tree->SetBranchAddress("etaRp" + sideLabel[i], &etaRp[i]);
+        //tree->SetBranchAddress("xi" + sideLabel[i], &xi[i]);
+        tree->SetBranchAddress("t" + sideLabel[i], &t[i]);
+        tree->SetBranchAddress("phiRp" + sideLabel[i], &phiRP[i]);
+        tree->SetBranchAddress("rpX" + sideLabel[i], &rpX[i]);
+        tree->SetBranchAddress("rpY" + sideLabel[i], &rpY[i]);
+        tree->SetBranchAddress("rpZ" + sideLabel[i], &rpZ[i]);
+        tree->SetBranchAddress("thetaRp" + sideLabel[i], &thetaRp[i]);
+        tree->SetBranchAddress("pRp" + sideLabel[i], &pRp[i]);
+        tree->SetBranchAddress("ptRp" + sideLabel[i], &ptRp[i]);
+        tree->SetBranchAddress("xCorrelationsRp" + sideLabel[i], &xCorrelationsRp[i]);
+        tree->SetBranchAddress("yCorrelationsRp" + sideLabel[i], &yCorrelationsRp[i]);
+    }
+
+// event info
+    //tree->SetBranchAddress("runNumber", &runNumber);
+
+/* Old
+// PID and some quality event info
+    tree->SetBranchAddress("missingPt", &missingPt);
     tree->SetBranchAddress("elastic", &elastic);
     tree->SetBranchAddress("nSigTrk1Pion", &nSigmaTPC[Pion][0]);
     tree->SetBranchAddress("nSigTrk2Pion", &nSigmaTPC[Pion][1]);
@@ -602,7 +664,7 @@ void ConnectInput(TTree* tree)
 
 // event info
     tree->SetBranchAddress("fourPiState", &fourPiState);
-
+*/
 }
 
 void Make(int signal)
